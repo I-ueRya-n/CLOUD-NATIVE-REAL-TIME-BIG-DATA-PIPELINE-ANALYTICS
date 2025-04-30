@@ -34,7 +34,7 @@ def get_reddit_posts():
         # Parse query parameters
         subreddits_param = request.args.get('subreddit', '')
         # Data input pipeline
-        limit = int(request.args.get('limit', 10)) 
+        limit = int(request.args.get('limit')) 
         keywords_param = request.args.get('keywords', '')
         # Fetching multiple themes
         subreddit_list = [s.strip() for s in subreddits_param.split(',') if s.strip()]
