@@ -1,3 +1,0 @@
-atproto==0.0.61
-elasticsearch8==8.14.0
-flask==3.1.0

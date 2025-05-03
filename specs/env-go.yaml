@@ -1,0 +1,30 @@
+apiVersion: fission.io/v1
+kind: Environment
+metadata:
+  creationTimestamp: null
+  name: go
+spec:
+  builder:
+    command: build
+    container:
+      name: builder
+      resources: {}
+    image: ghcr.io/fission/go-builder-1.23
+    podspec:
+      containers:
+      - name: builder
+        resources: {}
+  imagepullsecret: ""
+  keeparchive: false
+  poolsize: 3
+  resources: {}
+  runtime:
+    container:
+      name: go
+      resources: {}
+    image: ghcr.io/fission/go-env-1.23
+    podspec:
+      containers:
+      - name: go
+        resources: {}
+  version: 3

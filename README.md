@@ -11,6 +11,8 @@ Setup fission
 fission specs init
 fission env create --spec --name python --image fission/python-env --builder fission/python-builder
 fission env create --spec --name python39 --image fission/python-env-3.9 --builder fission/python-builder-3.9
+
+fission env create --spec --name go --image ghcr.io/fission/go-env-1.23 --builder ghcr.io/fission/go-builder-1.23
 ```
 
 To update fission with the current specs, run
@@ -38,22 +40,18 @@ curl -XPUT -k "https://localhost:9200/bluesky"\
 ```
 
 Create the fission specs for bluesky
-
 ```
 fission package create --spec --name bluesky \
-    --source src/bluesky/__init__.py \
-    --source src/bluesky/bluesky.py \
-    --source src/bluesky/requirements.txt \
-    --source src/bluesky/build.sh \
-    --env python39 \
-    --buildcmd './build.sh'
+    --source src/bluesky/firehose.go \
+    --source go.mod \
+    --source go.sum \
+    --env go
 
 fission fn create --spec --name bluesky \
     --pkg bluesky \
-    --env python39 \
+    --env go \
     --configmap shared-data \
-    --entrypoint "bluesky.main"
+    --entrypoint Handler
 
 fission route create --spec --name bluesky --url /bluesky --function bluesky --createingress
 ```
-

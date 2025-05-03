@@ -1,10 +1,9 @@
 include:
-- src/bluesky/__init__.py
-- src/bluesky/bluesky.py
-- src/bluesky/requirements.txt
-- src/bluesky/build.sh
+- src/bluesky/firehose.go
+- go.mod
+- go.sum
 kind: ArchiveUploadSpec
-name: src-bluesky---init---py-lMCj
+name: src-bluesky-firehose-go-xYTZ
 
 ---
 apiVersion: fission.io/v1
@@ -13,16 +12,15 @@ metadata:
   creationTimestamp: null
   name: bluesky
 spec:
-  buildcmd: ./build.sh
   deployment:
     checksum: {}
   environment:
-    name: python39
+    name: go
     namespace: ""
   source:
     checksum: {}
     type: url
-    url: archive://src-bluesky---init---py-lMCj
+    url: archive://src-bluesky-firehose-go-xYTZ
 status:
   buildstatus: pending
-  lastUpdateTimestamp: "2025-05-02T09:43:17Z"
+  lastUpdateTimestamp: "2025-05-03T08:15:12Z"

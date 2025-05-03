@@ -17,12 +17,12 @@ spec:
   - name: shared-data
     namespace: ""
   environment:
-    name: python39
+    name: go
     namespace: ""
   functionTimeout: 60
   idletimeout: 120
   package:
-    functionName: bluesky.main
+    functionName: Handler
     packageref:
       name: bluesky
       namespace: ""
