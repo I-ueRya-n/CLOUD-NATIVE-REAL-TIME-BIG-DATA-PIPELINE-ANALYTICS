@@ -1,4 +1,4 @@
-module comp90024
+module bluesky.comp90024.com
 
 go 1.23.0
 

@@ -43,8 +43,8 @@ Create the fission specs for bluesky
 ```
 fission package create --spec --name bluesky \
     --source src/bluesky/firehose.go \
-    --source go.mod \
-    --source go.sum \
+    --source src/bluesky/go.mod \
+    --source src/bluesky/go.sum \
     --env go
 
 fission fn create --spec --name bluesky \
