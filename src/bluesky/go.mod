@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/bluesky-social/indigo v0.0.0-20250502213949-67e958259b31
+	github.com/elastic/go-elasticsearch/v8 v8.14.0
 	github.com/gorilla/websocket v1.5.3
 )
 
@@ -12,8 +13,9 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.7.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gocql/gocql v1.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -74,9 +76,9 @@ require (
 	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
-	go.opentelemetry.io/otel v1.21.0 // indirect
-	go.opentelemetry.io/otel/metric v1.21.0 // indirect
-	go.opentelemetry.io/otel/trace v1.21.0 // indirect
+	go.opentelemetry.io/otel v1.28.0 // indirect
+	go.opentelemetry.io/otel/metric v1.28.0 // indirect
+	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect

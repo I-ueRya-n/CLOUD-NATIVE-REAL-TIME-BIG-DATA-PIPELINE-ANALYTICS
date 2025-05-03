@@ -1,0 +1,25 @@
+{
+    "settings": {
+        "index": {
+            "number_of_shards": 3,
+            "number_of_replicas": 1
+        }
+    },
+    "mappings": {
+        "properties": {
+            "cid": {
+                "type": "keyword"
+            },
+            "did": {
+                "type": "keyword"
+            },
+            "createdAt": {
+                "type": "date",
+                "format": "date_optional_time"
+            },
+            "text": {
+                "type": "text"
+            }
+        }
+    }
+}
