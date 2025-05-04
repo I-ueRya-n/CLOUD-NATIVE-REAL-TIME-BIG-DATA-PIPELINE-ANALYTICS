@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: default
+  name: shared-data
+data:
+  ES_USERNAME: elastic
+  ES_PASSWORD: Mi0zu6yaiz1oThithoh3Di8kohphu9pi
+  BSKY_USERNAME: jcchil.bsky.social
+  BSKY_PASSWORD: yL*RU75#@vyOjo3p
+
