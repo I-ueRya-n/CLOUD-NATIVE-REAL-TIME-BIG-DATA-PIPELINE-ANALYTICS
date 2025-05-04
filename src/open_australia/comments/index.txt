@@ -1,0 +1,49 @@
+{
+  "mappings": {
+    "properties": {
+      "user_id": {
+        "type": "text"
+      },
+      "user_name": { 
+        "type": "text"
+      },
+      "comment_id": {
+        "type": "text"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "content": {
+        "type": "text"
+      },
+      "major": {
+        "type": "integer"
+      },
+      "url": {
+        "type": "text"
+      },
+      "type": {
+        "type": "text"
+      }
+      
+    }
+  }
+
+}
+"body" : "i would like to know why it is taking so long for people in Caboolture to be able to get internet, we have been told that it will be over 2 years before ports are going to be available in this area surely we are not that backward in this country , yet we have company's advertising on t.v that they will connect you and when you ring them they say yeah we can do it but when the time comes after about 2 weeks they say no we cant do it and iinet is one of the worst and telstra well they just dont care at all they say a minimum of 2 years i feel like we live in some out back of some country in europe , but they have it a lot better than us well i just dont understand how this can be when we are 30 minutes from the city of Brisbane .\r\nRon Gray .",
+"posted" : "2015-08-20 08:56:15",
+"major" : "101",
+"gid" : "uk.org.publicwhip/lords/2015-08-18.155.2",
+"url" : "/senate/?gid=2015-08-18.155.2#c908"
+
+
+"body": "Could I ask how much will also be used for Housing in the Disability Sector? Thanking you Philip Hodges",
+"comment_id": "1366",
+"epobject_id": "625976",
+"firstname": "Philip",
+"gid": "uk.org.publicwhip/lords/2018-03-22.25.4",
+"lastname": "Hodges",
+"major": "101",
+"posted": "2018-03-23 13:57:05",
+"url": "/senate/?gid=2018-03-22.25.4#c1366",
+"user_id": "3359"

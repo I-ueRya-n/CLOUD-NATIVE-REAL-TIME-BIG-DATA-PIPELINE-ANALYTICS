@@ -1,0 +1,46 @@
+{
+  "mappings": {
+    "properties": {
+      "id": { 
+        "type": "text" 
+      },
+      "parent_topic": { 
+        "type": "text" 
+      },
+      "discussion_date": { 
+        "type": "date" 
+      },
+      "major": { 
+        "type": "integer" 
+      },
+      "transcript": { 
+        "type": "text" 
+      },
+      "speaker": {
+        "properties": {
+          "first_name": { 
+            "type": "text" 
+          },
+          "last_name": { 
+            "type": "text" 
+          },
+          "party": { 
+            "type": "text" 
+          },
+          "house": { 
+            "type": "integer" 
+          },
+          "state": { 
+            "type": "text" 
+          },
+          "person_id": { 
+            "type": "text" 
+          },
+          "position": { 
+            "type": "text" 
+          }
+        }
+      }
+    }
+  }
+}

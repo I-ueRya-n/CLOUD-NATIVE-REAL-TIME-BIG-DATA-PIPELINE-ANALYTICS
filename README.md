@@ -3,6 +3,7 @@
 COMP90024 Assignment 2
 
 ## Setup
+DO NOT RE-RUN THIS CODE!
 
 ### Fission
 
@@ -13,6 +14,7 @@ fission env create --spec --name python --image fission/python-env --builder fis
 fission env create --spec --name python39 --image fission/python-env-3.9 --builder fission/python-builder-3.9
 
 fission env create --spec --name go --image ghcr.io/fission/go-env-1.23 --builder ghcr.io/fission/go-builder-1.23
+
 ```
 
 To update fission with the current specs, run
@@ -28,6 +30,14 @@ Create `specs/shared-data.yaml` config map with elastic search login, and run
 kubectl apply -f specs/shared-data.yaml
 ```
 
+This contains the following values:
+  ES_USERNAME
+  ES_PASSWORD 
+  BSKY_USERNAME
+  BSKY_PASSWORD 
+
+and can be accessed using the following route
+
 ### Bluesky
 
 Create elastic search index
@@ -36,10 +46,11 @@ Create elastic search index
 curl -XPUT -k "https://localhost:9200/bluesky"\
     --header 'Content-Type: application/json'\
     --data "@src/bluesky/index.json"\
-    --user 'elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi'
+    --user 'elastic:<ES_PASSWORD>'
 ```
 
 Create the fission specs for bluesky
+
 ```
 fission package create --spec --name bluesky \
     --source src/bluesky/firehose.go \
@@ -55,3 +66,20 @@ fission fn create --spec --name bluesky \
 
 fission route create --spec --name bluesky --url /bluesky --function bluesky --createingress
 ```
+
+## Open Australia
+DO NOT RUN THESE COMMANDS, JUST HERE TO KEEP TRACK OF WHAT I HAVE DONE!
+
+Ok so: 
+the OpenAustralia index holds:
+
+comments
+  has user info
+  can search by keyword, date, or person id
+
+debates
+  has the transcript of a debate / politicial discussion
+  can search by keyword, date, or person id 
+
+
+SEE README IN OA_DEBATES
