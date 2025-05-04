@@ -65,7 +65,7 @@ fission fn create --spec --name bluesky \
     --entrypoint Handler
 
 fission route create --spec --name bluesky --url /bluesky --function bluesky
-fission timer create --spec --name bluesky --function bluesky --cron "@every 10m"
+fission timer create --spec --name bluesky --function bluesky --cron "@every 1m"
 ```
 
 ## Open Australia

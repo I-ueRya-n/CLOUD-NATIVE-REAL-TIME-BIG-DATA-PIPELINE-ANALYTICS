@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -64,7 +63,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	sched := sequential.NewScheduler("myfirehose", rsc.EventHandler)
 	go events.HandleRepoStream(ctx, con, sched, nil)
 
-	time.Sleep(10 * time.Minute)
+	time.Sleep(1 * time.Minute)
 	log.Println("shutting down firehose function")
 	closed()
 }
@@ -82,8 +81,7 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 
 		rc, rec, err := rr.GetRecord(context.Background(), op.Path)
 		if err != nil {
-			e := fmt.Errorf("getting record %s (%s) within seq %d for %s: %w", op.Path, *op.Cid, evt.Seq, evt.Repo, err)
-			log.Println(e)
+			log.Println("error getting record: ", err)
 			continue
 		}
 
@@ -98,14 +96,14 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 
 		b, err := banana.MarshalJSON()
 		if err != nil {
-			log.Println(err)
+			log.Println("error marshalling lexicon: ", err)
 			continue
 		}
 
 		var pst = appbsky.FeedPost{}
 		err = json.Unmarshal(b, &pst)
 		if err != nil {
-			log.Println(err)
+			log.Println("error marshalling post: ", err)
 			continue
 		}
 
