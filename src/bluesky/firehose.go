@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/bluesky-social/indigo/api/atproto"
@@ -18,36 +19,18 @@ import (
 	"github.com/bluesky-social/indigo/repo"
 	"github.com/bluesky-social/indigo/repomgr"
 	es "github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/gorilla/websocket"
 )
 
-type MockHTTPResponse struct {
-}
-
-func (m *MockHTTPResponse) Write(buf []byte) (int, error) {
-	fmt.Printf("%s", buf)
-
-	return 0, nil
-}
-
-func (m *MockHTTPResponse) WriteHeader(status int) {
-
-}
-
-func (m *MockHTTPResponse) Header() http.Header {
-	return make(http.Header)
-}
-
-// func main() {
-// 	Handler(&MockHTTPResponse{}, nil)
-// }
+const ES_INDEX = "bluesky"
 
 func config(key string) string {
 	path := "/configs/default/shared-data/" + key
 
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		log.Println("error reading config map: %s", err)
+		log.Println("error reading config map: ", err)
 		return ""
 	}
 
@@ -61,6 +44,8 @@ type Post struct {
 	Text      string `json:"text"`
 }
 
+var ch chan Post
+
 func Handler(w http.ResponseWriter, r *http.Request) {
 	uri := "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
 	con, _, err := websocket.DefaultDialer.Dial(uri, http.Header{})
@@ -73,10 +58,13 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		RepoCommit: handleRepoCommit,
 	}
 
+	ch = make(chan Post, 1_000)
+	go indexPosts(ctx)
+
 	sched := sequential.NewScheduler("myfirehose", rsc.EventHandler)
 	go events.HandleRepoStream(ctx, con, sched, nil)
 
-	time.Sleep(1 * time.Minute)
+	time.Sleep(10 * time.Minute)
 	log.Println("shutting down firehose function")
 	closed()
 }
@@ -85,16 +73,6 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 	rr, err := repo.ReadRepoFromCar(context.Background(), bytes.NewReader(evt.Blocks))
 	if err != nil {
 		return err
-	}
-
-	client, err := es.NewClient(es.Config{
-		Addresses: []string{"http://elasticsearch-master.elastic.svc.cluster.local:9200"},
-		Username:  config("ES_USERNAME"),
-		Password:  config("ES_PASSWORD"),
-	})
-	if err != nil {
-		log.Println(err)
-		return nil
 	}
 
 	for _, op := range evt.Ops {
@@ -106,10 +84,12 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 		if err != nil {
 			e := fmt.Errorf("getting record %s (%s) within seq %d for %s: %w", op.Path, *op.Cid, evt.Seq, evt.Repo, err)
 			log.Println(e)
+			continue
 		}
 
 		if lexutil.LexLink(rc) != *op.Cid {
 			log.Printf("mismatch in record and op cid: %s != %s", rc, *op.Cid)
+			continue
 		}
 
 		banana := lexutil.LexiconTypeDecoder{
@@ -119,12 +99,14 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 		b, err := banana.MarshalJSON()
 		if err != nil {
 			log.Println(err)
+			continue
 		}
 
 		var pst = appbsky.FeedPost{}
 		err = json.Unmarshal(b, &pst)
 		if err != nil {
 			log.Println(err)
+			continue
 		}
 
 		if pst.LexiconTypeID != "app.bsky.feed.post" {
@@ -138,9 +120,83 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 			Text:      pst.Text,
 		}
 
-		buf, _ := json.Marshal(post)
-		client.Index("bluesky", bytes.NewReader(buf))
+		ch <- post
 	}
 
 	return nil
+}
+
+func indexPosts(ctx context.Context) {
+	client, err := es.NewClient(es.Config{
+		Addresses:              []string{"https://elasticsearch-master.elastic.svc.cluster.local:9200"},
+		Username:               config("ES_USERNAME"),
+		Password:               config("ES_PASSWORD"),
+		CertificateFingerprint: config("ES_FINGERPRINT"),
+
+		RetryOnStatus: []int{502, 503, 504, 429},
+		MaxRetries:    5,
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+		Index:         ES_INDEX,         // The default index name
+		Client:        client,           // The Elasticsearch client
+		NumWorkers:    8,                // The number of worker goroutines
+		FlushBytes:    1_000_000,        // The flush threshold in bytes
+		FlushInterval: 30 * time.Second, // The periodic flush interval
+	})
+	if err != nil {
+		log.Fatalf("Error creating the indexer: %s", err)
+	}
+
+	var countSuccessful uint64
+	var post Post
+
+	for {
+		select {
+		case post = <-ch:
+		case <-ctx.Done():
+			if err := bi.Close(context.Background()); err != nil {
+				log.Fatalf("Unexpected error: %s", err)
+			}
+
+			log.Printf("bluesky: indexed %d posts", countSuccessful)
+			return
+		}
+
+		buf, err := json.Marshal(post)
+		if err != nil {
+			log.Println("error marshalling json: ", err)
+			continue
+		}
+
+		err = bi.Add(
+			context.Background(),
+			esutil.BulkIndexerItem{
+				Action:     "index",
+				DocumentID: post.Cid,
+				Body:       bytes.NewReader(buf),
+
+				OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
+					atomic.AddUint64(&countSuccessful, 1)
+				},
+
+				OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem,
+					res esutil.BulkIndexerResponseItem, err error) {
+					if err != nil {
+						log.Printf("ERROR: %s", err)
+					} else {
+						log.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
+					}
+				},
+			})
+		if err != nil {
+			log.Println("error adding post to bulk indexer: ", err)
+			continue
+		}
+	}
+
 }
