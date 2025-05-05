@@ -17,7 +17,7 @@ def main() -> str:
     Gets all debates on a person
     gets person ids from the redis queue: "oa_debate_people"
 
-    adds each page into the redis queue: "oa_debates"
+    adds each page into the redis queue: "oa_debate_data"
         list of JSON debate objects
         NOT PARSED OR ANYTHING
         JUST RAW JSON FROM OA API
@@ -45,7 +45,7 @@ def main() -> str:
 
     # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_dates" QUEUE YEAH
     request_data: List[Dict[str, Any]] = request.get_json(force=True)
-    current_app.logger.info(f'Processing {len(request_data)} dates')
+    current_app.logger.info(f'Processing {len(request_data)} people')
 
     # get the date and house (senate or representatives) from the request data
     person_ID: str = request_data.get('person', "")
@@ -88,7 +88,7 @@ def main() -> str:
         current_app.logger.info(f"Adding {len(debates)} debate to redis queue for processing")
 
         response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue/oa_debates',
+            url='http://router.fission/enqueue/oa_debate_data',
             headers={'Content-Type': 'application/json'},
             json=debates
         )

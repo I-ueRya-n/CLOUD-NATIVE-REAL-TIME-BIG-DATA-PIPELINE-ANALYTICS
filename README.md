@@ -63,6 +63,14 @@ kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 
 ### REDIS Queue
 
+#### install KEDA
+export KEDA_VERSION='2.9'
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
+helm repo update
+helm upgrade keda kedacore/keda --install --namespace keda --create-namespace --version ${KEDA_VERSION}
+
+
 #### Install redis (USED THE SAME PASSWORD AS ES)
 
 export REDIS_VERSION='0.19.1'

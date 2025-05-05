@@ -65,7 +65,7 @@ def main() -> str:
         'https://elasticsearch-master.elastic.svc.cluster.local:9200',
         verify_certs=False,
         ssl_show_warn=False,
-        basic_auth=('elastic', 'elastic')
+        basic_auth=('elastic', 'elastic') ## I NEED TO ADD THE KEY FROM THE CONFIG MAP
     )
 
 
@@ -94,4 +94,4 @@ def main() -> str:
             f'Version: {index_response["_version"]}'
         )
 
-    return 'ok'
+    return f'added {len(request_data)} debates to the index, yay!'

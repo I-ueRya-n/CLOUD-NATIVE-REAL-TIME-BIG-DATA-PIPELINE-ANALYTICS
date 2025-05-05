@@ -1,8 +1,14 @@
 {
+  "settings": {
+      "index": {
+          "number_of_shards": 3,
+          "number_of_replicas": 1
+      }
+  },
   "mappings": {
     "properties": {
       "id": { 
-        "type": "text" 
+        "type": "keyword" 
       },
       "parent_topic": { 
         "type": "text" 
@@ -25,16 +31,16 @@
             "type": "text" 
           },
           "party": { 
-            "type": "text" 
+            "type": "keyword" 
           },
           "house": { 
-            "type": "integer" 
+            "type": "keyword" 
           },
           "state": { 
             "type": "text" 
           },
           "person_id": { 
-            "type": "text" 
+            "type": "keyword" 
           },
           "position": { 
             "type": "text" 

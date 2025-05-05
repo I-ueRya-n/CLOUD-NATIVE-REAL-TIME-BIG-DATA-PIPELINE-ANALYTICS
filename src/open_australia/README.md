@@ -19,16 +19,16 @@ Can change this if we need!
 
 
 ### Create elastic search index for OA debates
-
+NOT DONE YET YAY
 curl -XPUT -k "https://localhost:9200/oa_debates"\
     --header 'Content-Type: application/json'\
-    --data "@src/openaustralia/index.json"\
+    --data "@src/open_australia/index.json"\
     --user 'elastic:<ES_PASSWORD>'
 
 
-## FISSION FUNCTIONS
+# FISSION FUNCTIONS
 
-### OA Person List
+## OA Person List
     DOES NOT YET PUT IT INTO THE REDIS QUEUE
     GIVEN THAT THERE IS NO REDIS QUEUE 
     BECAUSE THIS TOOK LONGER THAN EXPECTED
@@ -98,12 +98,61 @@ then test
 
 
 
-### OA debate harvester by person
-NOT YET IMPLEMENTED, NOT YET WORKING
+## OA debate harvester by person
+reads from oa_debate_people redis queue
+writes to oa_debate_data redis queue
+queries api for debates by person (up to 1000)
+
+#### create fission function
+  
+
+##### create package
+
+fission package create --spec --name oa-debate-harvester-by-person \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/__init__.py \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/oa_debate_harvester_by_person.py \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/requirements.txt \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/build.sh \
+  --env python39 \
+  --buildcmd './build.sh'
+
+fission spec apply --specdir ./specs --wait
+
+##### create function
+fission function create --spec --name oa-debate-harvester-by-person \
+  --pkg oa-debate-harvester-by-person \
+  --env python39 \
+  --entrypoint "oa_debate_harvester_by_person.main"
+
+fission spec apply --specdir ./specs --wait
 
 
-### OA debate adder to elasticsearch
+##### create redis trigger for queue
+
+
+  fission mqtrigger create --name oa-debate-harvester-by-person \
+    --spec\
+    --function oa-debate-harvester-by-person \
+    --mqtype redis\
+    --mqtkind keda\
+    --topic oa_debate_people \
+    --resptopic oa_debate_data \
+    --errortopic errors \
+    --maxretries 3 \
+    --metadata address=redis-headless.redis.svc.cluster.local:6379\
+    --metadata listLength=1000\
+    --metadata listName=oa_debate_people
+
+
+
+fission spec apply --specdir ./specs --wait
+
+
+
+
+## OA debate adder to elasticsearch
 NOT YET IMPLEMENTED, NOT YET WORKING
+
 
 
 
