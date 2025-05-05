@@ -7,7 +7,7 @@ spec:
   InvokeStrategy:
     ExecutionStrategy:
       ExecutorType: newdeploy
-      MaxScale: 10
+      MaxScale: 30
       MinScale: 1
       SpecializationTimeout: 120
       TargetCPUPercent: 0
@@ -26,5 +26,5 @@ spec:
     packageref:
       name: bluesky
       namespace: ""
-  requestsPerPod: 10000
+  requestsPerPod: 1
   resources: {}

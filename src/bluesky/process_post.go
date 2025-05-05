@@ -24,7 +24,21 @@ type Post struct {
 	Text      string `json:"text"`
 }
 
+var client *es.TypedClient
+
 func PostHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
+	client, err = es.NewTypedClient(es.Config{
+		Addresses:              []string{"https://elasticsearch-master.elastic.svc.cluster.local:9200"},
+		Username:               config("ES_USERNAME"),
+		Password:               config("ES_PASSWORD"),
+		CertificateFingerprint: config("ES_FINGERPRINT"),
+	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	if r == nil {
 		log.Println("process post: ", "request is nil")
 		return
@@ -104,14 +118,8 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 	return nil
 }
 func indexPosts(ctx context.Context, post Post) {
-	client, err := es.NewTypedClient(es.Config{
-		Addresses:              []string{"https://elasticsearch-master.elastic.svc.cluster.local:9200"},
-		Username:               config("ES_USERNAME"),
-		Password:               config("ES_PASSWORD"),
-		CertificateFingerprint: config("ES_FINGERPRINT"),
-	})
-	if err != nil {
-		log.Println(err)
+	if client == nil {
+		log.Println("error: ", "client is not initialised")
 		return
 	}
 

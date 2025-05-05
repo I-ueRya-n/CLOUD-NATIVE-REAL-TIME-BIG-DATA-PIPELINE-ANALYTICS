@@ -96,8 +96,7 @@ fission fn create --spec --name bluesky-post \
     --env go \
     --configmap shared-data \
     --executortype newdeploy \
-    --maxscale=10 \
-    --rpp 10000 \
+    --maxscale=30 \
     --entrypoint PostHandler
 
 fission route create --spec --name bluesky-post --url /bluesky/repo-commit --method POST --function bluesky-post 
