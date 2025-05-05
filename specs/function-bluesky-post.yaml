@@ -2,13 +2,13 @@ apiVersion: fission.io/v1
 kind: Function
 metadata:
   creationTimestamp: null
-  name: bluesky
+  name: bluesky-post
 spec:
   InvokeStrategy:
     ExecutionStrategy:
-      ExecutorType: poolmgr
-      MaxScale: 0
-      MinScale: 0
+      ExecutorType: newdeploy
+      MaxScale: 10
+      MinScale: 1
       SpecializationTimeout: 120
       TargetCPUPercent: 0
     StrategyType: execution
@@ -22,9 +22,9 @@ spec:
   functionTimeout: 60
   idletimeout: 120
   package:
-    functionName: Handler
+    functionName: PostHandler
     packageref:
       name: bluesky
       namespace: ""
-  requestsPerPod: 1
+  requestsPerPod: 10000
   resources: {}

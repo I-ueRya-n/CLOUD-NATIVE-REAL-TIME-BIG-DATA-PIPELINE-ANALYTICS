@@ -54,18 +54,30 @@ Create the fission specs for bluesky
 ```
 fission package create --spec --name bluesky \
     --source src/bluesky/firehose.go \
+    --source src/bluesky/process_post.go \
     --source src/bluesky/go.mod \
     --source src/bluesky/go.sum \
     --env go
 
-fission fn create --spec --name bluesky \
+fission fn create --spec --name bluesky-firehose \
     --pkg bluesky \
     --env go \
     --configmap shared-data \
-    --entrypoint Handler
+    --entrypoint FirehoseHandler
 
-fission route create --spec --name bluesky --url /bluesky --function bluesky
-fission timer create --spec --name bluesky --function bluesky --cron "@every 1m"
+fission route create --spec --name bluesky-firehose --url /bluesky/firehose --function bluesky-firehose
+fission timer create --spec --name bluesky-firehose --function bluesky-firehose --cron "@every 1m"
+
+fission fn create --spec --name bluesky-post \
+    --pkg bluesky \
+    --env go \
+    --configmap shared-data \
+    --executortype newdeploy \
+    --maxscale=10 \
+    --rpp 10000 \
+    --entrypoint PostHandler
+
+fission route create --spec --name bluesky-post --url /bluesky/repo-commit --method POST --function bluesky-post 
 ```
 
 ## Open Australia
