@@ -67,11 +67,11 @@ def main() -> Any:
             "house": house,
         }
 
-        # response: Optional[requests.Response] = requests.post(
-        #     url='http://router.fission/enqueue/oa_debate_people',
-        #     headers={'Content-Type': 'application/json'},
-        #     json=parsed_person
-        # )
+        response: Optional[requests.Response] = requests.post(
+            url='http://router.fission/enqueue/oa_debate_people',
+            headers={'Content-Type': 'application/json'},
+            json=parsed_person
+        )
         current_app.logger.info(f"Added {person.get('full_name', '')} to redis queue {parsed_person}, yay!")
         # print(f"Added {person.get('full_name', '')} to redis queue {parsed_person}")
 

@@ -61,6 +61,78 @@ To monitor fission, port-forward the grafana port and go to `localhost:3000`
 kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 ```
 
+### REDIS Queue
+
+#### Install redis (USED THE SAME PASSWORD AS ES)
+
+export REDIS_VERSION='0.19.1'
+helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
+helm upgrade redis-operator ot-helm/redis-operator \
+    --install --namespace redis --create-namespace --version ${REDIS_VERSION}
+    
+kubectl create secret generic redis-secret --from-literal=password=<ES_PASSWORD> -n redis
+
+helm upgrade redis ot-helm/redis --install --namespace redis   
+
+#### Install redis insight (gui for redis) 
+
+kubectl apply -f ./specs/redis-insight.yaml --namespace redis
+
+To view redis insight start port forwarding:
+
+kubectl port-forward service/redis-insight --namespace redis 5540:5540
+
+Then go to:
+http://localhost:5540/
+
+
+#### Create redis fission package, function and HTTPS trigger 
+  fission package create --spec --name enqueue \
+    --source ./src/enqueue/__init__.py \
+    --source ./src/enqueue/enqueue.py \
+    --source ./src/enqueue/requirements.txt \
+    --source ./src/enqueue/build.sh \
+    --env python \
+    --buildcmd './build.sh'
+
+
+
+  fission function create --spec --name enqueue \
+    --pkg enqueue \
+    --env python \
+    --entrypoint "enqueue.main"
+
+    fission spec apply --specdir ./specs --wait
+
+  fission httptrigger create --spec --name enqueue --url "/enqueue/{topic}" --method POST --function enqueue
+
+      fission spec apply --specdir ./specs --wait
+
+
+#### how to use
+
+
+  In your function, to add to a queue for a topic
+        response: Optional[requests.Response] = requests.post(
+            url='http://router.fission/enqueue oa_debate_people',
+            headers={'Content-Type': 'application/json'},
+            json=parsed_person
+        )
+
+To test the queue:
+
+on another terminal window port forward the router:
+kubectl port-forward service/router -n fission 9090:80
+
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"data1":"xyz","data2":"xyz"}' \
+  http://localhost:9090/enqueue/test
+
+
+
+
+
 ### Bluesky
 
 Create elastic search index

@@ -1,0 +1,28 @@
+include:
+- ./src/enqueue/__init__.py
+- ./src/enqueue/enqueue.py
+- ./src/enqueue/requirements.txt
+- ./src/enqueue/build.sh
+kind: ArchiveUploadSpec
+name: src-enqueue---init---py-nJtq
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: enqueue
+spec:
+  buildcmd: ./build.sh
+  deployment:
+    checksum: {}
+  environment:
+    name: python
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-enqueue---init---py-nJtq
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-05T02:34:03Z"

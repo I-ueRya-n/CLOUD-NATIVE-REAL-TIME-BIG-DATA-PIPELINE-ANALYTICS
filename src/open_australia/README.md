@@ -1,4 +1,9 @@
 
+## REDIS QUEUE
+
+
+
+
 ## OA debates
 The main scraper for debates gets info on all debates that occured on a date
 for both the senate and house of reps.
@@ -15,7 +20,7 @@ Can change this if we need!
 
 ### Create elastic search index for OA debates
 
-curl -XPUT -k "https://localhost:9200/openaustralia"\
+curl -XPUT -k "https://localhost:9200/oa_debates"\
     --header 'Content-Type: application/json'\
     --data "@src/openaustralia/index.json"\
     --user 'elastic:<ES_PASSWORD>'
@@ -85,10 +90,11 @@ fission function log -f --name oa-person-lister
 
 #### test
 
-on another terminal window run:
+on another terminal window port forward the router:
 kubectl port-forward service/router -n fission 9090:80
 
-curl "http://localhost:9090/openaustralia/year/2024/house/senate" | jq '.'
+then test
+  e.g. curl "http://localhost:9090/openaustralia/year/2024/house/senate" | jq '.'
 
 
 
@@ -98,6 +104,8 @@ NOT YET IMPLEMENTED, NOT YET WORKING
 
 ### OA debate adder to elasticsearch
 NOT YET IMPLEMENTED, NOT YET WORKING
+
+
 
 
 
