@@ -41,7 +41,7 @@ def format_to_mapping(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
 
 def main() -> str:
     """Process and index debate information from the OA website.
-    reads from redis queue: "add_oa_debate"
+    reads from redis queue: "oa_debate_data"
     puts these into the elasticsearch index: "oa_debates"
 
     Handles:
@@ -65,7 +65,7 @@ def main() -> str:
         'https://elasticsearch-master.elastic.svc.cluster.local:9200',
         verify_certs=False,
         ssl_show_warn=False,
-        basic_auth=('elastic', 'elastic') ## I NEED TO ADD THE KEY FROM THE CONFIG MAP
+        basic_auth=('elastic', "Mi0zu6yaiz1oThithoh3Di8kohphu9pi") ## I NEED TO ADD THE KEY FROM THE CONFIG MAP
     )
 
 
@@ -82,9 +82,16 @@ def main() -> str:
             current_app.logger.error(f"Error formatting data: {e}")
             continue
 
+        # only add to index if the debate is not already in the index
+        if es_client.exists(index='oa_debates', id=debate_mapped.get("id")):
+            current_app.logger.info(
+                f'Debate {debate_mapped.get("id")} already exists in the index.'
+            )
+            continue
+
         # actually add to index
         index_response: Dict[str, Any] = es_client.index(
-            index='observations',
+            index='oa_debates',
             id=debate_mapped.get("id"),
             body=debate_mapped,
         )

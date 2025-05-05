@@ -19,11 +19,17 @@ Can change this if we need!
 
 
 ### Create elastic search index for OA debates
-NOT DONE YET YAY
-curl -XPUT -k "https://localhost:9200/oa_debates"\
-    --header 'Content-Type: application/json'\
-    --data "@src/open_australia/index.json"\
-    --user 'elastic:<ES_PASSWORD>'
+DONE, BUT IDK IF IT WORKED
+
+kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
+kubectl port-forward service/kibana-kibana -n elastic 5601:5601
+
+
+// why wouldnt localhost work?
+curl -XPUT -k "https://127.0.0.1:9200:9200/oa_debates"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/index.json"\
+    --user "elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi"
 
 
 # FISSION FUNCTIONS
@@ -43,7 +49,7 @@ Call by:
 
   e.g. curl "http://localhost:9090/openaustralia/year/2024/house/senate" | jq '.'
 
-Then ENQUEUES the found people to be serached by OA_debate_harvester_by_person
+Then ENQUEUES the found people to be serached by OA_debate_harvester_by_details
 
 
 ### SETUP
@@ -108,21 +114,21 @@ queries api for debates by person (up to 1000)
 
 ##### create package
 
-fission package create --spec --name oa-debate-harvester-by-person \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/__init__.py \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/oa_debate_harvester_by_person.py \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/requirements.txt \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_person/build.sh \
+fission package create --spec --name oa-debate-harvester-by-details \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/__init__.py \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/oa_debate_harvester_by_details.py \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/requirements.txt \
+  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/build.sh \
   --env python39 \
   --buildcmd './build.sh'
 
 fission spec apply --specdir ./specs --wait
 
 ##### create function
-fission function create --spec --name oa-debate-harvester-by-person \
-  --pkg oa-debate-harvester-by-person \
+fission function create --spec --name oa-debate-harvester-by-details \
+  --pkg oa-debate-harvester-by-details \
   --env python39 \
-  --entrypoint "oa_debate_harvester_by_person.main"
+  --entrypoint "oa_debate_harvester_by_details.main"
 
 fission spec apply --specdir ./specs --wait
 
@@ -130,14 +136,14 @@ fission spec apply --specdir ./specs --wait
 ##### create redis trigger for queue
 
 
-  fission mqtrigger create --name oa-debate-harvester-by-person \
+  fission mqtrigger create --name oa-debate-harvester-by-details \
     --spec\
-    --function oa-debate-harvester-by-person \
+    --function oa-debate-harvester-by-details \
     --mqtype redis\
     --mqtkind keda\
     --topic oa_debate_people \
     --resptopic oa_debate_data \
-    --errortopic errors \
+    --errortopic errors-debate-harvester \
     --maxretries 3 \
     --metadata address=redis-headless.redis.svc.cluster.local:6379\
     --metadata listLength=1000\
@@ -149,41 +155,76 @@ fission spec apply --specdir ./specs --wait
 
 
 
-
 ## OA debate adder to elasticsearch
-NOT YET IMPLEMENTED, NOT YET WORKING
+
+##### create package
+
+fission package create --spec --name oa-debate-adder \
+  --source ./src/open_australia/oa_debates/debate_adder/__init__.py \
+  --source ./src/open_australia/oa_debates/debate_adder/oa_debate_adder.py \
+  --source ./src/open_australia/oa_debates/debate_adder/requirements.txt \
+  --source ./src/open_australia/oa_debates/debate_adder/build.sh \
+  --env python39 \
+  --buildcmd './build.sh'
+
+fission spec apply --specdir ./specs --wait
+
+##### create function
+fission function create --spec --name oa-debate-adder \
+  --pkg oa-debate-adder \
+  --env python39 \
+  --entrypoint "oa_debate_adder.main"
+
+fission spec apply --specdir ./specs --wait
+
+
+##### create redis trigger for queue
+
+
+  fission mqtrigger create --name oa-debate-adder \
+    --spec\
+    --function oa-debate-adder \
+    --mqtype redis\
+    --mqtkind keda\
+    --topic oa_debate_data \
+    --errortopic errors-debate-adder \
+    --maxretries 3 \
+    --metadata address=redis-headless.redis.svc.cluster.local:6379\
+    --metadata listLength=10000\
+    --metadata listName=oa_debate_data
 
 
 
+fission spec apply --specdir ./specs --wait
 
 
+## OA daily debate scraper for the day before
+
+NOT YET ADDED
+
+##### create package
+
+fission package create --spec --name oa-daily-debate-harvester \
+  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/__init__.py \
+  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/oa_daily_debate_harvester.py \
+  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/requirements.txt \
+  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/build.sh \
+  --env python39 \
+  --buildcmd './build.sh'
+
+fission spec apply --specdir ./specs --wait
+
+##### create function
+fission function create --spec --name oa-daily-debate-harvester \
+  --pkg oa-daily-debate-harvester \
+  --env python39 \
+  --entrypoint "oa_daily_debate_harvester.main"
+
+fission spec apply --specdir ./specs --wait
 
 
-<!-- ### Create the fission function to get the debates on a date -->
+##### create time trigger to run daily
 
-<!-- 
-
-### Create the fission function for openaustralia
-
-  fission package create --spec --name OAcomments \
-    --source src/openaustralia/OAcomments/__init__.py \
-    --source ./functions/OAcomments/OAcomments.py \
-    --source ./functions/OAcomments/requirements.txt \
-    --source ./functions/OAcomments/build.sh \
-    --env python \
-    --buildcmd './build.sh'
-    
-  fission fn create --spec --name avgtemp \
-    --pkg OAcomments \
-    --env python \
-    --entrypoint "OAcomments.main"
+fission timer create --name oa-daily-debate-harvester --function oa-daily-debate-harvester --cron "@daily"
 
 
-fission routes 
-
-  fission route create --spec --name recentOAcomments --function avgtemp \
-    --method GET \
-    --url '/temperature/days/{date:[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]}'
-  fission route create --spec --name avgtempdaystation --function avgtemp \
-    --method GET \
-    --url '/temperature/days/{date:[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]}/stations/{station:[a-zA-Z0-9]+}' -->

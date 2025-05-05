@@ -11,10 +11,6 @@ def main() -> Any:
     BY WHO IS IN OFFICE AT THE START OF A YEAR
     This really only needs to be run once per year yay.
 
-    DOES NOT YET PUT IT INTO THE REDIS QUEUE
-    GIVEN THAT THERE IS NO REDIS QUEUE 
-    BECAUSE THIS TOOK LONGER THAN EXPECTED
-
     puts the results into the redis queue: "oa_debate_people"   
     in the format:
         {
