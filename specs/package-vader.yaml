@@ -1,0 +1,27 @@
+include:
+- src/functions/vader/build.sh
+- src/functions/vader/requirements.txt
+- src/functions/vader/sentiment_function.py
+kind: ArchiveUploadSpec
+name: src-functions-vader-build-sh-Rx8h
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: vader
+spec:
+  buildcmd: ./build.sh
+  deployment:
+    checksum: {}
+  environment:
+    name: python
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-functions-vader-build-sh-Rx8h
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-05T09:06:48Z"
