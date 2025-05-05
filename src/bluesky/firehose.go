@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -56,9 +58,16 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 		return err
 	}
 
-	_, err = http.Post("http://router.fission.svc.cluster.local/bluesky/repo-commit", "application/json", bytes.NewReader(buf))
+	res, err := http.Post("http://router.fission.svc.cluster.local/bluesky/repo-commit", "application/json", bytes.NewReader(buf))
 	if err != nil {
 		log.Println("error writing commit: ", err)
+		return err
+	}
+
+	buf, _ = io.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		err = fmt.Errorf("error in repo commit: ", string(buf[:]))
+		log.Println(err)
 		return err
 	}
 

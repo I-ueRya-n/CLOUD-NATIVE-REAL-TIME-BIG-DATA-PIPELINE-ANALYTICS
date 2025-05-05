@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -35,29 +36,40 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		CertificateFingerprint: config("ES_FINGERPRINT"),
 	})
 	if err != nil {
-		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
 	if r == nil {
-		log.Println("process post: ", "request is nil")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("request is nil"))
 		return
 	}
 
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("process post: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	var evt atproto.SyncSubscribeRepos_Commit
 	err = json.Unmarshal(buf, &evt)
 	if err != nil {
 		log.Println("process post: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	err = processRepoCommit(&evt)
 	if err != nil {
 		log.Println("process post: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
 	}
 }
 
@@ -112,20 +124,22 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 			Text:      pst.Text,
 		}
 
-		indexPosts(ctx, post)
+		err = indexPosts(ctx, post)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
-func indexPosts(ctx context.Context, post Post) {
+func indexPosts(ctx context.Context, post Post) error {
 	if client == nil {
-		log.Println("error: ", "client is not initialised")
-		return
+		return fmt.Errorf("error: ", "client is not initialised")
 	}
 
 	buf, err := json.Marshal(post)
 	if err != nil {
-		log.Println("error marshalling json: ", err)
+		return err
 	}
 
 	req := esapi.IndexRequest{
@@ -137,11 +151,12 @@ func indexPosts(ctx context.Context, post Post) {
 
 	res, err := req.Do(ctx, client)
 	if err != nil {
-		log.Println("error indexing document: ", err)
-		return
+		return err
 	}
 
 	if res.IsError() {
-		log.Println("error in elasticsearch: ", res.String())
+		return fmt.Errorf("error in elasticsearch: ", res.String())
 	}
+
+	return nil
 }
