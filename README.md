@@ -38,6 +38,29 @@ This contains the following values:
 
 and can be accessed using the following route
 
+### Prometheus
+
+Install prometheus on the cluster
+```
+export METRICS_NAMESPACE=monitoring
+kubectl create namespace $METRICS_NAMESPACE
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
+```
+
+Create `config/values.yaml` to enable service monitors in fission.
+
+```
+helm upgrade fission fission-charts/fission-all --namespace fission -f config/values.yaml
+```
+
+To monitor fission, port-forward the grafana port and go to `localhost:3000`
+```
+kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
+```
+
 ### Bluesky
 
 Create elastic search index
@@ -96,3 +119,4 @@ debates
 
 
 SEE README IN OA_DEBATES
+
