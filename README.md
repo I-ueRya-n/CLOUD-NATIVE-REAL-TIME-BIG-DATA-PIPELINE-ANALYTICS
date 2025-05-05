@@ -162,15 +162,6 @@ fission package create --spec --name bluesky \
     --source src/bluesky/go.sum \
     --env go
 
-fission fn create --spec --name bluesky-firehose \
-    --pkg bluesky \
-    --env go \
-    --configmap shared-data \
-    --entrypoint FirehoseHandler
-
-fission route create --spec --name bluesky-firehose --url /bluesky/firehose --function bluesky-firehose
-fission timer create --spec --name bluesky-firehose --function bluesky-firehose --cron "@every 1m"
-
 fission fn create --spec --name bluesky-post \
     --pkg bluesky \
     --env go \
@@ -180,6 +171,18 @@ fission fn create --spec --name bluesky-post \
     --entrypoint PostHandler
 
 fission route create --spec --name bluesky-post --url /bluesky/repo-commit --method POST --function bluesky-post 
+```
+
+Bluesky firehose docker container
+```
+cd src/bluesky/
+docker build -t jcchil/bluesky-firehose .
+docker push jcchil/bluesky-firehose
+```
+
+Then deploy with kubectl
+```
+kubectl create -f src/bluesky/bluesky-firehose.yaml
 ```
 
 ## Open Australia

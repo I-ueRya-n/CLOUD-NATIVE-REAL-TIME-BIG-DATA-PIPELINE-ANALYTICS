@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bluesky-firehose
+  labels:
+    app: bluesky
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bluesky
+  template:
+    metadata:
+      labels:
+        app: bluesky
+    spec:
+      containers:
+        - name: bluesky
+          image: docker.io/jcchil/bluesky-firehose
+          volumeMounts:
+          - name: config-volume
+            mountPath: /configs/default/shared-data
+      volumes:
+        - name: config-volume
+          configMap:
+            # Provide the name of the ConfigMap containing the files you want
+            # to add to the container
+            name: shared-data
+      restartPolicy: Always

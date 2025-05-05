@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"github.com/bluesky-social/indigo/repo"
 	"github.com/bluesky-social/indigo/repomgr"
 	es "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
 type Post struct {
@@ -28,19 +26,6 @@ type Post struct {
 var client *es.TypedClient
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-	client, err = es.NewTypedClient(es.Config{
-		Addresses:              []string{"https://elasticsearch-master.elastic.svc.cluster.local:9200"},
-		Username:               config("ES_USERNAME"),
-		Password:               config("ES_PASSWORD"),
-		CertificateFingerprint: config("ES_FINGERPRINT"),
-	})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
 	if r == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("request is nil"))
@@ -64,20 +49,29 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = processRepoCommit(&evt)
+	p, err := processRepoCommit(&evt)
 	if err != nil {
 		log.Println("process post: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	if p == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	buf, _ = json.Marshal(p)
+	w.Write(buf)
 }
 
-func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
+func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) (post *Post, err error) {
 	ctx := context.Background()
 	rr, err := repo.ReadRepoFromCar(ctx, bytes.NewReader(evt.Blocks))
 	if err != nil {
-		return err
+		log.Println(err)
+		return nil, nil
 	}
 
 	for _, op := range evt.Ops {
@@ -87,7 +81,7 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 
 		rc, rec, err := rr.GetRecord(ctx, op.Path)
 		if err != nil {
-			log.Println("error getting record: ", err)
+			log.Println(err)
 			continue
 		}
 
@@ -117,46 +111,14 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 			continue
 		}
 
-		post := Post{
+		post := &Post{
 			Cid:       op.Cid.String(),
 			Did:       evt.Repo,
 			CreatedAt: pst.CreatedAt,
 			Text:      pst.Text,
 		}
-
-		err = indexPosts(ctx, post)
-		if err != nil {
-			return err
-		}
+		return post, nil
 	}
 
-	return nil
-}
-func indexPosts(ctx context.Context, post Post) error {
-	if client == nil {
-		return fmt.Errorf("error: ", "client is not initialised")
-	}
-
-	buf, err := json.Marshal(post)
-	if err != nil {
-		return err
-	}
-
-	req := esapi.IndexRequest{
-		Index:      "bluesky",
-		Body:       bytes.NewReader(buf),
-		DocumentID: post.Cid,
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(ctx, client)
-	if err != nil {
-		return err
-	}
-
-	if res.IsError() {
-		return fmt.Errorf("error in elasticsearch: ", res.String())
-	}
-
-	return nil
+	return nil, nil
 }
