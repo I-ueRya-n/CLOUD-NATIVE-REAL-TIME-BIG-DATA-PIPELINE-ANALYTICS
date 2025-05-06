@@ -61,7 +61,7 @@ func main() {
 			RepoCommit: handleRepoCommit,
 		}
 
-		sched := parallel.NewScheduler(1, 100, "wss://bsky.network", rsc.EventHandler)
+		sched := parallel.NewScheduler(100, 1000, "wss://bsky.network", rsc.EventHandler)
 
 		err = events.HandleRepoStream(context.Background(), con, sched, nil)
 		if err != nil {
