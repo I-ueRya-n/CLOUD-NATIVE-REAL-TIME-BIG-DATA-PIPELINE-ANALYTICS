@@ -14,7 +14,7 @@ import (
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/events"
-	"github.com/bluesky-social/indigo/events/schedulers/sequential"
+	"github.com/bluesky-social/indigo/events/schedulers/parallel"
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/gorilla/websocket"
@@ -48,7 +48,7 @@ func main() {
 	uri := "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
 	dialer := websocket.Dialer{
 		Proxy:            http.ProxyFromEnvironment,
-		HandshakeTimeout: 30 * time.Minute,
+		HandshakeTimeout: 45 * time.Second,
 	}
 
 	for {
@@ -61,7 +61,8 @@ func main() {
 			RepoCommit: handleRepoCommit,
 		}
 
-		sched := sequential.NewScheduler("firehose", rsc.EventHandler)
+		sched := parallel.NewScheduler(1, 100, "wss://bsky.network", rsc.EventHandler)
+
 		err = events.HandleRepoStream(context.Background(), con, sched, nil)
 		if err != nil {
 			log.Println("handle repo stream:", err)
