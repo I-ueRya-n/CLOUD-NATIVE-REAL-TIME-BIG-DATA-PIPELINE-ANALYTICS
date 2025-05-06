@@ -176,8 +176,8 @@ fission route create --spec --name bluesky-post --url /bluesky/repo-commit --met
 Bluesky firehose docker container
 ```
 cd src/bluesky/
-docker build -t jcchil/bluesky-firehose .
-docker push jcchil/bluesky-firehose
+docker build -t jcchil/bluesky-firehose:<version> .
+docker push jcchil/bluesky-firehose:<version>
 ```
 
 Then deploy with kubectl
