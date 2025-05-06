@@ -1,8 +1,3 @@
-# COMP90024_teamXX Reddit Harvester Fission Function
-# Team: XX, Names: [Add your team names], Student IDs: [Add IDs]
-# Description: Fission-compatible Reddit harvester for Australian-related subreddits.
-# This function fetches recent posts, filters by keywords, and returns results as JSON.
-
 import os
 import praw
 import prawcore
