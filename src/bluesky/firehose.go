@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"sync/atomic"
 	"time"
 
@@ -103,6 +104,11 @@ func countIndex() {
 }
 
 func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
+	if !slices.ContainsFunc(evt.Ops, isCreateRecord) {
+		// not a create record commit
+		return nil
+	}
+
 	buf, err := json.Marshal(evt)
 	if err != nil {
 		log.Println("error marshalling repo commit: ", err)

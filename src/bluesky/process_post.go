@@ -66,6 +66,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
+func isCreateRecord(op *atproto.SyncSubscribeRepos_RepoOp) bool {
+	if op == nil {
+		return false
+	}
+
+	return repomgr.EventKind(op.Action) == repomgr.EvtKindCreateRecord
+}
+
 func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) (post *Post, err error) {
 	ctx := context.Background()
 	rr, err := repo.ReadRepoFromCar(ctx, bytes.NewReader(evt.Blocks))
@@ -75,7 +83,7 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) (post *Post, err 
 	}
 
 	for _, op := range evt.Ops {
-		if repomgr.EventKind(op.Action) != repomgr.EvtKindCreateRecord {
+		if !isCreateRecord(op) {
 			continue
 		}
 
