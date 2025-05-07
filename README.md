@@ -217,19 +217,19 @@ kubectl create -f src/bluesky/bluesky-firehose.yaml
 ```
 
 ## Open Australia
-DO NOT RUN THESE COMMANDS, JUST HERE TO KEEP TRACK OF WHAT I HAVE DONE!
 
-Ok so: 
-the OpenAustralia index holds:
-
-comments
-  has user info
-  can search by keyword, date, or person id
+the ElasticSearch "oa_debates" index holds:
 
 debates
   has the transcript of a debate / politicial discussion
   can search by keyword, date, or person id 
 
 
-SEE README IN OA_DEBATES
+
+the Elasticsearch index for comments has not been set up yet, sorry!
+comments
+  has user info
+  can search by keyword, date, or person id
+
+SEE README IN src/open_australia/oa_debates FOR DETAILS
 

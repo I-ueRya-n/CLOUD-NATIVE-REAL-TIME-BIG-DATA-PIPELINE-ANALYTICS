@@ -13,9 +13,9 @@ def format_to_mapping(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
         incoming_data: The raw debate data.
 
     Returns:
-        a debate mapped and ready to go into the ES index.
+        a debate mapped and ready to go into the ES index. woo hoo!
     """
-    print("FORMATTING TO MAPPING")
+
     try:
         formatted_data = {
             "id": incoming_data.get("gid", ""),
@@ -34,6 +34,7 @@ def format_to_mapping(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
             }
         }
         return formatted_data
+    
     except Exception as e:
         current_app.logger.error(f"Error formatting data: {e}")
         raise ValueError("Failed to format incoming data to mapping template.")
@@ -44,20 +45,15 @@ def main() -> str:
     reads from redis queue: "oa_debate_data"
     puts these into the elasticsearch index: "oa_debates"
 
+    Does not add duplicates if the id already exists in the index!
+
     Handles:
     - Elasticsearch client initialization
-
-    - Timeline pagination using since_id
-    - Rate limiting with 5-second collection window
-    - JSON serialization of post data
-
+    - Formatting of incoming data to match the mapping template
+    - Indexing of debate data
 
     Returns:
-        "ok" if successful, else error message
-
-    Raises:
-        JSONDecodeError: If invalid JSON payload received from harvester
-        ElasticsearchException: For indexing failures
+        "success message" if successful, else error message
 
     """
 
@@ -69,7 +65,7 @@ def main() -> str:
     )
 
 
-    # GET THE NEXT INCOMING FROM THE REDIS "oa_debates" QUEUE YEAH
+    # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_data" QUEUE
     request_data: List[Dict[str, Any]] = request.get_json(force=True)
     current_app.logger.info(f'Processing {len(request_data)} debates')
 

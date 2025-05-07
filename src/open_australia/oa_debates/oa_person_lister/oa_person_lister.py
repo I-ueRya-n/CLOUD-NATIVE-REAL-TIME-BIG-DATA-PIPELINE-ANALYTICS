@@ -7,10 +7,15 @@ from flask import current_app, request
 from datetime import datetime
 
 def main() -> Any:
-    """gets CURRENT SENATOR AND HOUSE OF REPS DETAILS.
-    BY WHO IS IN OFFICE AT THE START OF A YEAR
+    """gets a list of CURRENT SENATOR AND HOUSE OF REPS IDS.
     This really only needs to be run once per year yay.
 
+    Input:
+    - http trigger with:
+    - year: YYYY
+    - house: senate or representatives
+
+    Output:
     puts the results into the redis queue: "oa_debate_keys"   
     in the format:
         {
@@ -20,20 +25,17 @@ def main() -> Any:
 
     Handles:
     - OpenAustralia API client initialization
-    - adding people to redis queue
+    - querying the OpenAustralia API for members during a specific year
+    - adding these people to redis queue
 
     Returns:
         right now returns json of all responses for testing
-        ## "yay!" if successful, else error message
+        or error message if something goes wrong
 
-    Raises:
-        JSONDecodeError: If response parsing fails
     """
     
     # Initialize OpenAustralia client 
     oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
-
-
 
     # Extract and validate headers
     req: Request = request
@@ -68,37 +70,10 @@ def main() -> Any:
             headers={'Content-Type': 'application/json'},
             json=parsed_person
         )
-        current_app.logger.info(f"Added {person.get('full_name', '')} to redis queue {parsed_person}, yay!")
-        # print(f"Added {person.get('full_name', '')} to redis queue {parsed_person}")
+        if response.status_code != 200:
+            current_app.logger.error(f"Failed to add {person.get('person_id', '')} to redis queue: {response.text}")
+            return json.dumps({"error": "Failed to add person to redis queue"}), 500
+        else:
+            current_app.logger.info(f"Added {person.get('full_name', '')} to redis queue {parsed_person}, yay!")
 
     return resp[0], 200
-
-
-#     [{
-#   "member_id" : "100014",
-#   "house" : "2",
-#   "first_name" : "Simon",
-#   "last_name" : "Birmingham",
-#   "constituency" : "SA",
-#   "party" : "Liberal Party",
-#   "entered_house" : "2007-05-03",
-#   "left_house" : "2025-01-28",
-#   "entered_reason" : "unknown",
-#   "left_reason" : "resigned",
-#   "person_id" : "10044",
-#   "title" : "",
-#   "lastupdate" : "2025-03-31 04:51:47",
-#   "full_name" : "Simon Birmingham",
-#   "name" : "Simon Birmingham",
-#   "image" : "/images/mpsL/10044.jpg",
-#   "office" : [{
-#   "moffice_id" : "215684",
-#   "dept" : "",
-#   "position" : "Shadow Minister for Foreign Affairs",
-#   "from_date" : "2022-06-05",
-#   "to_date" : "9999-12-31",
-#   "person" : "10044",
-#   "source" : ""
-# },
-
-

@@ -46,14 +46,17 @@ def main() -> Any:
         current_app.logger.error(f"Invalid year provided: {year}")
         return json.dumps({"error": "Invalid year provided"}), 400
     
+    # consider both houses
     for house in ['senate', 'representatives']:
         resp = oa.get_debates(house, year=year, date=None, search=None, gid=None,
                                person_id=None, order=None, page=None, num=None)
         dates = resp.get('dates', [])
+        
         if not resp or len(dates) == 0:
             current_app.logger.error(f"No debates found for year {year} in {house}")
             continue
 
+        # add each date to the redis queue individually
         for date in dates:
             parsed_date = {
                 "date": date,
@@ -65,7 +68,11 @@ def main() -> Any:
                 headers={'Content-Type': 'application/json'},
                 json=parsed_date
             )
-            current_app.logger.info(f"Added {date} to redis queue {parsed_date}, yay!")
+            if response.status_code != 200:
+                current_app.logger.error(f"Failed to add {date} to redis queue: {response.text}")
+                return json.dumps({"error": "Failed to add date to redis queue"}), 500
+            else:
+                current_app.logger.info(f"Added {date} to redis queue {parsed_date}, yay!")
 
     return resp, 200
 
