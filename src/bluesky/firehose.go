@@ -8,12 +8,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"sync/atomic"
 	"time"
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/events"
-	"github.com/bluesky-social/indigo/events/schedulers/sequential"
+	"github.com/bluesky-social/indigo/events/schedulers/parallel"
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/gorilla/websocket"
@@ -43,32 +44,30 @@ func main() {
 		return
 	}
 
+	go countIndex()
 	uri := "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
 	dialer := websocket.Dialer{
 		Proxy:            http.ProxyFromEnvironment,
-		HandshakeTimeout: 30 * time.Minute,
+		HandshakeTimeout: 45 * time.Second,
 	}
 
-	con, _, err := dialer.Dial(uri, http.Header{})
-	if err != nil {
-		log.Println(err)
-	}
-
-	rsc := &events.RepoStreamCallbacks{
-		RepoCommit: handleRepoCommit,
-	}
-
-	go func() {
-		for {
-			time.Sleep(1 * time.Minute)
-
-			log.Printf("indexed %d docs", countSuccessful.Load())
-			countSuccessful.Store(0)
+	for {
+		con, _, err := dialer.Dial(uri, http.Header{})
+		if err != nil {
+			log.Println("dial bsky:", err)
 		}
-	}()
 
-	sched := sequential.NewScheduler("firehose", rsc.EventHandler)
-	events.HandleRepoStream(context.Background(), con, sched, nil)
+		rsc := &events.RepoStreamCallbacks{
+			RepoCommit: handleRepoCommit,
+		}
+
+		sched := parallel.NewScheduler(100, 1000, "wss://bsky.network", rsc.EventHandler)
+
+		err = events.HandleRepoStream(context.Background(), con, sched, nil)
+		if err != nil {
+			log.Println("handle repo stream:", err)
+		}
+	}
 }
 
 func initClient() error {
@@ -96,7 +95,21 @@ func initClient() error {
 	return nil
 }
 
+func countIndex() {
+	for {
+		time.Sleep(1 * time.Hour)
+
+		log.Printf("indexed %d docs", countSuccessful.Load())
+		countSuccessful.Store(0)
+	}
+}
+
 func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
+	if !slices.ContainsFunc(evt.Ops, isCreateRecord) {
+		// not a create record commit
+		return nil
+	}
+
 	buf, err := json.Marshal(evt)
 	if err != nil {
 		log.Println("error marshalling repo commit: ", err)
