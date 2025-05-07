@@ -1,0 +1,24 @@
+apiVersion: fission.io/v1
+kind: MessageQueueTrigger
+metadata:
+  creationTimestamp: null
+  name: oa-debate-adder
+spec:
+  contentType: application/json
+  cooldownPeriod: 300
+  errorTopic: errors-debate-adder
+  functionref:
+    functionweights: null
+    name: oa-debate-adder
+    type: name
+  maxReplicaCount: 100
+  maxRetries: 3
+  messageQueueType: redis
+  metadata:
+    address: redis-headless.redis.svc.cluster.local:6379
+    listLength: "10000"
+    listName: oa_debate_data
+  minReplicaCount: 0
+  mqtkind: keda
+  pollingInterval: 30
+  topic: oa_debate_data
