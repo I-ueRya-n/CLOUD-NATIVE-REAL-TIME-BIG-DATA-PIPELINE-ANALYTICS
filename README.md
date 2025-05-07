@@ -61,6 +61,37 @@ To monitor fission, port-forward the grafana port and go to `localhost:3000`
 kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 ```
 
+### Analysis (vader)
+
+#### Create the package containing the required packages
+
+```bash
+fission package create --spec --name vader \
+  --source ./src/functions/vader/sentiment_function.py \
+  --source ./src/functions/vader/requirements.txt \
+  --source ./src/functions/vader/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+```
+
+#### Create the function from the file
+
+```
+fission function create --spec --name vader-sentiment-function \
+  --pkg vader \
+  --env python \
+  --entrypoint "sentiment_function.main"
+```
+
+#### Create the trigger/route
+
+```
+fission route create --spec --name vader-sentiment-function \
+  --url /analysis/sentiment \
+  --method POST \
+  --function vader-sentiment-function
+```
+
 ### REDIS Queue
 
 #### install KEDA
