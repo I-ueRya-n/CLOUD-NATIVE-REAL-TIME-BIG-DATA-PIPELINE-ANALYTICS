@@ -25,7 +25,7 @@ kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
 kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 
 
-// why wouldnt localhost work?
+// why wouldn't localhost work?
 curl -XPUT -k "https://127.0.0.1:9200:9200/oa_debates"\
     --header "Content-Type: application/json"\
     --data "@src/open_australia/oa_debates/index.json"\
@@ -34,20 +34,69 @@ curl -XPUT -k "https://127.0.0.1:9200:9200/oa_debates"\
 
 # FISSION FUNCTIONS
 
-## OA Person List
-    DOES NOT YET PUT IT INTO THE REDIS QUEUE
-    GIVEN THAT THERE IS NO REDIS QUEUE 
-    BECAUSE THIS TOOK LONGER THAN EXPECTED
+## 1. OA Date Lister - START POINT
+Lists dates in a year with debates on them in BOTH the senate and house of reps
+Trigger by HTTP request to start the pipeline.
+Feeds into the Debate Harvester By Details (into the oa_debate_key redis queue)
+
+### OA Date Lister SETUP
+
+#### create fission function
+##### create package
+
+fission package create --spec --name oa-date-lister \
+  --source ./src/open_australia/oa_debates/oa_date_lister/__init__.py \
+  --source ./src/open_australia/oa_debates/oa_date_lister/oa_date_lister.py \
+  --source ./src/open_australia/oa_debates/oa_date_lister/requirements.txt \
+  --source ./src/open_australia/oa_debates/oa_date_lister/build.sh \
+  --env python39 \
+  --buildcmd './build.sh'
 
 
+##### create function
+fission function create --spec --name oa-date-lister \
+  --pkg oa-date-lister \
+  --env python39 \
+  --entrypoint "oa_date_lister.main"
+
+fission spec apply --specdir ./specs --wait
+
+
+##### create routes
+
+fission route create --spec --name oa-dates-with-debates --function oa-date-lister \
+  --method GET \
+  --url '/openaustralia/year/{year:[0-9][0-9][0-9][0-9]}'\
+  --createingress
+
+fission spec apply --specdir ./specs --wait
+
+## forward port 
+kubectl port-forward service/router -n fission 9090:80
+
+## to see logs
+fission function log -f --name oa-date-lister
+
+#### test
+
+on another terminal window port forward the router:
+kubectl port-forward service/router -n fission 9090:80
+
+then test
+  e.g. curl "http://localhost:9090/openaustralia/year/2024" | jq '.'
+
+
+
+## 2. OA Person List - START POINT
 Finds all details of politicians in either the senate or house of reps at the start of a year
 This really doesn't need to be run much
+OUTDATED, USE THE YEAR ONE INSTEAD TO AVOID DUPLICATES
 
 Call by:
   HTTP get request to 
-  curl "/openaustralia/year/{date}/house/{"representatives" | "senate"}"
+  "/openaustralia/list-people/year/{date}/house/{"representatives" | "senate"}"
 
-  e.g. curl "http://localhost:9090/openaustralia/year/2024/house/senate" | jq '.'
+  e.g. curl "http://localhost:9090/openaustralia/list-people/year/2024/house/senate" | jq '.'
 
 Then ENQUEUES the found people to be serached by OA_debate_harvester_by_details
 
@@ -56,7 +105,6 @@ Then ENQUEUES the found people to be serached by OA_debate_harvester_by_details
 
 #### create fission function
   
-
 ##### create package
 
 fission package create --spec --name oa-person-lister \
@@ -67,7 +115,6 @@ fission package create --spec --name oa-person-lister \
   --env python39 \
   --buildcmd './build.sh'
 
-fission spec apply --specdir ./specs --wait
 
 ##### create function
 fission function create --spec --name oa-person-lister \
@@ -82,7 +129,7 @@ fission spec apply --specdir ./specs --wait
 
 fission route create --spec --name oa-people-year-house --function oa-person-lister \
   --method GET \
-  --url '/openaustralia/year/{year:[0-9][0-9][0-9][0-9]}/house/{house:[a-zA-Z0-9]+}'\
+  --url '/openaustralia/list-people/year/{year:[0-9][0-9][0-9][0-9]}/house/{house:[a-zA-Z0-9]+}'\
   --createingress
 
 fission spec apply --specdir ./specs --wait
@@ -100,14 +147,14 @@ on another terminal window port forward the router:
 kubectl port-forward service/router -n fission 9090:80
 
 then test
-  e.g. curl "http://localhost:9090/openaustralia/year/2024/house/senate" | jq '.'
+  e.g. curl "http://localhost:9090/openaustralia/list-people/year/2024/house/senate" | jq '.'
 
 
 
-## OA debate harvester by person
-reads from oa_debate_people redis queue
+## 3. OA debate harvester by details - MIDDLE PIPELINE STEP
+reads from oa_debate_keys redis queue
 writes to oa_debate_data redis queue
-queries api for debates by person (up to 1000)
+queries api for debates by person or by date (up to 1000)
 
 #### create fission function
   
@@ -122,7 +169,6 @@ fission package create --spec --name oa-debate-harvester-by-details \
   --env python39 \
   --buildcmd './build.sh'
 
-fission spec apply --specdir ./specs --wait
 
 ##### create function
 fission function create --spec --name oa-debate-harvester-by-details \
@@ -135,19 +181,18 @@ fission spec apply --specdir ./specs --wait
 
 ##### create redis trigger for queue
 
-
   fission mqtrigger create --name oa-debate-harvester-by-details \
     --spec\
     --function oa-debate-harvester-by-details \
     --mqtype redis\
     --mqtkind keda\
-    --topic oa_debate_people \
+    --topic oa_debate_keys \
     --resptopic oa_debate_data \
     --errortopic errors-debate-harvester \
     --maxretries 3 \
     --metadata address=redis-headless.redis.svc.cluster.local:6379\
     --metadata listLength=1000\
-    --metadata listName=oa_debate_people
+    --metadata listName=oa_debate_keys
 
 
 
@@ -155,7 +200,7 @@ fission spec apply --specdir ./specs --wait
 
 
 
-## OA debate adder to elasticsearch
+## OA debate adder to elasticsearch - FINAL STEP OF DEBATE PIPELINE
 
 ##### create package
 
@@ -167,7 +212,6 @@ fission package create --spec --name oa-debate-adder \
   --env python39 \
   --buildcmd './build.sh'
 
-fission spec apply --specdir ./specs --wait
 
 ##### create function
 fission function create --spec --name oa-debate-adder \
@@ -212,7 +256,6 @@ fission package create --spec --name oa-daily-debate-harvester \
   --env python39 \
   --buildcmd './build.sh'
 
-fission spec apply --specdir ./specs --wait
 
 ##### create function
 fission function create --spec --name oa-daily-debate-harvester \
@@ -225,6 +268,7 @@ fission spec apply --specdir ./specs --wait
 
 ##### create time trigger to run daily
 
-fission timer create --name oa-daily-debate-harvester --function oa-daily-debate-harvester --cron "@daily"
+fission timer create f --function oa-daily-debate-harvester --cron "@daily"
 
 
+fission spec apply --specdir ./specs --wait

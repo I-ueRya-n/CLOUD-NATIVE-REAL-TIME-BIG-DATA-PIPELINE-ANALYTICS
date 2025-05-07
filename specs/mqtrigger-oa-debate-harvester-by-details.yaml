@@ -2,14 +2,14 @@ apiVersion: fission.io/v1
 kind: MessageQueueTrigger
 metadata:
   creationTimestamp: null
-  name: oa-debate-harvester-by-person
+  name: oa-debate-harvester-by-details
 spec:
   contentType: application/json
   cooldownPeriod: 300
-  errorTopic: errors
+  errorTopic: errors-debate-harvester
   functionref:
     functionweights: null
-    name: oa-debate-harvester-by-person
+    name: oa-debate-harvester-by-details
     type: name
   maxReplicaCount: 100
   maxRetries: 3
@@ -17,9 +17,9 @@ spec:
   metadata:
     address: redis-headless.redis.svc.cluster.local:6379
     listLength: "1000"
-    listName: oa_debate_people
+    listName: oa_debate_keys
   minReplicaCount: 0
   mqtkind: keda
   pollingInterval: 30
   respTopic: oa_debate_data
-  topic: oa_debate_people
+  topic: oa_debate_keys

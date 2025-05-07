@@ -20,7 +20,7 @@ def main() -> str:
     - Adds to the Redis queue
 
     e.g.
-    Topic: "oa_debate_people"
+    Topic: "oa_debate_keys"
     Example payload:
         {
             "person": person_id,

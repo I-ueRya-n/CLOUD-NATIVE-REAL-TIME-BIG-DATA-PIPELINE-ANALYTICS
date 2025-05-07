@@ -1,0 +1,28 @@
+include:
+- ./src/open_australia/oa_debates/oa_debate_harvester_by_details/__init__.py
+- ./src/open_australia/oa_debates/oa_debate_harvester_by_details/oa_debate_harvester_by_details.py
+- ./src/open_australia/oa_debates/oa_debate_harvester_by_details/requirements.txt
+- ./src/open_australia/oa_debates/oa_debate_harvester_by_details/build.sh
+kind: ArchiveUploadSpec
+name: src-open-australia-oa-debates-oa-debate-harvester-by-details----RmNV
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: oa-debate-harvester-by-details
+spec:
+  buildcmd: ./build.sh
+  deployment:
+    checksum: {}
+  environment:
+    name: python39
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-open-australia-oa-debates-oa-debate-harvester-by-details----RmNV
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-06T03:03:33Z"

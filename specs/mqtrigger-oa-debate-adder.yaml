@@ -6,7 +6,7 @@ metadata:
 spec:
   contentType: application/json
   cooldownPeriod: 300
-  errorTopic: errors
+  errorTopic: errors-debate-adder
   functionref:
     functionweights: null
     name: oa-debate-adder

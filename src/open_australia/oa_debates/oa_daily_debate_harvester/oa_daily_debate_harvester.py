@@ -1,22 +1,19 @@
-from openaustralia import OpenAustralia
-from flask import Request, current_app, request
-import json
-from typing import Dict, Any, Optional
+from flask import current_app
+from typing import  Any, Optional
 import requests
-from flask import current_app, request
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 def main() -> Any:
     """
-    runs the daily debate harvester for the previous day
-    only gets debates for the previous day
+    runs the daily debate harvester for two days before the current date
+    only gets debates from two days ago (they should be available by then)
 
     runs this once a day
 
-    puts the results into the redis queue: "oa_debate_people" (need to rename)
+    puts the results into the redis queue: "oa_debate_keys" (need to rename)
     in the format:
         {
-            "date": dd-mm-yyyy,
+            "date": yyyy-mm-dd,
             "house": house (senate or representatives)
         }
 
@@ -29,20 +26,20 @@ def main() -> Any:
 
     """
             
-    yesterday = datetime.now() - timedelta(1)
+    yesterday = datetime.now() - timedelta(2)
     yesterday_string = yesterday.strftime("%Y-%m-%d")
 
-    for house in ["senators", "representatives"]:
+    for house in ["senate", "representatives"]:
         request = {
             "date": yesterday_string,
             "house": house,
         }
         response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue/oa_debate_people',
+            url='http://router.fission/enqueue/oa_debate_keys',
             headers={'Content-Type': 'application/json'},
             json=request
         )
-        current_app.logger.info(f"Added {request} to redis queue: oa_debate_people, yay!")
-        # print(f"Added {person.get('full_name', '')} to redis queue {parsed_person}")
+        current_app.logger.info(f"Added {request} to redis queue: oa_debate_keys, yay!")
+        # print(f"Added {request} to redis queue: oa_debate_keys, yay!")
 
-    return "added yesterday's request to the redis queue", 200
+    return "added two days ago's date to the redis queue", 200

@@ -1,0 +1,28 @@
+include:
+- ./src/open_australia/oa_debates/oa_daily_debate_harvester/__init__.py
+- ./src/open_australia/oa_debates/oa_daily_debate_harvester/oa_daily_debate_harvester.py
+- ./src/open_australia/oa_debates/oa_daily_debate_harvester/requirements.txt
+- ./src/open_australia/oa_debates/oa_daily_debate_harvester/build.sh
+kind: ArchiveUploadSpec
+name: src-open-australia-oa-debates-oa-daily-debate-harvester---init--G7UE
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: oa-daily-debate-harvester
+spec:
+  buildcmd: ./build.sh
+  deployment:
+    checksum: {}
+  environment:
+    name: python39
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-open-australia-oa-debates-oa-daily-debate-harvester---init--G7UE
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-06T03:21:32Z"

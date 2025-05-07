@@ -2,21 +2,21 @@ apiVersion: fission.io/v1
 kind: HTTPTrigger
 metadata:
   creationTimestamp: null
-  name: oa-people-year-house
+  name: oa-dates-with-debates
 spec:
   createingress: true
   functionref:
     functionweights: null
-    name: oa-person-lister
+    name: oa-date-lister
     type: name
   host: ""
   ingressconfig:
     annotations: null
     host: '*'
-    path: /openaustralia/list-people/year/{year:[0-9][0-9][0-9][0-9]}/house/{house:[a-zA-Z0-9]+}
+    path: /openaustralia/year/{year:[0-9][0-9][0-9][0-9]}
     tls: ""
   method: ""
   methods:
   - GET
   prefix: ""
-  relativeurl: /openaustralia/list-people/year/{year:[0-9][0-9][0-9][0-9]}/house/{house:[a-zA-Z0-9]+}
+  relativeurl: /openaustralia/year/{year:[0-9][0-9][0-9][0-9]}

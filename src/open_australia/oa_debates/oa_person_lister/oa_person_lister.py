@@ -1,7 +1,7 @@
 from openaustralia import OpenAustralia
 from flask import Request, current_app, request
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 import requests
 from flask import current_app, request
 from datetime import datetime
@@ -11,7 +11,7 @@ def main() -> Any:
     BY WHO IS IN OFFICE AT THE START OF A YEAR
     This really only needs to be run once per year yay.
 
-    puts the results into the redis queue: "oa_debate_people"   
+    puts the results into the redis queue: "oa_debate_keys"   
     in the format:
         {
             "person": person_id,
@@ -64,7 +64,7 @@ def main() -> Any:
         }
 
         response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue/oa_debate_people',
+            url='http://router.fission/enqueue/oa_debate_keys',
             headers={'Content-Type': 'application/json'},
             json=parsed_person
         )

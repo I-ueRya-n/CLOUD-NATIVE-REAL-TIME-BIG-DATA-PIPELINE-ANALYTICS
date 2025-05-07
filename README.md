@@ -122,7 +122,7 @@ http://localhost:5540/
 
   In your function, to add to a queue for a topic
         response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue oa_debate_people',
+            url='http://router.fission/enqueue oa_debate_keys',
             headers={'Content-Type': 'application/json'},
             json=parsed_person
         )
