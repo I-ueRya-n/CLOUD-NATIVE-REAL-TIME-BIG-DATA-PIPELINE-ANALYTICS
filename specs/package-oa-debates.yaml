@@ -1,0 +1,32 @@
+include:
+- ./src/open_australia/oa_debates/__init__.py
+- ./src/open_australia/oa_debates/requirements.txt
+- ./src/open_australia/oa_debates/build.sh
+- ./src/open_australia/oa_debates/oa_daily_debate_harvester.py
+- ./src/open_australia/oa_debates/oa_debate_adder.py
+- ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py
+- ./src/open_australia/oa_debates/oa_person_lister.py
+- ./src/open_australia/oa_debates/util.py
+kind: ArchiveUploadSpec
+name: src-open-australia-oa-debates---init---py-ZFNi
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: oa-debates
+spec:
+  buildcmd: ./build.sh
+  deployment:
+    checksum: {}
+  environment:
+    name: python39
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-open-australia-oa-debates---init---py-ZFNi
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-07T04:30:00Z"

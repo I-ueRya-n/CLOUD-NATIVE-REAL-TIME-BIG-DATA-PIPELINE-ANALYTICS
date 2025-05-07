@@ -21,7 +21,7 @@ spec:
   package:
     functionName: oa_date_lister.main
     packageref:
-      name: oa-date-lister
+      name: oa-debates
       namespace: ""
   requestsPerPod: 1
   resources: {}

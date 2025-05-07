@@ -1,12 +1,10 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from openaustralia import OpenAustralia
 from flask import current_app, request
 import json
 import time
-from typing import Dict, Any, Optional
 import requests
-
-
+from util import config
 
 
 def main() -> str:
@@ -38,9 +36,8 @@ def main() -> str:
         MastodonError: For API communication failures
         JSONDecodeError: If response parsing fails
     """
-    # Initialize OpenAustralia client 
-    oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
-
+    # Initialize OpenAustralia client
+    oa = OpenAustralia(config("OA_API_KEY"))
 
     # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_dates" QUEUE YEAH
     request_data: List[Dict[str, Any]] = request.get_json(force=True)
@@ -64,7 +61,7 @@ def main() -> str:
         except ValueError:
             current_app.logger.error(f"Date must be in D-M-Y format: {date_str}")
             return json.dumps({"error": "Date must be in D-M-Y format"}), 400
-        
+
 
     if (not person_ID) and (not date_str):
         current_app.logger.error("No person ID or date provided in request data")
@@ -76,10 +73,9 @@ def main() -> str:
         return json.dumps({"error": "Invalid house type"}), 400
     # Get debates for the specified person
 
-    # gets the first 1000 (50 * 20) results 
+    # gets the first 1000 (50 * 20) results
     MAX_PAGES = 50
     page = 1
-
 
     # this is the first page of results, 
     debates_page = oa.get_debates(debate_type=house, date=date_str, search=None, person_id=person_ID, gid=None, year=None, order='d', page=None, num=None)
@@ -92,7 +88,7 @@ def main() -> str:
         if not debates_page:
             current_app.logger.info(f"Finished finding debates at page {page}")
             break
-        
+
         if (date_str):
             debates = debates_page
         elif (person_ID):
@@ -102,7 +98,7 @@ def main() -> str:
         if len(debates) == 0:
             current_app.logger.info(f"Finished finding debates at page {page}")
             break
-        
+
         debates_to_add = []
         for debate in debates:
             if (date_str):
@@ -136,7 +132,7 @@ def main() -> str:
                             # break
                 else:
                     current_app.logger.error(f"Could not find debate with gid {debate_gid}")
-                    
+
             else:
                 current_app.logger.error(f"Could not find debate gid for {debate}")
 
@@ -150,14 +146,9 @@ def main() -> str:
         )
         if response.status_code != 200:
             current_app.logger.error(f"Failed to add debates to redis queue: {response.text}")
-            
 
         # let the poor api breathe
         time.sleep(1)
         page += 1
 
-
     return "yay", 200
-
-if __name__ == "__main__":
-    main()

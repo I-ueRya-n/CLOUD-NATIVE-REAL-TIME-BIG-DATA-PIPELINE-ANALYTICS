@@ -1,7 +1,8 @@
 from flask import current_app
-from typing import  Any, Optional
+from typing import Any, Optional
 import requests
 from datetime import datetime, timedelta
+
 
 def main() -> Any:
     """
@@ -25,7 +26,6 @@ def main() -> Any:
         ## "yay!" if successful, else error message
 
     """
-            
     yesterday = datetime.now() - timedelta(2)
     yesterday_string = yesterday.strftime("%Y-%m-%d")
 

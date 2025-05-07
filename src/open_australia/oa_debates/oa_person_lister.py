@@ -3,15 +3,16 @@ from flask import Request, current_app, request
 import json
 from typing import Any, Optional
 import requests
-from flask import current_app, request
 from datetime import datetime
+from util import config
+
 
 def main() -> Any:
     """gets CURRENT SENATOR AND HOUSE OF REPS DETAILS.
     BY WHO IS IN OFFICE AT THE START OF A YEAR
     This really only needs to be run once per year yay.
 
-    puts the results into the redis queue: "oa_debate_keys"   
+    puts the results into the redis queue: "oa_debate_keys"
     in the format:
         {
             "person": person_id,
@@ -29,18 +30,15 @@ def main() -> Any:
     Raises:
         JSONDecodeError: If response parsing fails
     """
-    
-    # Initialize OpenAustralia client 
-    oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
-
-
+    # Initialize OpenAustralia client
+    oa = OpenAustralia(config("OA_API_KEY"))
 
     # Extract and validate headers
     req: Request = request
 
     year: Optional[str] = req.headers.get('X-Fission-Params-year')
     house: Optional[str] = req.headers.get('X-Fission-Params-house')
-        
+
     date_object = datetime.strptime(year + "-01-01", "%Y-%m-%d")
 
     date_string = date_object.strftime("%Y-%m-%d")

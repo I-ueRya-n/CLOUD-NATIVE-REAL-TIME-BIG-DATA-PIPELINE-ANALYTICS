@@ -21,7 +21,7 @@ spec:
   package:
     functionName: oa_daily_debate_harvester.main
     packageref:
-      name: oa-daily-debate-harvester
+      name: oa-debates
       namespace: ""
   requestsPerPod: 1
   resources: {}
