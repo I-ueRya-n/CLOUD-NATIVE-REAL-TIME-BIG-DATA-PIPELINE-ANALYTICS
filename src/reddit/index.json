@@ -1,0 +1,46 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "post_id": {
+        "type": "keyword"
+      },
+      "subreddit": {
+        "type": "keyword"
+      },
+      "author": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text"
+      },
+      "content": {
+        "type": "text"
+      },
+      "upvotes": {
+        "type": "integer"
+      },
+      "downvotes": {
+        "type": "integer"
+      },
+      "timestamp": {
+        "type": "date"
+      },
+      "url": {
+        "type": "keyword"
+      },
+      "comments_count": {
+        "type": "integer"
+      },
+      "flair": {
+        "type": "keyword"
+      },
+      "harvested_at": {
+        "type": "date"
+      }
+    }
+  }
+}
