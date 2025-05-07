@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "subreddit":    { "type": "keyword" },
+      "title":        { "type": "text" },
+      "author":       { "type": "keyword" },
+      "created_utc":  { "type": "date", "format": "epoch_second" },
+      "selftext":     { "type": "text" },
+      "score":        { "type": "integer" },
+      "num_comments": { "type": "integer" },
+      "url":          { "type": "keyword" }
+    }
+  }
+}
