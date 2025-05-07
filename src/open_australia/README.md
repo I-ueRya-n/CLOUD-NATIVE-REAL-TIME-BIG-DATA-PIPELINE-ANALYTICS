@@ -1,26 +1,39 @@
+# OA Debate Harvester
 
-## REDIS QUEUE
+Hello!
+This is an explanation of how the OA Debates are harvested.
+Theres 5 main folders in the openaustralia/oa_debates folder:
+
+ENTRY POINTS:
+1. oa_date_lister - HTTP trigger, finds dates with debates during a year
+2. oa_person_lister - HTTP trigger, finds people in parliament during a year
+3. oa_daily_debate_harvester - runs daily, queues 2 days ago's date for harvesting (may not be any debates)
+All three put the found json "KEYS" into queue "oa_debate_keys"
+of format 
+{
+  "house": "senate" or "representatives",
+  "date" or "person": date in format YYYY-MM-DD or person id
+}
+
+HARVESTER:
+4. oa_debate_harvester_by_details - message queue trigger
+gets debate keys FROM queue "oa_debate_keys"
+puts raw returned debate data into queue "oa_debate_data"
+
+ELASTICSEARCH ADDER:
+5. debate_adder - message queue trigger
+gets raw debate json from queue "oa_debate_data"
+puts it into the elasticsearch index "oa_debates"
+
+DOES NOT ADD DUPLICATE IDS. - this can be changed, it was just annoying to have many versions of the same thing (even though it handled it as the same data)
 
 
-
-
-## OA debates
-The main scraper for debates gets info on all debates that occured on a date
-for both the senate and house of reps.
-This spits out regular json data, which must be queued to enter the debate parser
-
-There are two ways this is triggered:
-1. One runs daily to check for new posts. It checks the day before.
-
-  (This will be relevant on the 5th of May when parliament isn't in recess lol.)
-
-2. The other checks years for the dates with debates, then queues each date to be     scraped. it only checks the last 5 years because... that seems most relevant.
-Can change this if we need!
-
+## SETUP
 
 ### Create elastic search index for OA debates
-DONE, BUT IDK IF IT WORKED
+Index is called "oa_debates", follows mapping open_australia/index.json
 
+Forward ports
 kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
 kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 
@@ -29,10 +42,9 @@ kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 curl -XPUT -k "https://127.0.0.1:9200:9200/oa_debates"\
     --header "Content-Type: application/json"\
     --data "@src/open_australia/oa_debates/index.json"\
-    --user "elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi"
+    --user "elastic:<ELASTICSEARCH_PASSWORD>"
 
-
-# FISSION FUNCTIONS
+## FISSION FUNCTION SETUP
 
 ## 1. OA Date Lister - START POINT
 Lists dates in a year with debates on them in BOTH the senate and house of reps
@@ -242,9 +254,8 @@ fission spec apply --specdir ./specs --wait
 fission spec apply --specdir ./specs --wait
 
 
-## OA daily debate scraper for the day before
-
-NOT YET ADDED
+## OA daily debate scraper for TWO DAYS before the current date
+Two days before was chosen as the debates are usually updated by 5pm the day after
 
 ##### create package
 
@@ -269,6 +280,5 @@ fission spec apply --specdir ./specs --wait
 ##### create time trigger to run daily
 
 fission timer create f --function oa-daily-debate-harvester --cron "@daily"
-
 
 fission spec apply --specdir ./specs --wait
