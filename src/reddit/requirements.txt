@@ -1,3 +1,3 @@
-elasticsearch
 praw
 prawcore
+elasticsearch
