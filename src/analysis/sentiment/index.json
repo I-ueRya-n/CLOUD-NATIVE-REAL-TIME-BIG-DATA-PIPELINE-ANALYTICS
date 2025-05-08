@@ -1,0 +1,30 @@
+{
+    "settings": {
+        "index": {
+            "number_of_shards": 3,
+            "number_of_replicas": 1
+        }
+    },
+    "mappings": {
+        "properties": {
+            "index": {
+                "type": "keyword"
+            },
+            "id": {
+                "type": "keyword"
+            },
+            "pos": {
+                "type": "double"
+            },
+            "neu": {
+                "type": "double"
+            },
+            "neg": {
+                "type": "double"
+            },
+            "compound": {
+                "type": "double"
+            }
+        }
+    }
+}

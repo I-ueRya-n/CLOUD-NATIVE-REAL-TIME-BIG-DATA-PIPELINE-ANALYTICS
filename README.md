@@ -63,18 +63,19 @@ kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 
 ### Analysis (vader)
 
-#### Create the package containing the required packages
+Create the package containing the required packages
 
 ```bash
 fission package create --spec --name vader \
-  --source ./src/functions/vader/sentiment_function.py \
-  --source ./src/functions/vader/requirements.txt \
-  --source ./src/functions/vader/build.sh \
+  --source ./src/analysis/vader/__init__.py \
+  --source ./src/analysis/vader/sentiment_function.py \
+  --source ./src/analysis/vader/requirements.txt \
+  --source ./src/analysis/vader/build.sh \
   --env python \
   --buildcmd './build.sh'
 ```
 
-#### Create the function from the file
+Create the function from the file
 
 ```
 fission function create --spec --name vader-sentiment-function \
@@ -83,13 +84,57 @@ fission function create --spec --name vader-sentiment-function \
   --entrypoint "sentiment_function.main"
 ```
 
-#### Create the trigger/route
+Create the trigger/route
 
 ```
 fission route create --spec --name vader-sentiment-function \
-  --url /analysis/sentiment \
+  --url /analysis/sentiment/v1 \
   --method POST \
+  --createingress \
   --function vader-sentiment-function
+```
+
+Test the function with
+```
+curl -XPOST -k "http://localhost:9090/analysis/sentiment/v1"\
+    --header 'Content-Type: application/json'\
+    --data '{"text": "The Liberal Party is not a party of aspiration… it’s a party of asps. #auspol #abc730"}'
+```
+
+Sentiment vader wrapper, checks elastic search for sentiment, calculates and inserts if it doesn't exist.
+
+```
+curl -XPUT -k "https://localhost:9200/sentiment"\
+    --header 'Content-Type: application/json'\
+    --data "@src/analysis/sentiment/index.json"\
+    --user 'elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi'
+```
+
+```
+fission package create --spec --name elastic-sentiment\
+    --source src/analysis/sentiment/main.go \
+    --source src/analysis/sentiment/go.mod \
+    --source src/analysis/sentiment/go.sum \
+    --env go
+
+fission fn create --spec --name elastic-sentiment\
+    --pkg elastic-sentiment\
+    --env go \
+    --configmap shared-data \
+    --entrypoint Handler
+
+fission route create --spec --name elastic-sentiment\
+  --url /analysis/sentiment/v2 \
+  --method POST \
+  --function elastic-sentiment
+  --create-ingress
+```
+
+Test the function
+```
+curl -XPOST -k "http://localhost:9090/analysis/sentiment/v2"\
+    --header 'Content-Type: application/json'\
+    --data '[{"id": "bafyreiaj5ko5b27zuwaap7e5djxdlnhoq6kvdk3sngizf7a327j275jo5q", "index": "bluesky", "field": "text"}]'
 ```
 
 ### REDIS Queue

@@ -21,6 +21,8 @@ import (
 )
 
 const ES_INDEX = "bluesky"
+const ES_HOSTNAME = "https://elasticsearch-master.elastic.svc.cluster.local:9200"
+const FISSION_HOSTNAME = "http://router.fission.svc.cluster.local"
 
 var bi esutil.BulkIndexer
 var countSuccessful atomic.Uint64
@@ -72,7 +74,7 @@ func main() {
 
 func initClient() error {
 	client, err := es.NewClient(es.Config{
-		Addresses:              []string{"https://elasticsearch-master.elastic.svc.cluster.local:9200"},
+		Addresses:              []string{ES_HOSTNAME},
 		Username:               config("ES_USERNAME"),
 		Password:               config("ES_PASSWORD"),
 		CertificateFingerprint: config("ES_FINGERPRINT"),
@@ -116,7 +118,7 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 		return nil
 	}
 
-	res, err := http.Post("http://router.fission.svc.cluster.local/bluesky/repo-commit", "application/json", bytes.NewReader(buf))
+	res, err := http.Post(FISSION_HOSTNAME+"/bluesky/repo-commit", "application/json", bytes.NewReader(buf))
 	if err != nil {
 		log.Println("error writing commit: ", err)
 		return nil
