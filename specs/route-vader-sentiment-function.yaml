@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: null
   name: vader-sentiment-function
 spec:
-  createingress: false
+  createingress: true
   functionref:
     functionweights: null
     name: vader-sentiment-function
@@ -13,10 +13,10 @@ spec:
   ingressconfig:
     annotations: null
     host: '*'
-    path: /analysis/sentiment
+    path: /analysis/sentiment/v1
     tls: ""
   method: ""
   methods:
   - POST
   prefix: ""
-  relativeurl: /analysis/sentiment
+  relativeurl: /analysis/sentiment/v1
