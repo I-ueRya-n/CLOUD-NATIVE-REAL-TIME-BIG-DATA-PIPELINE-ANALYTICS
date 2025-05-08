@@ -7,13 +7,16 @@ def index_to_elasticsearch(es, post):
     es.index(index='reddit-posts', document=post)
 
 def main(req):
-    # Get query parameters
-    params = req.get("query", {})
-    subreddits_param = params.get("subreddit", "AustralianPolitics")  # Default subreddit
-    limit = int(params.get("limit", 100))
-    keywords_param = params.get("keywords", "")
+    # Try to get query parameters (for GET) or JSON body (for POST)
+    params = req.args or {}
+    data = req.get_json(silent=True) or {}
 
-    subreddit_list = [s.strip() for s in subreddits_param.split(",") if s.strip()]
+    # Prefer query params, fallback to JSON body
+    subreddit_param = params.get("subreddit") or data.get("subreddit") or "AustralianPolitics"
+    limit = int(params.get("limit") or data.get("limit") or 100)
+    keywords_param = params.get("keywords") or data.get("keywords") or ""
+
+    subreddit_list = [s.strip() for s in subreddit_param.split(",") if s.strip()]
     keyword_list = [k.strip().lower() for k in keywords_param.split(",") if k.strip()]
 
     # Reddit API credentials from environment variables
