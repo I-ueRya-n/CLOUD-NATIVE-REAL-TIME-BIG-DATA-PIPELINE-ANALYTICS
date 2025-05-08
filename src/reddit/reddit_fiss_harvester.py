@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import praw
 import prawcore
@@ -218,4 +217,3 @@ def main(req):
         "statusCode": 200,
         "body": posts
     }
->>>>>>> b4fe03d2a48607592c6b7a208457b7320dad5f7d
