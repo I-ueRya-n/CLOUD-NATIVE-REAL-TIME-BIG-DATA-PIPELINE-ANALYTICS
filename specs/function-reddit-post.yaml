@@ -2,7 +2,7 @@ apiVersion: fission.io/v1
 kind: Function
 metadata:
   creationTimestamp: null
-  name: reddit-data-pkg
+  name: reddit-post
 spec:
   InvokeStrategy:
     ExecutionStrategy:
@@ -21,7 +21,7 @@ spec:
   package:
     functionName: reddit_fiss_harvester.main
     packageref:
-      name: reddit-data-pkg
+      name: reddit
       namespace: ""
   requestsPerPod: 1
   resources: {}
