@@ -60,14 +60,20 @@ def bluesky_sentiment_from(client: Elasticsearch, data: Dict, date: str, f: int,
     bluesky_posts = response.get("hits").get("hits")
 
     # get sentiment for bluesky posts
-    sentiment_query = [{"id": p.get("_id"), "index": "bluesky", "field": "text"} for p in bluesky_posts]
-    addr = config("FISSION_HOSTNAME") + "/analysis/sentiment/v2"
+    sentiment_query = [p.get("_id") for p in bluesky_posts]
+    addr = config("FISSION_HOSTNAME") + "/analysis/sentiment/v2/index/bluesky/field/text"
     response = requests.post(addr, json=sentiment_query)
+    print("requesting", len(sentiment_query), "posts")
 
     # aggregate sentiment across time
     post_map = array_to_dict(bluesky_posts, "_id")
     for s in response.json():
         cid = s.get("id")
+
+        if cid not in post_map:
+            print(f"missing {cid} from posts")
+            continue
+
         post_date = post_map[cid].get("createdAt").split("T")[0]
 
         if post_date not in data:

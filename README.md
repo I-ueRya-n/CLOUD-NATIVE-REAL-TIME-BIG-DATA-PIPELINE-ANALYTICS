@@ -124,10 +124,9 @@ fission fn create --spec --name elastic-sentiment\
     --entrypoint Handler
 
 fission route create --spec --name elastic-sentiment\
-  --url /analysis/sentiment/v2 \
+  --url /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
   --method POST \
-  --function elastic-sentiment
-  --create-ingress
+  --function elastic-sentiment \
 ```
 
 Test the function
