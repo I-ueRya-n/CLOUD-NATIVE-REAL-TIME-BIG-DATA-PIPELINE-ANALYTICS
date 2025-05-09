@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+elasticsearch8==8.14.0
+>>>>>>> 7aaad7a (Save local changes before rebase)
 praw
 prawcore
 elasticsearch
