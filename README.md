@@ -111,17 +111,19 @@ curl -XPUT -k "https://localhost:9200/sentiment"\
 ```
 
 ```
-fission package create --spec --name elastic-sentiment\
-    --source src/analysis/sentiment/main.go \
-    --source src/analysis/sentiment/go.mod \
-    --source src/analysis/sentiment/go.sum \
+fission package create --spec --name elastic-cache \
+    --source src/analysis/cache/cache.go \
+    --source src/analysis/cache/sentiment.go \
+    --source src/analysis/cache/entity.go \
+    --source src/analysis/cache/go.mod \
+    --source src/analysis/cache/go.sum \
     --env go
 
-fission fn create --spec --name elastic-sentiment\
-    --pkg elastic-sentiment\
+fission fn create --spec --name elastic-sentiment \
+    --pkg elastic-cache \
     --env go \
     --configmap shared-data \
-    --entrypoint Handler
+    --entrypoint SentimentHandler
 
 fission route create --spec --name elastic-sentiment\
   --url /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \

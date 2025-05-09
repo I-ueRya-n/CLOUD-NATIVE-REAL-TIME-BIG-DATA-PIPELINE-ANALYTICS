@@ -1,0 +1,28 @@
+include:
+- src/analysis/cache/cache.go
+- src/analysis/cache/sentiment.go
+- src/analysis/cache/entity.go
+- src/analysis/cache/go.mod
+- src/analysis/cache/go.sum
+kind: ArchiveUploadSpec
+name: src-analysis-cache-cache-go-9YEC
+
+---
+apiVersion: fission.io/v1
+kind: Package
+metadata:
+  creationTimestamp: null
+  name: elastic-cache
+spec:
+  deployment:
+    checksum: {}
+  environment:
+    name: go
+    namespace: ""
+  source:
+    checksum: {}
+    type: url
+    url: archive://src-analysis-cache-cache-go-9YEC
+status:
+  buildstatus: pending
+  lastUpdateTimestamp: "2025-05-09T11:01:57Z"
