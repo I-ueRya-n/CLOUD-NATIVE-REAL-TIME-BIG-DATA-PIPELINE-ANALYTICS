@@ -60,7 +60,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client, err := es.NewTypedClient(es.Config{
-		Addresses:              []string{ES_HOSTNAME},
+		Addresses:              []string{config("ES_HOSTNAME")},
 		Username:               config("ES_USERNAME"),
 		Password:               config("ES_PASSWORD"),
 		CertificateFingerprint: config("ES_FINGERPRINT"),
@@ -167,7 +167,8 @@ func calculateSentiment(client *es.TypedClient, query SentimentQuery) (sentiment
 	text_json.Text = source[query.Field]
 	buf, _ = json.Marshal(text_json)
 
-	sentRes, err := http.Post(FISSION_HOSTNAME+"/analysis/sentiment/v1", "application/json", bytes.NewReader(buf))
+	addr := config("FISSION_HOSTNAME") + "/analysis/sentiment/v1"
+	sentRes, err := http.Post(addr, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		return
 	}
@@ -183,6 +184,8 @@ func calculateSentiment(client *es.TypedClient, query SentimentQuery) (sentiment
 		err = fmt.Errorf("json from vader: %s", buf)
 		return
 	}
+
+	// log.Println("sentiment:", sentiment, "text:", text_json.Text)
 
 	_, err = client.Index("sentiment").Request(sentiment).Do(context.Background())
 	return
