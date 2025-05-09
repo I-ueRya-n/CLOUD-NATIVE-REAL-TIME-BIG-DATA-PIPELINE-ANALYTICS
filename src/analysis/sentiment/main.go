@@ -15,9 +15,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-const ES_HOSTNAME = "https://elasticsearch-master.elastic.svc.cluster.local:9200"
-const FISSION_HOSTNAME = "http://router.fission.svc.cluster.local"
-
 func config(key string) string {
 	path := "/configs/default/shared-data/" + key
 
