@@ -285,6 +285,9 @@ SEE README IN src/open_australia/oa_debates FOR DETAILS
 fission package create --spec --name gui-sentiment \
   --source ./src/gui/sentiment/__init__.py \
   --source ./src/gui/sentiment/sentiment.py \
+  --source ./src/gui/sentiment/bluesky.py \
+  --source ./src/gui/sentiment/reddit.py \
+  --source ./src/gui/sentiment/openaus.py \
   --source ./src/gui/sentiment/requirements.txt \
   --source ./src/gui/sentiment/build.sh \
   --env python \
