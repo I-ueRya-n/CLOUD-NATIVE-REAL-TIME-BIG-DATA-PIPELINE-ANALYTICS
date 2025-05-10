@@ -13,6 +13,10 @@ spec:
       TargetCPUPercent: 0
     StrategyType: execution
   concurrency: 500
+  configmaps:
+  - name: shared-data
+    namespace: ""
+
   environment:
     name: python39
     namespace: ""

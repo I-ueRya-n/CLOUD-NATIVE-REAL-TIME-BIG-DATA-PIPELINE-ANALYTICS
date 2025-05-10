@@ -1,0 +1,75 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 3,
+      "number_of_replicas": 1
+    }
+  },
+  "mappings": {
+    "properties": {
+      "oa_relations": {
+        "type": "join",
+        "relations": {
+          "debate": "debate_comment",
+          "debate_topic": "debate"
+        }
+      },
+      "id": {
+        "type": "keyword"
+      },
+      "gid": {
+        "type": "keyword"
+      },
+
+      "parent_topic": {
+        "type": "text"
+      },
+      "date": {
+        "type": "date"
+      },
+      "transcript": {
+        "type": "text"
+      },
+      "speaker": {
+        "properties": {
+          "first_name": {
+            "type": "text"
+          },
+          "last_name": {
+            "type": "text"
+          },
+          "party": {
+            "type": "keyword"
+          },
+          "house": {
+            "type": "keyword"
+          },
+          "state": {
+            "type": "text"
+          },
+          "person_id": {
+            "type": "keyword"
+          },
+          "position": {
+            "type": "text"
+          }
+        }
+      },
+      "user_id": {
+        "type": "keyword"
+      },
+      "user_name": {
+        "type": "text"
+      },
+      "comment": {
+        "type": "text"
+      },
+      "debate_topic_title": {
+        "type": "text"
+      },
+      "debate_topic_section": {
+        "type": "keyword"
+      }
+    }
+  }
+}

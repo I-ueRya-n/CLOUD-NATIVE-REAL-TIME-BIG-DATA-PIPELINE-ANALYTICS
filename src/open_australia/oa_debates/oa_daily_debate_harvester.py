@@ -1,8 +1,7 @@
 from flask import current_app
-from typing import Any, Optional
+from typing import  Any, Optional
 import requests
 from datetime import datetime, timedelta
-
 
 def main() -> Any:
     """
@@ -11,7 +10,7 @@ def main() -> Any:
 
     runs this once a day
 
-    puts the results into the redis queue: "oa_debate_keys" (need to rename)
+    puts the results into the redis queue: "oa_debate_keys"
     in the format:
         {
             "date": yyyy-mm-dd,
@@ -22,13 +21,15 @@ def main() -> Any:
     - adding a day to redis queue to be parsed
 
     Returns:
-        right now returns json of all responses for testing
-        ## "yay!" if successful, else error message
+    - json of one of the things added to the redis queue
 
     """
+    
+    # get the date two days ago
     yesterday = datetime.now() - timedelta(2)
     yesterday_string = yesterday.strftime("%Y-%m-%d")
 
+    # consider both houses
     for house in ["senate", "representatives"]:
         request = {
             "date": yesterday_string,
@@ -39,7 +40,10 @@ def main() -> Any:
             headers={'Content-Type': 'application/json'},
             json=request
         )
-        current_app.logger.info(f"Added {request} to redis queue: oa_debate_keys, yay!")
-        # print(f"Added {request} to redis queue: oa_debate_keys, yay!")
+        if response.status_code != 200:
+                current_app.logger.error(f"Failed to add {yesterday_string} to redis queue: {response.text}")
+                return {"error": "Failed to add date to redis queue"}, 500
+        else:
+            current_app.logger.info(f"Added {request} to redis queue: oa_debate_keys, yay!")
 
-    return "added two days ago's date to the redis queue", 200
+    return request, 200

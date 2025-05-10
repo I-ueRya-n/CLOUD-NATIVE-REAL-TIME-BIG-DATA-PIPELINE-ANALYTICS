@@ -6,6 +6,7 @@ include:
 - ./src/open_australia/oa_debates/oa_debate_adder.py
 - ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py
 - ./src/open_australia/oa_debates/oa_person_lister.py
+- ./src/open_australia/oa_debates/oa_date_lister.py
 - ./src/open_australia/oa_debates/util.py
 kind: ArchiveUploadSpec
 name: src-open-australia-oa-debates---init---py-ZFNi
