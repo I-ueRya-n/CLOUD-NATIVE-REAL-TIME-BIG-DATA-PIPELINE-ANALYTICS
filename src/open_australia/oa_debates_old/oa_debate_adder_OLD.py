@@ -56,7 +56,7 @@ def main() -> str:
     """
 
     es_client: Elasticsearch = Elasticsearch(
-        'https://elasticsearch-master.elastic.svc.cluster.local:9200',
+        config("ES_HOSTNAME"),
         verify_certs=False,
         ssl_show_warn=False,
         basic_auth=(config("ES_USERNAME"), config("ES_PASSWORD"))

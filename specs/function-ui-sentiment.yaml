@@ -2,7 +2,7 @@ apiVersion: fission.io/v1
 kind: Function
 metadata:
   creationTimestamp: null
-  name: gui-sentiment
+  name: ui-sentiment
 spec:
   InvokeStrategy:
     ExecutionStrategy:
@@ -24,7 +24,7 @@ spec:
   package:
     functionName: sentiment.main
     packageref:
-      name: gui-sentiment
+      name: ui-sentiment
       namespace: ""
   requestsPerPod: 1
   resources: {}

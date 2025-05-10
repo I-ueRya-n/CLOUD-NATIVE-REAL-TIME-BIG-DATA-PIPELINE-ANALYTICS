@@ -262,6 +262,36 @@ Then deploy with kubectl
 kubectl create -f src/bluesky/bluesky-firehose.yaml
 ```
 
+## Frontend 
+
+### Sentiment
+
+```
+fission package create --spec --name ui-sentiment \
+  --source ./src/ui/sentiment/__init__.py \
+  --source ./src/ui/sentiment/sentiment.py \
+  --source ./src/ui/sentiment/bluesky.py \
+  --source ./src/ui/sentiment/reddit.py \
+  --source ./src/ui/sentiment/openaus.py \
+  --source ./src/ui/sentiment/requirements.txt \
+  --source ./src/ui/sentiment/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+
+fission function create --spec --name ui-sentiment \
+  --pkg ui-sentiment \
+  --env python \
+  --configmap shared-data \
+  --entrypoint "sentiment.main"
+
+fission route create --spec --name ui-sentiment \
+  --function ui-sentiment \
+  --method GET \
+  --createingress \
+  --url '/ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/'\
+  --createingress
+```
+
 ## Open Australia
 
 the ElasticSearch "oa_debates" index holds:

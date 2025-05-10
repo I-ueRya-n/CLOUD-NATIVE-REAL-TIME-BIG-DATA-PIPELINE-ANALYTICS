@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 import requests
 from util import config
 
+
 def main() -> str:
     """
     Harvest debate information from the OA api.

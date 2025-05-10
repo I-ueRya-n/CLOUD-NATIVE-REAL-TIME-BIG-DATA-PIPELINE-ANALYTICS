@@ -48,6 +48,7 @@ def format_debate(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
         current_app.logger.error(f"Error formatting data: {e}")
         raise ValueError("Failed to format incoming data to mapping template.")
     
+
 def format_debate_topic(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
     """ 
         Helper function
@@ -128,6 +129,7 @@ def add_topic_to_index(es_client: Elasticsearch, debate: Dict[str, Any]) -> None
         f'Indexed topic {topic_mapped.get("id")} - Version: {index_response["_version"]}'
     )
 
+
 def add_debate_to_index(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
     """
         Formats and adds a debate and any one attached comment to the index.
@@ -190,6 +192,7 @@ def add_debate_to_index(es_client: Elasticsearch, debate: Dict[str, Any]) -> Non
         except ValueError as e:
             current_app.logger.error(f"Error formatting comment: {e}")
 
+
 def main() -> str:
     """Process and index debate information from the OA website.
     reads from redis queue: "oa_debate_data"
@@ -216,7 +219,7 @@ def main() -> str:
     """
 
     es_client: Elasticsearch = Elasticsearch(
-        'https://elasticsearch-master.elastic.svc.cluster.local:9200',
+        config("ES_HOSTNAME"),
         verify_certs=False,
         ssl_show_warn=False,
         basic_auth=(config("ES_USERNAME"), config("ES_PASSWORD"))

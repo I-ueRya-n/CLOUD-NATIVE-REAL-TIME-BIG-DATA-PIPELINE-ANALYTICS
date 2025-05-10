@@ -65,7 +65,7 @@ def main() -> Any:
             }
 
             response: Optional[requests.Response] = requests.post(
-                url='http://router.fission/enqueue/oa_debate_keys',
+                url=config("FISSION_HOSTNAME") + '/enqueue/oa_debate_keys',
                 headers={'Content-Type': 'application/json'},
                 json=parsed_date
             )
@@ -76,6 +76,3 @@ def main() -> Any:
                 current_app.logger.info(f"Added {date} to redis queue {parsed_date}, yay!")
 
     return resp, 200
-
-
-

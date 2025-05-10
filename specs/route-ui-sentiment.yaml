@@ -2,12 +2,12 @@ apiVersion: fission.io/v1
 kind: HTTPTrigger
 metadata:
   creationTimestamp: null
-  name: gui-sentiment
+  name: ui-sentiment
 spec:
   createingress: true
   functionref:
     functionweights: null
-    name: gui-sentiment
+    name: ui-sentiment
     type: name
   host: ""
   ingressconfig:
