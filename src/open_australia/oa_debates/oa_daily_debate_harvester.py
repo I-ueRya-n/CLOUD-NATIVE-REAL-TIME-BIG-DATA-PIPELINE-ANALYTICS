@@ -10,7 +10,7 @@ def main() -> Any:
 
     runs this once a day
 
-    puts the results into the redis queue: "oa_debate_keys" (need to rename)
+    puts the results into the redis queue: "oa_debate_keys"
     in the format:
         {
             "date": yyyy-mm-dd,
@@ -41,7 +41,7 @@ def main() -> Any:
             json=request
         )
         if response.status_code != 200:
-                current_app.logger.error(f"Failed to add {date} to redis queue: {response.text}")
+                current_app.logger.error(f"Failed to add {yesterday_string} to redis queue: {response.text}")
                 return {"error": "Failed to add date to redis queue"}, 500
         else:
             current_app.logger.info(f"Added {request} to redis queue: oa_debate_keys, yay!")

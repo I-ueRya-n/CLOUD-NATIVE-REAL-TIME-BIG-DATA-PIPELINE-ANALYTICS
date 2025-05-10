@@ -3,13 +3,14 @@ from flask import Request, current_app, request
 import json
 from typing import Any, Optional
 import requests
-from flask import current_app, request
+from util import config
+
 
 def main() -> Any:
     """gets dates in a year with senate or house of reps debates.
     This is better than the "by person" method because it avoids duplcates
 
-    puts the results into the redis queue: "oa_debate_keys"   
+    puts the results into the redis queue: "oa_debate_keys"
     in the format:
         {
             "date": date,
@@ -18,18 +19,18 @@ def main() -> Any:
 
     Handles:
     - OpenAustralia API client initialization
+    - querying the OpenAustralia API for dates in a year
+    - querying both the senate and house of reps
     - adding dates to redis queue
 
     Returns:
-        right now returns json of all responses for testing
-        ## "yay!" if successful, else error message
-    Raises:
-        JSONDecodeError: If response parsing fails
+        the response from the OpenAustralia API for the last house 
+        and a 200 status code if successful, else error message
+        
     """
-    
-    # Initialize OpenAustralia client 
-    oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
 
+    # Initialize OpenAustralia client
+    oa = OpenAustralia(config("OA_API_KEY"))
 
     # Extract and validate headers
     req: Request = request

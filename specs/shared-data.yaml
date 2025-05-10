@@ -5,9 +5,12 @@ metadata:
   name: shared-data
 data:
   ES_HOSTNAME: https://elasticsearch-master.elastic.svc.cluster.local:9200
+  ES_HOSTNAME: https://elasticsearch-master.elastic.svc.cluster.local:9200
   ES_USERNAME: elastic
   ES_PASSWORD: Mi0zu6yaiz1oThithoh3Di8kohphu9pi
   ES_FINGERPRINT: 5FD336DE4088D4F31C833275E9085871186FDBA6C92938C14B3C89D868AAE404
 
   FISSION_HOSTNAME: http://router.fission.svc.cluster.local
+
+  OA_API_KEY: Ewi4hND52eCqBFGFsGCmjqoS
 

@@ -5,9 +5,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 import requests
-
-
-
+from util import config
 
 def main() -> str:
     """
@@ -38,7 +36,7 @@ def main() -> str:
         JSONDecodeError: If response parsing fails
     """
     # Initialize OpenAustralia client 
-    oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
+    oa = OpenAustralia(config("OA_API_KEY"))
 
 
     # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_dates" QUEUE
@@ -141,7 +139,8 @@ def main() -> str:
                     for result in found_debates:
                         # current_app.logger.info(f"Found debate: {result}")
                         current_app.logger.info(f"Found debate with gid {debate_gid}")
-                        debates_to_add.append(result)
+                        if not ((result.get('subsection_id', 1)==0) and result.get('subsection_id', "")):
+                            debates_to_add.append(result)
                         # break here if concerned about duplicates, idk. 
                         # if not it may miss some debates
                         # i was having issues with the api only finding the first one

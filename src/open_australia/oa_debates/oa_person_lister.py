@@ -3,8 +3,9 @@ from flask import Request, current_app, request
 import json
 from typing import Any, Optional
 import requests
-from flask import current_app, request
 from datetime import datetime
+from util import config
+
 
 def main() -> Any:
     """gets a list of CURRENT SENATOR AND HOUSE OF REPS IDS.
@@ -33,16 +34,15 @@ def main() -> Any:
         or error message if something goes wrong
 
     """
-    
-    # Initialize OpenAustralia client 
-    oa = OpenAustralia("Ewi4hND52eCqBFGFsGCmjqoS") # REPLACE WITH KEY FROM CONFIG MAP
+    # Initialize OpenAustralia client
+    oa = OpenAustralia(config("OA_API_KEY"))
 
     # Extract and validate headers
     req: Request = request
 
     year: Optional[str] = req.headers.get('X-Fission-Params-year')
     house: Optional[str] = req.headers.get('X-Fission-Params-house')
-        
+
     date_object = datetime.strptime(year + "-01-01", "%Y-%m-%d")
 
     date_string = date_object.strftime("%Y-%m-%d")

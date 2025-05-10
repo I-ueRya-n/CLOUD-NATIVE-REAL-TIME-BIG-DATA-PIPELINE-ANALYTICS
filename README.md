@@ -271,40 +271,4 @@ debates
   can search by keyword, date, or person id 
 
 
-
-the Elasticsearch index for comments has not been set up yet, sorry!
-comments
-  has user info
-  can search by keyword, date, or person id
-
-SEE README IN src/open_australia/oa_debates FOR DETAILS
-
-## Frontend 
-
-### Sentiment
-
-```
-fission package create --spec --name gui-sentiment \
-  --source ./src/gui/sentiment/__init__.py \
-  --source ./src/gui/sentiment/sentiment.py \
-  --source ./src/gui/sentiment/bluesky.py \
-  --source ./src/gui/sentiment/reddit.py \
-  --source ./src/gui/sentiment/openaus.py \
-  --source ./src/gui/sentiment/requirements.txt \
-  --source ./src/gui/sentiment/build.sh \
-  --env python \
-  --buildcmd './build.sh'
-
-fission function create --spec --name gui-sentiment \
-  --pkg gui-sentiment \
-  --env python \
-  --configmap shared-data \
-  --entrypoint "sentiment.main"
-
-fission route create --spec --name gui-sentiment \
-  --function gui-sentiment \
-  --method GET \
-  --createingress \
-  --url '/ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/'\
-  --createingress
-```
+SEE README IN OA_DEBATES

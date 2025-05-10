@@ -23,15 +23,32 @@ puts raw returned debate data into queue "oa_debate_data"
 ELASTICSEARCH ADDER:
 5. debate_adder - message queue trigger
 gets raw debate json from queue "oa_debate_data"
-puts it into the elasticsearch index "oa_debates"
+puts it into the elasticsearch index "oa_debates_comments"
 
 DOES NOT ADD DUPLICATE IDS. - this can be changed, it was just annoying to have many versions of the same thing (even though it handled it as the same data)
 
 
 ## SETUP
 
+### NEW ELASTICSEARCH WITH COMMENTS
+Index called "oa_debates_comments", follows mapping open_australia/oa_debates/index.json
+
+Forward ports
+kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
+kubectl port-forward service/kibana-kibana -n elastic 5601:5601
+
+
+curl -XPUT -k "https://127.0.0.1:9200/oa_debates_comments"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/index.json"\
+    --user "elastic:<pass>"
+
+
+
+### BELOW IS OLD AND 
 ### Create elastic search index for OA debates
-Index is called "oa_debates", follows mapping open_australia/index.json
+First index was called "oa_debates", follows mapping open_australia/oa_debates_old/old_index.json
+THIS DIDNT SUPPORT COMMENTS
 
 Forward ports
 kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
@@ -39,12 +56,28 @@ kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 
 
 // why wouldn't localhost work?
-curl -XPUT -k "https://127.0.0.1:9200:9200/oa_debates"\
+curl -XPUT -k "https://127.0.0.1:9200/oa_debates"\
     --header "Content-Type: application/json"\
     --data "@src/open_australia/oa_debates/index.json"\
     --user "elastic:<ELASTICSEARCH_PASSWORD>"
 
+### END OLD AND OUTDATED
+
 ## FISSION FUNCTION SETUP
+
+common package 
+
+fission package create --spec --name oa-debates \
+    --source ./src/open_australia/oa_debates/__init__.py \
+    --source ./src/open_australia/oa_debates/requirements.txt \
+    --source ./src/open_australia/oa_debates/build.sh \
+    --source ./src/open_australia/oa_debates/oa_daily_debate_harvester.py \
+    --source ./src/open_australia/oa_debates/oa_debate_adder.py \
+    --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py \
+    --source ./src/open_australia/oa_debates/oa_person_lister.py \
+    --source ./src/open_australia/oa_debates/util.py \
+    --env python39 \
+    --buildcmd './build.sh'
 
 ## 1. OA Date Lister - START POINT
 Lists dates in a year with debates on them in BOTH the senate and house of reps
@@ -54,25 +87,15 @@ Feeds into the Debate Harvester By Details (into the oa_debate_key redis queue)
 ### OA Date Lister SETUP
 
 #### create fission function
-##### create package
-
-fission package create --spec --name oa-date-lister \
-  --source ./src/open_australia/oa_debates/oa_date_lister/__init__.py \
-  --source ./src/open_australia/oa_debates/oa_date_lister/oa_date_lister.py \
-  --source ./src/open_australia/oa_debates/oa_date_lister/requirements.txt \
-  --source ./src/open_australia/oa_debates/oa_date_lister/build.sh \
-  --env python39 \
-  --buildcmd './build.sh'
-
 
 ##### create function
 fission function create --spec --name oa-date-lister \
-  --pkg oa-date-lister \
+  --pkg oa-debates \
   --env python39 \
+  --configmap shared-data \
   --entrypoint "oa_date_lister.main"
 
 fission spec apply --specdir ./specs --wait
-
 
 ##### create routes
 
@@ -117,21 +140,11 @@ Then ENQUEUES the found people to be serached by OA_debate_harvester_by_details
 
 #### create fission function
   
-##### create package
-
-fission package create --spec --name oa-person-lister \
-  --source ./src/open_australia/oa_debates/oa_person_lister/__init__.py \
-  --source ./src/open_australia/oa_debates/oa_person_lister/oa_person_lister.py \
-  --source ./src/open_australia/oa_debates/oa_person_lister/requirements.txt \
-  --source ./src/open_australia/oa_debates/oa_person_lister/build.sh \
-  --env python39 \
-  --buildcmd './build.sh'
-
-
 ##### create function
 fission function create --spec --name oa-person-lister \
-  --pkg oa-person-lister \
+  --pkg oa-debates \
   --env python39 \
+  --configmap shared-data \
   --entrypoint "oa_person_lister.main"
 
 fission spec apply --specdir ./specs --wait
@@ -170,22 +183,11 @@ queries api for debates by person or by date (up to 1000)
 
 #### create fission function
   
-
-##### create package
-
-fission package create --spec --name oa-debate-harvester-by-details \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/__init__.py \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/oa_debate_harvester_by_details.py \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/requirements.txt \
-  --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details/build.sh \
-  --env python39 \
-  --buildcmd './build.sh'
-
-
 ##### create function
 fission function create --spec --name oa-debate-harvester-by-details \
-  --pkg oa-debate-harvester-by-details \
+  --pkg oa-debates \
   --env python39 \
+  --configmap shared-data \
   --entrypoint "oa_debate_harvester_by_details.main"
 
 fission spec apply --specdir ./specs --wait
@@ -206,37 +208,21 @@ fission spec apply --specdir ./specs --wait
     --metadata listLength=1000\
     --metadata listName=oa_debate_keys
 
-
-
 fission spec apply --specdir ./specs --wait
 
-
-
-## OA debate adder to elasticsearch - FINAL STEP OF DEBATE PIPELINE
-
-##### create package
-
-fission package create --spec --name oa-debate-adder \
-  --source ./src/open_australia/oa_debates/debate_adder/__init__.py \
-  --source ./src/open_australia/oa_debates/debate_adder/oa_debate_adder.py \
-  --source ./src/open_australia/oa_debates/debate_adder/requirements.txt \
-  --source ./src/open_australia/oa_debates/debate_adder/build.sh \
-  --env python39 \
-  --buildcmd './build.sh'
-
+## 4. OA debate adder to elasticsearch - FINAL STEP OF DEBATE PIPELINE
+adds to the NEW index "oa_debates_comments"
 
 ##### create function
 fission function create --spec --name oa-debate-adder \
-  --pkg oa-debate-adder \
+  --pkg oa-debates \
   --env python39 \
+  --configmap shared-data \
   --entrypoint "oa_debate_adder.main"
 
 fission spec apply --specdir ./specs --wait
 
-
 ##### create redis trigger for queue
-
-
   fission mqtrigger create --name oa-debate-adder \
     --spec\
     --function oa-debate-adder \
@@ -249,33 +235,19 @@ fission spec apply --specdir ./specs --wait
     --metadata listLength=10000\
     --metadata listName=oa_debate_data
 
-
-
 fission spec apply --specdir ./specs --wait
 
-
-## OA daily debate scraper for TWO DAYS before the current date
+## 5. OA daily debate scraper for TWO DAYS before the current date - ANOTHER PIPELINE START POINT
 Two days before was chosen as the debates are usually updated by 5pm the day after
-
-##### create package
-
-fission package create --spec --name oa-daily-debate-harvester \
-  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/__init__.py \
-  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/oa_daily_debate_harvester.py \
-  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/requirements.txt \
-  --source ./src/open_australia/oa_debates/oa_daily_debate_harvester/build.sh \
-  --env python39 \
-  --buildcmd './build.sh'
-
 
 ##### create function
 fission function create --spec --name oa-daily-debate-harvester \
-  --pkg oa-daily-debate-harvester \
+  --pkg oa-debates \
   --env python39 \
+  --configmap shared-data \
   --entrypoint "oa_daily_debate_harvester.main"
 
 fission spec apply --specdir ./specs --wait
-
 
 ##### create time trigger to run daily
 

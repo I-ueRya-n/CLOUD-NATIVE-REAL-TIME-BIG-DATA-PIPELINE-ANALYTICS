@@ -27,9 +27,12 @@ Enzo
 
 
 ### Ideas for frontend
-- word cloud for auspol named entities across posts
+- word cloud for auspol named entities across posts (goood visualisation!)
 - comparison accross all 3 for topics and stuff for sentiment
 - top 10 and bottom 10 topics / people maybe?
 - comparison of negativity between what people talk about + the actual debate?
 - which politicial talks the most about controversial stuff?
     does this affect how people talk about them?
+
+### NEXT MEETING:
+Next wednesday?

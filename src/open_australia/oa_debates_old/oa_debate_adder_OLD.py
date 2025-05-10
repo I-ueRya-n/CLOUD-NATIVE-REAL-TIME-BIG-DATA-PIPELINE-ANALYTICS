@@ -1,9 +1,7 @@
 from typing import List, Dict, Any
-import json
-import time
-import logging
 from elasticsearch8 import Elasticsearch
 from flask import current_app, request
+from util import config
 
 
 def format_to_mapping(incoming_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -61,7 +59,7 @@ def main() -> str:
         'https://elasticsearch-master.elastic.svc.cluster.local:9200',
         verify_certs=False,
         ssl_show_warn=False,
-        basic_auth=('elastic', "Mi0zu6yaiz1oThithoh3Di8kohphu9pi") ## I NEED TO ADD THE KEY FROM THE CONFIG MAP
+        basic_auth=(config("ES_USERNAME"), config("ES_PASSWORD"))
     )
 
 

@@ -13,6 +13,10 @@ spec:
       TargetCPUPercent: 0
     StrategyType: execution
   concurrency: 500
+  configmaps:
+  - name: shared-data
+    namespace: ""
+
   environment:
     name: python39
     namespace: ""
@@ -21,7 +25,7 @@ spec:
   package:
     functionName: oa_debate_adder.main
     packageref:
-      name: oa-debate-adder
+      name: oa-debates
       namespace: ""
   requestsPerPod: 1
   resources: {}
