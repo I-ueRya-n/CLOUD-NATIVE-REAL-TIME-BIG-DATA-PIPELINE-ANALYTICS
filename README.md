@@ -292,6 +292,34 @@ fission route create --spec --name ui-sentiment \
   --createingress
 ```
 
+### Named Entities
+
+```
+fission package create --spec --name ui-named-entity \
+  --source ./src/ui/entities/__init__.py \
+  --source ./src/ui/entities/entities.py \
+  --source ./src/ui/entities/bluesky.py \
+  --source ./src/ui/entities/reddit.py \
+  --source ./src/ui/entities/openaus.py \
+  --source ./src/ui/entities/requirements.txt \
+  --source ./src/ui/entities/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+
+fission function create --spec --name ui-named-entity \
+  --pkg ui-named-entity \
+  --env python \
+  --configmap shared-data \
+  --entrypoint "entities.main"
+
+fission route create --spec --name ui-named-entity \
+  --function ui-named-entity \
+  --method GET \
+  --createingress \
+  --url '/ui/named-entities/'\
+  --createingress
+```
+
 ## Open Australia
 
 the ElasticSearch "oa_debates" index holds:
