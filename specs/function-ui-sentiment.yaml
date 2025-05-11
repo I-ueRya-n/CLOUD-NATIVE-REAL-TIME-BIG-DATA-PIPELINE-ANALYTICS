@@ -19,7 +19,7 @@ spec:
   environment:
     name: python
     namespace: ""
-  functionTimeout: 60
+  functionTimeout: 600
   idletimeout: 120
   package:
     functionName: sentiment.main

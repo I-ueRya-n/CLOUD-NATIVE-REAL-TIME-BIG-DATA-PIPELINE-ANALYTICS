@@ -1,3 +1,0 @@
-elasticsearch8==8.14.0
-praw
-prawcore
