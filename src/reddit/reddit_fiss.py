@@ -2,13 +2,19 @@ import os
 import praw
 from flask import request, jsonify
 
-# Reddit credentials from environment variables
-REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID")
-REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET")
-REDDIT_USERNAME = os.environ.get("REDDIT_USERNAME")
-REDDIT_PASSWORD = os.environ.get("REDDIT_PASSWORD")
+# Validate and load Reddit credentials from environment variables
+REQUIRED_ENV_VARS = ["REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_USERNAME", "REDDIT_PASSWORD"]
+missing_env_vars = [var for var in REQUIRED_ENV_VARS if not os.environ.get(var)]
+if missing_env_vars:
+    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_env_vars)}")
+
+REDDIT_CLIENT_ID = os.environ["REDDIT_CLIENT_ID"]
+REDDIT_CLIENT_SECRET = os.environ["REDDIT_CLIENT_SECRET"]
+REDDIT_USERNAME = os.environ["REDDIT_USERNAME"]
+REDDIT_PASSWORD = os.environ["REDDIT_PASSWORD"]
 REDDIT_USER_AGENT = os.environ.get("REDDIT_USER_AGENT", "COMP90024_team57 Harvester by /u/yourusername")
 
+# Initialize Reddit client
 reddit = praw.Reddit(
     client_id=REDDIT_CLIENT_ID,
     client_secret=REDDIT_CLIENT_SECRET,
@@ -19,9 +25,16 @@ reddit = praw.Reddit(
 
 def main(request):
     try:
-        # Parse query parameters
-        subreddits_param = request.args.get('subreddit', '')
-        limit = int(request.args.get('limit', 10))  # default to 10 if not specified
+        subreddits_param = request.args.get('subreddit')
+        if not subreddits_param:
+            return jsonify({"error": "Missing required parameter: 'subreddit'"}), 400
+
+        limit_param = request.args.get('limit', '10')
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            return jsonify({"error": "'limit' must be an integer."}), 400
+
         keywords_param = request.args.get('keywords', '')
 
         subreddit_list = [s.strip() for s in subreddits_param.split(',') if s.strip()]
@@ -30,6 +43,7 @@ def main(request):
         posts = []
         for subreddit_name in subreddit_list:
             try:
+                print(f"Fetching posts from subreddit: {subreddit_name} (limit={limit})")
                 subreddit = reddit.subreddit(subreddit_name)
                 for submission in subreddit.new(limit=limit):
                     post = {
@@ -43,22 +57,20 @@ def main(request):
                     }
                     posts.append(post)
             except Exception as e:
-                # Handle PRAW exceptions
-                return jsonify({"error": f"Error with subreddit '{subreddit_name}': {str(e)}"}), 400
+                print(f"Error fetching from subreddit '{subreddit_name}': {e}")
+                return jsonify({"error": f"Error with subreddit '{subreddit_name}'", "details": str(e)}), 400
 
         # Keyword filtering
         if keyword_list:
-            filtered_posts = []
-            for post in posts:
-                text = (post['title'] + ' ' + post['selftext']).lower()
-                if any(keyword in text for keyword in keyword_list):
-                    filtered_posts.append(post)
-            posts = filtered_posts
+            print(f"Filtering posts with keywords: {keyword_list}")
+            posts = [
+                post for post in posts
+                if any(keyword in (post['title'] + ' ' + post['selftext']).lower() for keyword in keyword_list)
+            ]
 
-        return jsonify(posts)
+        print(f"Returning {len(posts)} posts")
+        return jsonify(posts), 200
 
-    except ValueError:
-        return jsonify({"error": "Invalid 'limit' parameter. Must be an integer."}), 400
     except Exception as e:
         print(f"Unexpected error: {e}")
         return jsonify({"error": "Internal server error.", "details": str(e)}), 500
