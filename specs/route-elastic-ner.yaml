@@ -1,0 +1,22 @@
+apiVersion: fission.io/v1
+kind: HTTPTrigger
+metadata:
+  creationTimestamp: null
+  name: elastic-ner
+spec:
+  createingress: false
+  functionref:
+    functionweights: null
+    name: elastic-ner
+    type: name
+  host: ""
+  ingressconfig:
+    annotations: null
+    host: '*'
+    path: /analysis/ner/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+}
+    tls: ""
+  method: ""
+  methods:
+  - POST
+  prefix: ""
+  relativeurl: /analysis/ner/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+}

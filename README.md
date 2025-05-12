@@ -101,42 +101,6 @@ curl -XPOST -k "http://localhost:9090/analysis/sentiment/v1"\
     --data '{"text": "The Liberal Party is not a party of aspiration… it’s a party of asps. #auspol #abc730"}'
 ```
 
-Sentiment vader wrapper, checks elastic search for sentiment, calculates and inserts if it doesn't exist.
-
-```
-curl -XPUT -k "https://localhost:9200/sentiment"\
-    --header 'Content-Type: application/json'\
-    --data "@src/analysis/sentiment/index.json"\
-    --user 'elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi'
-```
-
-```
-fission package create --spec --name elastic-cache \
-    --source src/analysis/cache/cache.go \
-    --source src/analysis/cache/sentiment.go \
-    --source src/analysis/cache/entity.go \
-    --source src/analysis/cache/go.mod \
-    --source src/analysis/cache/go.sum \
-    --env go
-
-fission fn create --spec --name elastic-sentiment \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint SentimentHandler
-
-fission route create --spec --name elastic-sentiment\
-  --url /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
-  --method POST \
-  --function elastic-sentiment \
-```
-
-Test the function
-```
-curl -XPOST -k "http://localhost:9090/analysis/sentiment/v2"\
-    --header 'Content-Type: application/json'\
-    --data '[{"id": "bafyreiaj5ko5b27zuwaap7e5djxdlnhoq6kvdk3sngizf7a327j275jo5q", "index": "bluesky", "field": "text"}]'
-```
 
 ### Analysis (named entities)
 
@@ -164,18 +128,71 @@ Should return something like:
 {"PERSON": ["SpaCy"], "ORG": ["NLP"]}
 ```
 
+### Analysis Cache
+
+Sentiment + NER wrapper, checks elastic search for sentiment/ner, calculates and inserts if it doesn't exist.
+
+```
+curl -XPUT -k "https://localhost:9200/named-entity"\
+    --header 'Content-Type: application/json'\
+    --data "@src/analysis/cache/ner-index.json"\
+    --user 'elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi'
+```
+
+```
+fission package create --spec --name elastic-cache \
+    --source src/analysis/cache/cache.go \
+    --source src/analysis/cache/sentiment.go \
+    --source src/analysis/cache/entity.go \
+    --source src/analysis/cache/go.mod \
+    --source src/analysis/cache/go.sum \
+    --env go
+
+fission fn create --spec --name elastic-sentiment \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint SentimentHandler
+
+fission route create --spec --name elastic-sentiment\
+  --url /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
+  --method POST \
+  --function elastic-sentiment
+
+fission fn create --spec --name elastic-ner \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint EntityHandler
+
+fission route create --spec --name elastic-ner \
+  --url /analysis/ner/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
+  --method POST \
+  --function elastic-ner
+```
+
+Test the function
+```
+curl -XPOST -k "http://localhost:9090/analysis/sentiment/v2"\
+    --header 'Content-Type: application/json'\
+    --data '[{"id": "bafyreiaj5ko5b27zuwaap7e5djxdlnhoq6kvdk3sngizf7a327j275jo5q", "index": "bluesky", "field": "text"}]'
+```
+
 ### REDIS Queue
 
-#### install KEDA
+Install KEDA
+
+```
 export KEDA_VERSION='2.9'
 helm repo add kedacore https://kedacore.github.io/charts
 helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
 helm repo update
 helm upgrade keda kedacore/keda --install --namespace keda --create-namespace --version ${KEDA_VERSION}
+```
 
+Install redis (USED THE SAME PASSWORD AS ES)
 
-#### Install redis (USED THE SAME PASSWORD AS ES)
-
+```
 export REDIS_VERSION='0.19.1'
 helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
 helm upgrade redis-operator ot-helm/redis-operator \
@@ -184,21 +201,22 @@ helm upgrade redis-operator ot-helm/redis-operator \
 kubectl create secret generic redis-secret --from-literal=password=<ES_PASSWORD> -n redis
 
 helm upgrade redis ot-helm/redis --install --namespace redis   
+```
 
-#### Install redis insight (gui for redis) 
+Install redis insight (gui for redis) 
 
+```
 kubectl apply -f ./specs/redis-insight.yaml --namespace redis
 
 To view redis insight start port forwarding:
 
 kubectl port-forward service/redis-insight --namespace redis 5540:5540
+```
 
-Then go to:
-http://localhost:5540/
-
-
-#### Create redis fission package, function and HTTPS trigger 
-  fission package create --spec --name enqueue \
+Then go to `http://localhost:5540/`.
+Create redis fission package, function and HTTPS trigger 
+```
+fission package create --spec --name enqueue \
     --source ./src/enqueue/__init__.py \
     --source ./src/enqueue/enqueue.py \
     --source ./src/enqueue/requirements.txt \
@@ -206,43 +224,38 @@ http://localhost:5540/
     --env python \
     --buildcmd './build.sh'
 
-
-
-  fission function create --spec --name enqueue \
+fission function create --spec --name enqueue \
     --pkg enqueue \
     --env python \
     --entrypoint "enqueue.main"
 
-    fission spec apply --specdir ./specs --wait
+fission spec apply --specdir ./specs --wait
 
-  fission httptrigger create --spec --name enqueue --url "/enqueue/{topic}" --method POST --function enqueue
+fission httptrigger create --spec --name enqueue --url "/enqueue/{topic}" --method POST --function enqueue
+```
 
-      fission spec apply --specdir ./specs --wait
+How to use: In your function, to add to a queue for a topic
+```
+    response: Optional[requests.Response] = requests.post(
+        url='http://router.fission/enqueue oa_debate_keys',
+        headers={'Content-Type': 'application/json'},
+        json=parsed_person
+    )
+```
 
+To test the queue: 
+    on another terminal window port forward the router:
 
-#### how to use
-
-
-  In your function, to add to a queue for a topic
-        response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue oa_debate_keys',
-            headers={'Content-Type': 'application/json'},
-            json=parsed_person
-        )
-
-To test the queue:
-
-on another terminal window port forward the router:
+```
 kubectl port-forward service/router -n fission 9090:80
+```
 
+```
 curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"data1":"xyz","data2":"xyz"}' \
   http://localhost:9090/enqueue/test
-
-
-
-
+```
 
 ### Bluesky
 

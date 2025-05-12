@@ -14,8 +14,9 @@ import (
 )
 
 type NamedEntities struct {
-	Idx   string `json:"id"`
-	Index string `json:"index"`
+	Idx     string              `json:"id"`
+	Index   string              `json:"index"`
+	Entites map[string][]string `json:"entites"`
 }
 
 func (n NamedEntities) Id() string {
@@ -82,7 +83,7 @@ func calculateNamedEntities(client *es.TypedClient, index, field, id string) (n 
 		return
 	}
 
-	addr := config("FISSION_HOSTNAME") + "/analysis/named-entity/v1"
+	addr := config("FISSION_HOSTNAME") + "/analysis/ner/v1"
 	sentRes, err := http.Post(addr, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		return
@@ -98,7 +99,7 @@ func calculateNamedEntities(client *es.TypedClient, index, field, id string) (n 
 		return
 	}
 
-	err = json.Unmarshal(buf, &n)
+	err = json.Unmarshal(buf, &n.Entites)
 	if err != nil {
 		err = fmt.Errorf("json from named-entity: %s", buf)
 		return
