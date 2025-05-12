@@ -19,7 +19,7 @@ spec:
   environment:
     name: go
     namespace: ""
-  functionTimeout: 60
+  functionTimeout: 300
   idletimeout: 120
   package:
     functionName: EntityHandler

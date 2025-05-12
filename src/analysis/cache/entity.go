@@ -16,7 +16,7 @@ import (
 type NamedEntities struct {
 	Idx     string              `json:"id"`
 	Index   string              `json:"index"`
-	Entites map[string][]string `json:"entites"`
+	Entites map[string][]string `json:"entities"`
 }
 
 func (n NamedEntities) Id() string {

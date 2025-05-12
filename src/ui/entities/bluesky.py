@@ -42,13 +42,28 @@ def bluesky_words_from(client: Elasticsearch, data: Dict,
 
     # get named entities for bluesky posts
     entitiy_query = [p.get("_id") for p in bluesky_posts]
-    addr = config("FISSION_HOSTNAME") + "/analysis/named-entity/v2/index/bluesky/field/text"
-    response = requests.post(addr, json=entitiy_query)
+    addr = config("FISSION_HOSTNAME") + "/analysis/ner/v2/index/bluesky/field/text"
     print("requesting", len(entitiy_query), "posts")
+    response = requests.post(addr, json=entitiy_query)
+
+    if response.status_code >= 400:
+        print("error making request:", response.text)
+        return 0
 
     # aggregate sentiment across time
     for s in response.json():
-        for word in s.get("words"):
+        entity = s.get("entities")
+
+        if entity is None:
+            print("no entities:", s)
+            continue
+
+        if entity.get("PERSON") is None:
+            continue
+
+        for w in entity.get("PERSON"):
+            word = w.replace("\n", " ").lower()
+
             if word not in data:
                 data[word] = 0
 
@@ -58,12 +73,6 @@ def bluesky_words_from(client: Elasticsearch, data: Dict,
 
 
 def bluesky_words(client: Elasticsearch, date: str) -> Dict:
-    return {
-        "labor": 5,
-        "liberal": 3,
-        "housing": 4,
-    }
-
     # get bluesky posts in range which match keyword
     data = {}
     start = 0
