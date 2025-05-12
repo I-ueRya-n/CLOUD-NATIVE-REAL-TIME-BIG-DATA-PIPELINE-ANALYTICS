@@ -7,23 +7,20 @@
       "title": {
         "type": "text"
       },
-      "content": {
+      "selftext": {
         "type": "text"
       },
       "author": {
         "type": "keyword"
       },
-      "created_at": {
+      "created_utc": {
         "type": "date",
         "format": "epoch_second"
       },
-      "upvotes": {
+      "score": {
         "type": "integer"
       },
-      "downvotes": {
-        "type": "integer"
-      },
-      "comments_count": {
+      "num_comments": {
         "type": "integer"
       },
       "subreddit": {
@@ -35,4 +32,5 @@
     }
   }
 }
+
 
