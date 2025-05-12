@@ -138,6 +138,32 @@ curl -XPOST -k "http://localhost:9090/analysis/sentiment/v2"\
     --data '[{"id": "bafyreiaj5ko5b27zuwaap7e5djxdlnhoq6kvdk3sngizf7a327j275jo5q", "index": "bluesky", "field": "text"}]'
 ```
 
+### Analysis (named entities)
+
+Create the python-ner environment
+```
+fission env create --spec --name python-ner --image pulpss/python-ner
+```
+
+Create the function with the new environment
+```
+fission fn create --spec --name ner-function --env python-ner --code src/analysis/ner/ner_function.py
+```
+
+Create the route
+```
+fission route create --spec --name ner-route --method POST --url analysis/ner/v1 --function ner-function
+```
+
+Test the function
+```
+curl -X POST http://localhost:8888/analysis/ner/v1 -H "Content-Type: application/json" -d '{"text": "SpaCy is great for NLP!"}'
+```
+Should return something like:
+```
+{"PERSON": ["SpaCy"], "ORG": ["NLP"]}
+```
+
 ### REDIS Queue
 
 #### install KEDA

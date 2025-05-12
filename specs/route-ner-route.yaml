@@ -2,21 +2,21 @@ apiVersion: fission.io/v1
 kind: HTTPTrigger
 metadata:
   creationTimestamp: null
-  name: vader-sentiment-function
+  name: ner-route
 spec:
-  createingress: true
+  createingress: false
   functionref:
     functionweights: null
-    name: vader-sentiment-function
+    name: ner-function
     type: name
   host: ""
   ingressconfig:
     annotations: null
     host: '*'
-    path: /analysis/sentiment/v1
+    path: /analysis/ner/v1
     tls: ""
   method: ""
   methods:
   - POST
   prefix: ""
-  relativeurl: /analysis/sentiment/v1
+  relativeurl: /analysis/ner/v1

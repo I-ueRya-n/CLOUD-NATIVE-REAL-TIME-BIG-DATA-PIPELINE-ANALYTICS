@@ -1,0 +1,28 @@
+apiVersion: fission.io/v1
+kind: Environment
+metadata:
+  creationTimestamp: null
+  name: python-ner
+spec:
+  builder:
+    container:
+      name: builder
+      resources: {}
+    podspec:
+      containers:
+      - name: builder
+        resources: {}
+  imagepullsecret: ""
+  keeparchive: false
+  poolsize: 3
+  resources: {}
+  runtime:
+    container:
+      name: python-ner
+      resources: {}
+    image: pulpss/python-ner
+    podspec:
+      containers:
+      - name: python-ner
+        resources: {}
+  version: 3
