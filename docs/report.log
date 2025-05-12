@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  5 MAY 2025 11:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  12 MAY 2025 11:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -598,43 +598,77 @@ Package: xurl 2022/01/09 v 0.10 modify URL breaks
 \Urlmuskip=\muskip18
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ))
-(/usr/share/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
+(/usr/share/texmf-dist/tex/latex/algorithms/algorithm.sty
+Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+nment
+
+(/usr/share/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count324
+\float@exts=\toks51
+\float@box=\box70
+\@float@everytoks=\toks52
+\@floatcapt=\box71
+)
+(/usr/share/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
+)
+\@float@every@algorithm=\toks53
+\c@algorithm=\count325
+)
+(/usr/share/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+Package: algpseudocode 
+
+(/usr/share/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
+Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
+
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+\c@ALG@line=\count326
+\c@ALG@rem=\count327
+\c@ALG@nested=\count328
+\ALG@tlm=\skip58
+\ALG@thistlm=\skip59
+\c@ALG@Lnr=\count329
+\c@ALG@blocknr=\count330
+\c@ALG@storecount=\count331
+\c@ALG@tmpcounter=\count332
+\ALG@tmplength=\skip60
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+) (/usr/share/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 
-\f@nch@headwidth=\skip58
-\f@nch@offset@elh=\skip59
-\f@nch@offset@erh=\skip60
-\f@nch@offset@olh=\skip61
-\f@nch@offset@orh=\skip62
-\f@nch@offset@elf=\skip63
-\f@nch@offset@erf=\skip64
-\f@nch@offset@olf=\skip65
-\f@nch@offset@orf=\skip66
-\f@nch@height=\skip67
-\f@nch@footalignment=\skip68
-\f@nch@widthL=\skip69
-\f@nch@widthC=\skip70
-\f@nch@widthR=\skip71
-\@temptokenb=\toks51
+\f@nch@headwidth=\skip61
+\f@nch@offset@elh=\skip62
+\f@nch@offset@erh=\skip63
+\f@nch@offset@olh=\skip64
+\f@nch@offset@orh=\skip65
+\f@nch@offset@elf=\skip66
+\f@nch@offset@erf=\skip67
+\f@nch@offset@olf=\skip68
+\f@nch@offset@orf=\skip69
+\f@nch@height=\skip70
+\f@nch@footalignment=\skip71
+\f@nch@widthL=\skip72
+\f@nch@widthC=\skip73
+\f@nch@widthR=\skip74
+\@temptokenb=\toks54
 )
 (/usr/share/texmf-dist/tex/latex/pdfpages/pdfpages.sty
 Package: pdfpages 2025/01/30 v0.6e Insert pages of external PDF documents (AM)
 
-(/usr/share/texmf-dist/tex/latex/base/ifthen.sty
-Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
-)
 (/usr/share/texmf-dist/tex/latex/tools/calc.sty
 Package: calc 2023/07/08 v4.3 Infix arithmetic (KKT,FJ)
-\calc@Acount=\count324
-\calc@Bcount=\count325
+\calc@Acount=\count333
+\calc@Bcount=\count334
 \calc@Adimen=\dimen286
 \calc@Bdimen=\dimen287
-\calc@Askip=\skip72
-\calc@Bskip=\skip73
+\calc@Askip=\skip75
+\calc@Bskip=\skip76
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
-\calc@Ccount=\count326
-\calc@Cskip=\skip74
+\calc@Ccount=\count335
+\calc@Cskip=\skip77
 )
 (/usr/share/texmf-dist/tex/latex/eso-pic/eso-pic.sty
 Package: eso-pic 2023/05/03 v3.0c eso-pic (RN)
@@ -643,7 +677,7 @@ Package: eso-pic 2023/05/03 v3.0c eso-pic (RN)
 )
 (/usr/share/texmf-dist/tex/latex/etoolbox/etoolbox.sty
 Package: etoolbox 2025/02/11 v2.5l e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count327
+\etb@tempcnta=\count336
 )
 \AM@pagewidth=\dimen290
 \AM@pageheight=\dimen291
@@ -652,37 +686,37 @@ Package: etoolbox 2025/02/11 v2.5l e-TeX tools for LaTeX (JAW)
 (/usr/share/texmf-dist/tex/latex/pdfpages/pppdftex.def
 File: pppdftex.def 2025/01/30 v0.6e Pdfpages driver for pdfTeX (AM)
 )
-\pdfpages@includegraphics@status=\count328
-\AM@pagebox=\box70
-\AM@global@opts=\toks52
-\AM@pagecnt=\count329
-\AM@toc@title=\toks53
-\AM@lof@heading=\toks54
-\c@AM@survey=\count330
-\AM@templatesizebox=\box71
+\pdfpages@includegraphics@status=\count337
+\AM@pagebox=\box72
+\AM@global@opts=\toks55
+\AM@pagecnt=\count338
+\AM@toc@title=\toks56
+\AM@lof@heading=\toks57
+\c@AM@survey=\count339
+\AM@templatesizebox=\box73
 )
 (/usr/share/texmf-dist/tex/latex/bytefield/bytefield.sty
 Package: bytefield 2025/01/25 v2.9 Network protocol diagrams
-\bytefield@height=\skip75
-\bytefield@height@increment=\skip76
-\entire@bytefield@picture=\box72
-\bf@bitwidth=\skip77
-\bf@bitheight=\skip78
-\units@wide=\skip79
-\units@tall=\skip80
-\units@high=\skip81
-\header@xpos=\skip82
-\c@header@val=\count331
-\c@max@header@val=\count332
-\curly@box=\box73
-\wordlabelr@start=\skip83
-\wordlabelr@end=\skip84
-\wordlabell@start=\skip85
-\wordlabell@end=\skip86
-\total@lbox@width=\skip87
-\label@box@width=\skip88
-\label@box@height=\skip89
-\word@label@box=\box74
+\bytefield@height=\skip78
+\bytefield@height@increment=\skip79
+\entire@bytefield@picture=\box74
+\bf@bitwidth=\skip80
+\bf@bitheight=\skip81
+\units@wide=\skip82
+\units@tall=\skip83
+\units@high=\skip84
+\header@xpos=\skip85
+\c@header@val=\count340
+\c@max@header@val=\count341
+\curly@box=\box75
+\wordlabelr@start=\skip86
+\wordlabelr@end=\skip87
+\wordlabell@start=\skip88
+\wordlabell@end=\skip89
+\total@lbox@width=\skip90
+\label@box@width=\skip91
+\label@box@height=\skip92
+\word@label@box=\box76
 )
 (/usr/share/texmf-dist/tex/latex/pgf-umlsd/pgf-umlsd.sty
 Package: pgf-umlsd 2011/07/27 v0.6 Some LaTeX macros for UML Sequence Diagrams.
@@ -707,13 +741,13 @@ File: tikzlibraryfadings.code.tex 2023-01-15 v3.1.10 (3.1.10)
 (/usr/share/texmf-dist/tex/generic/pgf/libraries/pgflibraryfadings.code.tex
 File: pgflibraryfadings.code.tex 2023-01-15 v3.1.10 (3.1.10)
 )))
-\c@preinst=\count333
-\c@instnum=\count334
-\c@threadnum=\count335
-\c@seqlevel=\count336
-\c@callevel=\count337
-\c@callselflevel=\count338
-\c@blocklevel=\count339
+\c@preinst=\count342
+\c@instnum=\count343
+\c@threadnum=\count344
+\c@seqlevel=\count345
+\c@callevel=\count346
+\c@callselflevel=\count347
+\c@blocklevel=\count348
 ) (/usr/share/texmf-dist/tex/latex/svg/svg.sty
 Package: svg 2020/11/26 v2.02k (include SVG pictures)
 
@@ -756,9 +790,9 @@ Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 Package: shellesc 2023/07/08 v1.0d unified shell escape interface for LaTeX
 Package shellesc Info: Restricted shell escape enabled on input line 77.
 )
-\c@svg@param@lastpage=\count340
-\svg@box=\box75
-\c@svg@param@currpage=\count341
+\c@svg@param@lastpage=\count349
+\svg@box=\box77
+\c@svg@param@currpage=\count350
 )
 (/usr/share/texmf-dist/tex/latex/transparent/transparent.sty
 Package: transparent 2022-10-27 v1.5 Transparency with color stacks
@@ -789,21 +823,21 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 59.
 LaTeX Font Info:    ... okay on input line 59.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 59.
 LaTeX Font Info:    ... okay on input line 59.
-\c@lstlisting=\count342
+\c@lstlisting=\count351
 
 (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count343
+\scratchcounter=\count352
 \scratchdimen=\dimen294
-\scratchbox=\box76
-\nofMPsegments=\count344
-\nofMParguments=\count345
-\everyMPshowfont=\toks55
-\MPscratchCnt=\count346
+\scratchbox=\box78
+\nofMPsegments=\count353
+\nofMParguments=\count354
+\everyMPshowfont=\toks58
+\MPscratchCnt=\count355
 \MPscratchDim=\dimen295
-\MPnumerator=\count347
-\makeMPintoPDFobject=\count348
-\everyMPtoPDFconversion=\toks56
+\MPnumerator=\count356
+\makeMPintoPDFobject=\count357
+\everyMPtoPDFconversion=\toks59
 ) (/usr/share/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -865,29 +899,59 @@ Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
+LaTeX Font Info:    Trying to load font information for U+msa on input line 112
+.
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 112
+.
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 1
+27.
+
+(/usr/share/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 127.
+
 
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
-] (./report.aux)
+{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+
+[2] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 29797 strings out of 475171
- 719384 string characters out of 5767095
- 1389394 words of memory out of 5000000
- 52288 multiletter control sequences out of 15000+600000
- 560047 words of font info for 40 fonts, out of 8000000 for 9000
+ 30500 strings out of 475171
+ 730460 string characters out of 5767095
+ 1410937 words of memory out of 5000000
+ 52954 multiletter control sequences out of 15000+600000
+ 563194 words of font info for 54 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  102i,11n,107p,756b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-Output written on report.pdf (1 page, 30425 bytes).
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></us
+r/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/public/cm-sup
+er/sfrm1000.pfb>
+Output written on report.pdf (2 pages, 122932 bytes).
 PDF statistics:
- 45 PDF objects out of 1000 (max. 8388607)
- 21 compressed objects within 1 object stream
+ 89 PDF objects out of 1000 (max. 8388607)
+ 48 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  109 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -8,7 +8,7 @@
 \usepackage{bbold}
 \newcommand*{\QED}{\null\nobreak\hfill\ensuremath{\blacksquare}}
 \numberwithin{equation}{section}
-\usepackage{xurl}
+\usepackage{xurl,algorithm,algpseudocode}
 \usepackage{fancyhdr,pdfpages}
 \usepackage{bytefield,pgf-umlsd,svg}
 
@@ -66,6 +66,74 @@
 Team 57.
 Team Members: Josh Childs (1549150),
 
+\section*{System Architecture}
+
+\subsection*{Bluesky}
+
+Bluesky has a firehose which gives access to all changes on the bluesky network.
+We open a websocket to the firehose endpoint \texttt{com.atproto.sync.subscribeRepos}.
+When we receive a \texttt{RepoCommit}, we call the fission function \texttt{processPost} which handles decoding the message.
+A commit could be a like on a post, a new post, a repost, or some other type of update.
+\texttt{processPost} returns either a 200 with a JSON of the post which contains the \texttt{cid}, \texttt{did}, \texttt{text} and \texttt{createdAt} fields, or a 404 if the commit was not a post.
+Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this in the elastic search index.
+\texttt{did} is an identifier for the author of the post, \texttt{text} is the body of the post and \texttt{createdAt} is the post timestamp.
+
+\subsection*{Open Australia}
+
+\subsection*{Reddit}
+
+\subsection*{Sentiment Analysis}
+
+\subsection*{Named Entity Analysis}
+
+\subsection*{Analysis}
+
+Performing the analysis described above takes a non trivial amount of time. 
+3 simple options come to mind to handle this.
+
+\begin{itemize}
+    \item Calculating the analysis results for all posts. 
+        Given the large number of posts we have in some indexes, bluesky in particular, this would be infeasible.
+    \item Run the analysis on the posts queried by the user. 
+        This may take a long time if the query contains a large number of posts.
+    \item Setup a fission function to periodically calculate and store the values for a subset of posts.
+        This would be a better option than the two previous ones, but requires foresight into what posts are relevant, or increased effort in changing the focus.
+\end{itemize}
+
+Given the disadvantages of each, instead we implement a hybrid of 2 and 3.
+We calculate the values for posts queried by the user, and cache these in a separate elastic search index. 
+When the user queries those posts again, we pull values from the cache index instead of using the analysis functions.
+This process is described in Algorithm~\ref{alg:cap}.
+To increase throughput, we send the cache function a list of post id's to retrieve, reducing the overhead of authenticating elastic search clients.
+
+\begin{algorithm}
+    \caption{Caching Analysis Results}\label{alg:cap}
+    \begin{algorithmic}
+        \State $ \texttt{Ids} \gets [id_0, \dots, id_n] $ 
+        \State $ \texttt{Index} \gets index $ \Comment{ElasticSearch index containing the id's}
+        \State $ \texttt{Field} \gets field $ \Comment{Field which is being analysised}
+
+        \State $ \texttt{CacheEntry} \gets \texttt{queryESForIds}(\texttt{Ids}, cacheName, \texttt{Index}) $ \Comment{\parbox[t]{.4\linewidth}{Fetch any entries from the elastic search cache index which match the index and any id in Ids}}
+
+        \For{$ id $ in $ \texttt{Ids} $}
+            \If{$id$ not in $ \texttt{CacheEntry} $}
+                \State $ text \gets \texttt{queryES}(\texttt{Index}, id, \texttt{Field}) $ 
+                    \Comment{\parbox[t]{.4\linewidth}{Query \texttt{Index} for the document with id 
+                    \texttt{id} and retrieve the field \texttt{Field}}}
+                \State $ value \gets \texttt{queryAnalysisFunction}(text) $ 
+                    \Comment{Compute the value to cache}
+                \State \Call{insertES}{cacheName, \texttt{Index}, id, value} 
+                    \Comment{Insert the value to the cache index}
+                \State \Call{append}{\texttt{CacheEntry}, \{id, value\}}
+            \EndIf
+        \EndFor
+
+        \State \Return $ \texttt{CacheEntry} $
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection*{User Interface}
+
 \section*{Scenarios}
 
 \subsection*{Fission}
@@ -76,7 +144,15 @@ Team Members: Josh Childs (1549150),
 
 \subsection*{Application Scaling}
 
+\paragraph*{Bluesky} To handle processing the large number of posts in the bluesky firehose, we utilise a new deploy pool of fission functions.
+We set the minimum number of pods to 1, and the maximum to 30. 
+This allows fission to increase or decrease the number of pods, up to 30, depending on the current load.
+
 \subsection*{Error Handling}
+
+\paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
+This container is deployed to kubernetes with one replica. 
+This means the container will be re-deployed to another worker node if one fails, and kubernetes will spin up another replica if the current one crashes from an error.
 
 \subsection*{Integration Testing}
 
