@@ -60,7 +60,9 @@ fission timer create --name reddit-daily-timer \
 ## Apply Spec and Test
 
 fission spec apply --specdir ./specs --wait
+
 kubectl port-forward service/router -n fission 9090:80
+
 curl -v "http://localhost:9090/reddit/scrape?subreddits=melbourne,sydney&limit=5&keywords=tram,weather"
 
 
