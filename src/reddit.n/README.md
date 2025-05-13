@@ -29,7 +29,7 @@ fission route create --spec --name reddit-scrape-route \
   --url '/reddit/scrape'
 
 
-###B: Redis Trigger for Message Queue (e.g., reddit_scraper → reddit_to_elasticsearch)
+### B: Redis Trigger for Message Queue (e.g., reddit_scraper → reddit_to_elasticsearch)
 fission function create --spec --name reddit-to-es \
   --pkg reddit-harvester \
   --env python \
@@ -47,7 +47,7 @@ fission mqtrigger create --name reddit-to-es-trigger \
   --metadata listName=reddit_raw_data
 
 
-###C: Timer Trigger for Daily Scrape
+### C: Timer Trigger for Daily Scrape
 fission function create --spec --name reddit-daily-trigger \
   --pkg reddit-harvester \
   --env python \
@@ -57,7 +57,7 @@ fission timer create --name reddit-daily-timer \
   --function reddit-daily-trigger \
   --cron "@daily"
 
-### Apply Spec and Test
+## Apply Spec and Test
 
 fission spec apply --specdir ./specs --wait
 kubectl port-forward service/router -n fission 9090:80
