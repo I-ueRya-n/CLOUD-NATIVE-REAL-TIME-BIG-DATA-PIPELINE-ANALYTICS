@@ -6,9 +6,9 @@ metadata:
 spec:
   InvokeStrategy:
     ExecutionStrategy:
-      ExecutorType: poolmgr
-      MaxScale: 0
-      MinScale: 0
+      ExecutorType: newdeploy
+      MaxScale: 1
+      MinScale: 1
       SpecializationTimeout: 120
       TargetCPUPercent: 0
     StrategyType: execution

@@ -1,19 +1,19 @@
 include:
 - src/analysis/ner/ner_function.py
 kind: ArchiveUploadSpec
-name: src-analysis-ner-ner-function-py-I1G0
+name: src-analysis-ner-ner-function-py-KMVz
 
 ---
 apiVersion: fission.io/v1
 kind: Package
 metadata:
   creationTimestamp: null
-  name: ner-function-9d698acf-2c91-4b6e-a8ac-94e244455944
+  name: ner-function-5c2e8c2a-28dc-49b1-9a6d-1f1de04d2728
 spec:
   deployment:
     checksum: {}
     type: url
-    url: archive://src-analysis-ner-ner-function-py-I1G0
+    url: archive://src-analysis-ner-ner-function-py-KMVz
   environment:
     name: python-ner
     namespace: ""
@@ -21,7 +21,7 @@ spec:
     checksum: {}
 status:
   buildstatus: none
-  lastUpdateTimestamp: "2025-05-12T09:28:21Z"
+  lastUpdateTimestamp: "2025-05-13T11:31:38Z"
 
 ---
 apiVersion: fission.io/v1
@@ -32,9 +32,9 @@ metadata:
 spec:
   InvokeStrategy:
     ExecutionStrategy:
-      ExecutorType: poolmgr
-      MaxScale: 0
-      MinScale: 0
+      ExecutorType: newdeploy
+      MaxScale: 1
+      MinScale: 1
       SpecializationTimeout: 120
       TargetCPUPercent: 0
     StrategyType: execution
@@ -46,7 +46,7 @@ spec:
   idletimeout: 120
   package:
     packageref:
-      name: ner-function-9d698acf-2c91-4b6e-a8ac-94e244455944
+      name: ner-function-5c2e8c2a-28dc-49b1-9a6d-1f1de04d2728
       namespace: ""
   requestsPerPod: 1
   resources: {}

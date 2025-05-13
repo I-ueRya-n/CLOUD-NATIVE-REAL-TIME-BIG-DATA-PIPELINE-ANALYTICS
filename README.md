@@ -78,16 +78,17 @@ fission package create --spec --name vader \
 Create the function from the file
 
 ```
-fission function create --spec --name vader-sentiment-function \
-  --pkg vader \
+fission function create --spec --name sentiment-function \
+  --pkg sentiment-pkg \
   --env python \
+  --executortype newdeploy \
   --entrypoint "sentiment_function.main"
 ```
 
 Create the trigger/route
 
 ```
-fission route create --spec --name vader-sentiment-function \
+fission route create --spec --name sentiment-function \
   --url /analysis/sentiment/v1 \
   --method POST \
   --createingress \
@@ -111,7 +112,10 @@ fission env create --spec --name python-ner --image pulpss/python-ner
 
 Create the function with the new environment
 ```
-fission fn create --spec --name ner-function --env python-ner --code src/analysis/ner/ner_function.py
+fission fn create --spec --name ner-function \
+    --env python-ner \
+    --executortype newdeploy \
+    --code src/analysis/ner/ner_function.py
 ```
 
 Create the route
@@ -355,7 +359,7 @@ fission route create --spec --name ui-named-entity \
   --function ui-named-entity \
   --method GET \
   --createingress \
-  --url '/ui/named-entities/'\
+  --url '/ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}'\
   --createingress
 ```
 

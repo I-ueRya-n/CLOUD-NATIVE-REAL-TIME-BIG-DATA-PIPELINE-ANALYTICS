@@ -2,15 +2,10 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-
-	es "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 )
 
 type Sentiment struct {
@@ -33,10 +28,10 @@ es index as a cache for previously calculated sentiments.
 */
 func SentimentHandler(w http.ResponseWriter, r *http.Request) {
 	conf := Config[Sentiment]{
-		w:             w,
-		r:             r,
-		calculateItem: calculatePostSentiment,
-		cacheIndex:    "sentiment",
+		w:          w,
+		r:          r,
+		calculate:  CalculateSentiment,
+		cacheIndex: "sentiment",
 	}
 
 	sentiment, err := retrieveCache(conf)
@@ -52,36 +47,12 @@ func SentimentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
-func calculatePostSentiment(client *es.TypedClient, index, field, id string) (sentiment Sentiment, err error) {
-	queryType := matchField("_id", id)
-	req := search.Request{
-		Query: &queryType,
-	}
-
-	res, err := client.Search().Index(index).Request(&req).Do(context.Background())
-	if err != nil {
-		log.Println("index", index, "id", id)
-		return
-	}
-
-	if res.Hits.Hits == nil || len(res.Hits.Hits) == 0 {
-		err = fmt.Errorf("no entries in index %s with id %s", index, id)
-		return
-	}
-
-	entry_json := res.Hits.Hits[0].Source_
-	var source map[string]string
-
-	err = json.Unmarshal(entry_json, &source)
-	if err != nil {
-		return
-	}
-
+func CalculateSentiment(index, id, text string) (s Sentiment, err error) {
 	var text_json struct {
 		Text string `json:"text"`
 	}
 
-	text_json.Text = source[field]
+	text_json.Text = text
 	buf, err := json.Marshal(text_json)
 	if err != nil {
 		return
@@ -99,17 +70,17 @@ func calculatePostSentiment(client *es.TypedClient, index, field, id string) (se
 	}
 
 	if sentRes.StatusCode != http.StatusOK {
-		err = fmt.Errorf("analysis/sentiment/v1: %s", buf)
+		err = fmt.Errorf("%s: %s", addr, buf)
 		return
 	}
 
-	err = json.Unmarshal(buf, &sentiment)
+	err = json.Unmarshal(buf, &s)
 	if err != nil {
 		err = fmt.Errorf("json from vader: %s", buf)
 		return
 	}
 
-	sentiment.Idx = id
-	sentiment.Index = index
+	s.Idx = id
+	s.Index = index
 	return
 }

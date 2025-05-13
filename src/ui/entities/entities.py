@@ -41,9 +41,11 @@ def main() -> Tuple[Dict[str, Any], int]:
         )
 
         count = request.headers.get('X-Fission-Params-Count')
-        status["bluesky"] = bluesky.bluesky_words(client, count)
-        status["openaus"] = openaus.open_aus_words(client, count)
-        status["reddit"] = reddit.reddit_words(client, count)
+        label = request.headers.get('X-Fission-Params-Label')
+
+        status["bluesky"] = bluesky.bluesky_words(client, count, label)
+        status["openaus"] = openaus.open_aus_words(client, count, label)
+        status["reddit"] = reddit.reddit_words(client, count, label)
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}

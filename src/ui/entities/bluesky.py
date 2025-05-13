@@ -34,8 +34,8 @@ def bluesky_query(keyword: str) -> Dict:
     return query
 
 
-def bluesky_words_from(client: Elasticsearch, data: Dict,
-                       count: str, f: int, size: int) -> int:
+def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
+                       label: str, f: int, size: int) -> int:
     query = bluesky_query("auspol")
     response = client.search(index="bluesky", query=query, from_=f, size=size)
     bluesky_posts = response.get("hits").get("hits")
@@ -58,10 +58,10 @@ def bluesky_words_from(client: Elasticsearch, data: Dict,
             print("no entities:", s)
             continue
 
-        if entity.get("PERSON") is None:
+        if entity.get(label) is None:
             continue
 
-        for w in entity.get("PERSON"):
+        for w in entity.get(label):
             word = w.replace("\n", " ").lower()
 
             if word not in data:
@@ -72,7 +72,7 @@ def bluesky_words_from(client: Elasticsearch, data: Dict,
     return len(bluesky_posts)
 
 
-def bluesky_words(client: Elasticsearch, date: str) -> Dict:
+def bluesky_words(client: Elasticsearch, count: str, label: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
     start = 0
@@ -80,7 +80,7 @@ def bluesky_words(client: Elasticsearch, date: str) -> Dict:
     more_data = True
 
     while more_data:
-        prev_count = bluesky_words_from(client, data, date, start, size)
+        prev_count = bluesky_words_from(client, data, count, label, start, size)
         start += prev_count
         more_data = prev_count == size
 

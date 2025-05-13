@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"maps"
 	"net/http"
 	"os"
-	"slices"
+	"sync"
 
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
@@ -39,11 +38,10 @@ type CacheItem interface {
 }
 
 type Config[T CacheItem] struct {
-	w http.ResponseWriter
-	r *http.Request
-
-	calculateItem func(client *es.TypedClient, index, field, id string) (T, error)
-	cacheIndex    string
+	w          http.ResponseWriter
+	r          *http.Request
+	calculate  func(index, id, text string) (T, error)
+	cacheIndex string
 }
 
 func retrieveCache[T CacheItem](conf Config[T]) ([]T, error) {
@@ -97,77 +95,136 @@ Convert the array of id's in query to sentiments
 */
 func fetchCache[T CacheItem](client *es.TypedClient, conf Config[T], index, field string,
 	query []string) (cache []T, err error) {
+	// inverse mapping from query to index
+	queryIndex := make(map[string]int, 2*len(query))
+	for i, q := range query {
+		queryIndex[q] = i
+	}
+
+	exists := make([]bool, len(query))
 	items := make([]types.Query, len(query))
 
-	for i, id := range query {
-		items[i] = matchField("id", id)
-	}
+	{
+		// search cache for sentiments
+		for i, id := range query {
+			items[i] = matchField("id", id)
+		}
 
-	size := len(query)
-	req := search.Request{
-		Size: &size,
-		Query: &types.Query{
-			Bool: &types.BoolQuery{
-				Must: []types.Query{
-					matchField("index", index),
+		size := len(query)
+		req := search.Request{
+			Size: &size,
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Must: []types.Query{
+						matchField("index", index),
+					},
+					Should: items,
 				},
-				Should: items,
 			},
-		},
-	}
+		}
 
-	// search cache for sentiments
-	res, err := client.Search().Index(conf.cacheIndex).Request(&req).Do(context.Background())
-	if err != nil {
-		return
-	}
-
-	results := res.Hits.Hits
-	cacheMap := make(map[string]T, len(query))
-
-	// add cached sentiments to result
-	for _, item := range results {
-		source := item.Source_
-		var item T
-
-		err = json.Unmarshal(source, &item)
+		res, err := client.Search().Index(conf.cacheIndex).Request(&req).Do(context.Background())
 		if err != nil {
-			log.Println("json item:", err)
+			return cache, err
+		}
+
+		results := res.Hits.Hits
+		cache = make([]T, len(query))
+
+		// add cached sentiments to result
+		for _, item := range results {
+			source := item.Source_
+			var item T
+
+			err = json.Unmarshal(source, &item)
+			if err != nil {
+				log.Println("json item:", err)
+				continue
+			}
+
+			id := item.Id()
+			cache[queryIndex[id]] = item
+			exists[queryIndex[id]] = true
+		}
+
+		log.Printf("cache: %d pre-calculated", len(results))
+	}
+
+	{
+		// calculate sentiment for posts not cached
+		items = items[:0]
+
+		for i, id := range query {
+			if exists[i] {
+				continue
+			}
+
+			items = append(items, matchField("_id", id))
+		}
+
+		size := len(items)
+		req := search.Request{
+			Size: &size,
+			Query: &types.Query{
+				Bool: &types.BoolQuery{
+					Should: items,
+				},
+			},
+		}
+
+		// search index for the content of posts
+		res, err := client.Search().Index(index).Request(&req).Do(context.Background())
+		if err != nil {
+			return cache, err
+		}
+
+		results := res.Hits.Hits
+
+		var wg sync.WaitGroup
+		j := 0
+
+		log.Printf("cache: calculating %d", len(results))
+
+		// calculate values
+		for _, item := range results {
+			var fields map[string]string
+
+			err = json.Unmarshal(item.Source_, &fields)
+			if err != nil {
+				log.Println("fetching cache:", err)
+				continue
+			}
+
+			j++
+
+			wg.Add(1)
+			go func(i int, id, text string) {
+				cache[i], err = conf.calculate(index, id, text)
+				if err != nil {
+					log.Println("caching index", index, ":", err)
+				}
+
+				wg.Done()
+			}(queryIndex[*item.Id_], *item.Id_, fields[field])
+		}
+
+		wg.Wait()
+	}
+
+	// insert newly calculated posts to elastic search
+	for i, item := range cache {
+		if exists[i] || item.Id() == "" {
+			// no item
 			continue
 		}
 
-		cacheMap[item.Id()] = item
+		cacheID := index + "-" + cache[i].Id()
+
+		_, err := client.Index(conf.cacheIndex).Id(cacheID).Request(item).Do(context.Background())
+		if err != nil {
+			log.Println("fetching cache:", err)
+		}
 	}
 
-	log.Printf("cache: %d pre-calculated", len(cache))
-
-	// calculate sentiment for posts not cached
-	for _, q := range query {
-		if _, ok := cacheMap[q]; ok {
-			continue
-		}
-
-		var item T
-		item, err = conf.calculateItem(client, index, field, q)
-		if err != nil {
-			err = fmt.Errorf("calculating item: %s", err)
-			return
-		}
-
-		err = insertIntoCache(client, conf.cacheIndex, index, item)
-		if err != nil {
-			err = fmt.Errorf("caching item: %s", err)
-			return
-		}
-		cacheMap[item.Id()] = item
-	}
-
-	cache = slices.Collect(maps.Values(cacheMap))
 	return
-}
-
-func insertIntoCache[T CacheItem](client *es.TypedClient, cache, index string, item T) error {
-	cacheID := index + "-" + item.Id()
-	_, err := client.Index(cache).Id(cacheID).Request(item).Do(context.Background())
-	return err
 }
