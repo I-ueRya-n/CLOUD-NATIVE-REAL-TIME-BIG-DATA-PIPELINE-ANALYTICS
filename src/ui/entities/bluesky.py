@@ -35,9 +35,15 @@ def bluesky_query(keyword: str) -> Dict:
 
 
 def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
-                       label: str, f: int, size: int) -> int:
+                       label: str, search_after) -> int:
     query = bluesky_query("auspol")
-    response = client.search(index="bluesky", query=query, from_=f, size=size)
+    response = client.search(
+        index="bluesky",
+        query=query,
+        search_after=search_after,
+        sort=[{"createdAt": "asc"}, {"cid": "asc"}],
+        size=1000
+    )
     bluesky_posts = response.get("hits").get("hits")
 
     # get named entities for bluesky posts
@@ -48,7 +54,7 @@ def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
 
     if response.status_code >= 400:
         print("error making request:", response.text)
-        return 0
+        return None
 
     # aggregate sentiment across time
     for s in response.json():
@@ -69,19 +75,21 @@ def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
 
             data[word] += 1
 
-    return len(bluesky_posts)
+    # return the sort value of the last post
+    if len(bluesky_posts) == 0:
+        return None
+
+    return bluesky_posts[-1].get("sort")
 
 
 def bluesky_words(client: Elasticsearch, count: str, label: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
-    start = 0
-    size = 1000
+    search_after = None
     more_data = True
 
     while more_data:
-        prev_count = bluesky_words_from(client, data, count, label, start, size)
-        start += prev_count
-        more_data = prev_count == size
+        search_after = bluesky_words_from(client, data, count, label, search_after)
+        more_data = search_after is not None
 
     return data

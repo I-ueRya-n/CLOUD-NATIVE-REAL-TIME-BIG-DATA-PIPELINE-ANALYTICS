@@ -52,16 +52,27 @@ def bluesky_query(keyword: str, date: str) -> Dict:
 
 
 def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
-                           date: str, f: int, size: int) -> int:
+                           date: str, search_after) -> int:
     query = bluesky_query("auspol", date)
-    response = client.search(index="bluesky", query=query, from_=f, size=size)
+    response = client.search(
+        index="bluesky",
+        query=query,
+        search_after=search_after,
+        sort=[{"createdAt": "asc"}, {"cid": "asc"}],
+        size=1000
+    )
     bluesky_posts = response.get("hits").get("hits")
 
     # get sentiment for bluesky posts
     sentiment_query = [p.get("_id") for p in bluesky_posts]
     addr = config("FISSION_HOSTNAME") + "/analysis/sentiment/v2/index/bluesky/field/text"
-    response = requests.post(addr, json=sentiment_query)
+
     print("requesting", len(sentiment_query), "posts")
+    response = requests.post(addr, json=sentiment_query)
+
+    if response.status_code >= 400:
+        print("error making request:", response.text)
+        return None
 
     # aggregate sentiment across time
     post_map = array_to_dict(bluesky_posts, "_id")
@@ -85,19 +96,21 @@ def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
         for field in ["neg", "neu", "pos", "compound"]:
             data[post_date][field] += s.get(field)
 
-    return len(bluesky_posts)
+    # return the sort value of the last post
+    if len(bluesky_posts) == 0:
+        return None
+
+    return bluesky_posts[-1].get("sort")
 
 
 def bluesky_sentiment(client: Elasticsearch, date: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
-    start = 0
-    size = 1000
+    search_after = None
     more_data = True
 
     while more_data:
-        prev_count = bluesky_sentiment_from(client, data, date, start, size)
-        start += prev_count
-        more_data = prev_count == size
+        search_after = bluesky_sentiment_from(client, data, date, search_after)
+        more_data = search_after is not None
 
     return data
