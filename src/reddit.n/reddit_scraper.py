@@ -7,11 +7,11 @@ from util import enqueue_data
 def main():
     # Reddit API credentials from environment variables
     reddit = praw.Reddit(
-        client_id=os.environ.get("REDDIT_CLIENT_ID"),
-        client_secret=os.environ.get("REDDIT_CLIENT_SECRET"),
-        username=os.environ.get("REDDIT_USERNAME"),
-        password=os.environ.get("REDDIT_PASSWORD"),
-        user_agent=os.environ.get("REDDIT_USER_AGENT", "RedditHarvester/1.0")
+        client_id="ZFZjHYS9Inkn8Eg9Z_QoKQ",
+        client_secret="oStU1IMaW9b3mvQucsEZNcyoqjeX1w",
+        username="Traditional_Rock_556",
+        password="04U@nimelb25624426",
+        user_agent="COMP90024_team57 Harvester by /u/Traditional_Rock_556"
     )
 
     # Parse request parameters
