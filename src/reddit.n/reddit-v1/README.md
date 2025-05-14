@@ -1,12 +1,12 @@
 ## Create Functions and Triggers
 fission package create --spec --name reddit-data-lister \
-  --source ./src/reddit.n/reddit_daily_trigger.py \
-  --source ./src/reddit.n/reddit_data_formatter.py \
-  --source ./src/reddit.n/reddit_data_harvester.py \
-  --source ./src/reddit.n/__init__.py \
-  --source ./src/reddit.n/reddit_to_elasticsearch.py \
-  --source ./src/reddit.n/util.py \
-  --source ./src/reddit.n/requirements.txt \
+  --source ./src/reddit.n/reddit-v1/reddit_daily_trigger.py \
+  --source ./src/reddit.n/reddit-v1/reddit_data_formatter.py \
+  --source ./src/reddit.n/reddit-v1/reddit_data_harvester.py \
+  --source ./src/reddit.n/reddit-v1/__init__.py \
+  --source ./src/reddit.n/reddit-v1/reddit_to_elasticsearch.py \
+  --source ./src/reddit.n/reddit-v1/util.py \
+  --source ./src/reddit.n/reddit-v1/requirements.txt \
   --source ./build.sh \
   --env python39 \
   --buildcmd './build.sh'
