@@ -87,8 +87,8 @@ Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this
 \subsection*{Open Australia}
 The OpenAustralia (OA) API provide a REST API which we can use to query the Australian parliament's Hansard reports, and also some user comments.
 
-A redis message queue is used to handle the data inflow from the OpenAustralia API.
-This is added to using a httptrigger route , which allows requests to be stored in ``topic'' queues. 
+A redis message queue is used to handle the data inflow from the OpenAustralia API.\
+The queues are created by sending a post request to the \texttt{enqueue} function, which allows messages to be stored in ``topic'' queues. 
 
 The general structure of the OpenAustralia data inflow is as follows:
 \begin{enumerate}
@@ -238,7 +238,11 @@ The data influx of the OpenAustralia api was of a less intense ``velocity'' comp
 This meant that the regular scraping could be done on a daily basis, gathering data from debates held two days prior, with to allow complete collection of data, as the Hansard reports are finalised by 5pm the day after the debate.
 This was achieved using a time based fission trigger \texttt{oa-daily-debate-harvester}, which runs once a day.
 Similarly to the BlueSky setup, the number of pods were dynamically allocated as needed. However, due to the lower amount of incoming data the minimum number of pods was set to 0, as the resources required when starting a new pod would not significantly affect the performance.
-I NEED TO TALK ABOUT AUTOSCALING HERE
+\\
+The message queues used a Keda workload autoscaler.
+This monitored the number of messages in the queue, and scaled the number of pods up or down depending on the number of pods required.
+This helped handle the variabible load of the OpenAustralia API, as the number of messages in the queue could vary from 0 to 1000+, especially when gathering data from previous years. 
+
 \subsection*{Error Handling}
 
 \paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
@@ -247,7 +251,7 @@ This means the container will be re-deployed to another worker node if one fails
 
 
 \paragraph*{OpenAustralia} 
-A modular approach to functions was taken to handle errors in the OpenAustralia API.\ 
+A modular, ``Event Driven Architecture'' approach was taken to handle errors in the OpenAustralia API.\ 
 The logic associated with querying the OpenAustralia API was split into three key parts: the entrypoint functions, the harvester, and the adder.
 
 These are connected by redis message queues, each with their own ``error topics''.
