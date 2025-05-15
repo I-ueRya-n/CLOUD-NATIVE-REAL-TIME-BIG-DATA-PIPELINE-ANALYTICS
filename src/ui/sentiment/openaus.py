@@ -55,7 +55,7 @@ def array_to_dict(array: [Dict], key: str) -> Dict[str, Dict]:
     d = {}
     for item in array:
         d[item[key]] = item.get("_source")
-
+    
     return d
 
 
@@ -81,7 +81,7 @@ def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
     sentiment_query = [p.get("_id") for p in found_debates]
 
     # had to add alias to the index get this to work with underscores
-    addr = "http://localhost:9090"  + f"/analysis/sentiment/v2/index/{index}/field/{field}"
+    addr = config("FISSION_HOSTNAME") + f"/analysis/sentiment/v2/index/{index}/field/{field}"
 
 
     print("requesting sentiment of", len(sentiment_query), "debates")
@@ -100,6 +100,7 @@ def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
     post_map = array_to_dict(found_debates, "_id")
     print(sentiment_response.json())
     for s in sentiment_response.json():
+        print(s)
         cid = s.get("id")
 
         if cid not in post_map:
@@ -146,15 +147,3 @@ def open_aus_sentiment(client: Elasticsearch, date: str, keyword: str="") -> Dic
 
 
     return data
-
-if __name__ == "__main__":
-    # test the function
-    es_client: Elasticsearch = Elasticsearch(
-        "https://localhost:9200",
-        verify_certs=False,
-        ssl_show_warn=False,
-        basic_auth=("elastic", "Mi0zu6yaiz1oThithoh3Di8kohphu9pi")
-    )
-    date = "2023-04-11"
-    data = open_aus_sentiment(es_client, date, "question")
-    print(data)
