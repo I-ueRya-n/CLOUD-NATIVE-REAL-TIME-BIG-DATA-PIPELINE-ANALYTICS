@@ -68,6 +68,12 @@ Team Members: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089)
 
 \section*{System Architecture}
 
+\subsection*{Overview}
+The system is designed to gather data from three different platforms: Bluesky, OpenAustralia and Reddit.
+The data is then processed and stored in elastic search indexs, which can be queried by the user.
+The system is designed to be modular and scalable, so that we can easily add new platforms or data sources in the future and handle varying amounts of data.
+
+
 \subsection*{Bluesky}
 
 Bluesky has a firehose which gives access to all changes on the bluesky network.
@@ -81,9 +87,12 @@ Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this
 \subsection*{Open Australia}
 The OpenAustralia (OA) API provide a REST API which we can use to query the Australian parliament's Hansard reports, and also some user comments.
 
+A redis message queue is used to handle the data inflow from the OpenAustralia API.
+This is added to using a httptrigger route , which allows requests to be stored in ``topic'' queues. 
+
 The general structure of the OpenAustralia data inflow is as follows:
 \begin{enumerate}
-    \item An ``entrypoint`` fission function is called, which adds the parameters (keys) of the request to the redis queue \texttt{oa\_debate\_keys}.
+    \item An ``entrypoint`` fission function is called, which adds the parameters (keys) of the request to the redis message ueue \texttt{oa\_debate\_keys}.
     
     \begin{lstlisting}[frame=none,numbers=none]
     { 
@@ -93,10 +102,10 @@ The general structure of the OpenAustralia data inflow is as follows:
     \end{lstlisting}
 
 
-    \item The \texttt{oa-debate-harvester-by-details} fission function is triggered by this redis queue. 
+    \item The \texttt{oa-debate-harvester-by-details} fission function is triggered by this redis message queue. 
     
     This function queries the OpenAustralia API for the debate details, and then queries the OpenAustralia API for the comments on that debate. This raw data is then stored in another redis queue \texttt{oa\_debates\_data}.
-    \item The \texttt{debate-adder} fission function is triggered by this redis queue. 
+    \item The \texttt{debate-adder} fission function is triggered by this redis message queue. 
     The data is then processed and stored in the elastic search index \texttt{oa-debates-comments}.
     
     A parent-child relationship is created between the debate and the comments, so that we can query the comments for a specific debate.
@@ -204,9 +213,19 @@ We then wanted to contrast the sentiment and topics of these social media discus
 
 \subsection*{Fission}
 
+\subsection*{Fission Specs}
+In alignment with the principle of declarative application management, we used fission specs to define the desired state of our fission setup. 
+
+This allows us to easily manage the state of our system, add new functions and edit the configuration of existing functions.
+It also means that our infastructure is ``self healing'', as fission will automatically re-deploy any functions which are not in the desired state.
+This was espeically important when working in a shared environment with a large number of group members.
+
+
 \section*{NeCTAR Research Cloud}
 
 \subsection*{Platform Discussion}
+
+
 
 \subsection*{Application Scaling}
 
@@ -215,16 +234,34 @@ We set the minimum number of pods to 1, and the maximum to 30.
 This allows fission to increase or decrease the number of pods, up to 30, depending on the current load.
 
 \paragraph*{OpenAustralia} 
-The data influx of the OpenAustralia api was of a less intense ``velocity`` compared to that of BlueSky and Reddit.
+The data influx of the OpenAustralia api was of a less intense ``velocity'' compared to that of BlueSky and Reddit.
 This meant that the regular scraping could be done on a daily basis, gathering data from debates held two days prior, with to allow complete collection of data, as the Hansard reports are finalised by 5pm the day after the debate.
 This was achieved using a time based fission trigger \texttt{oa-daily-debate-harvester}, which runs once a day.
 Similarly to the BlueSky setup, the number of pods were dynamically allocated as needed. However, due to the lower amount of incoming data the minimum number of pods was set to 0, as the resources required when starting a new pod would not significantly affect the performance.
-
+I NEED TO TALK ABOUT AUTOSCALING HERE
 \subsection*{Error Handling}
 
 \paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
 This container is deployed to kubernetes with one replica. 
 This means the container will be re-deployed to another worker node if one fails, and kubernetes will spin up another replica if the current one crashes from an error.
+
+
+\paragraph*{OpenAustralia} 
+A modular approach to functions was taken to handle errors in the OpenAustralia API.\ 
+The logic associated with querying the OpenAustralia API was split into three key parts: the entrypoint functions, the harvester, and the adder.
+
+These are connected by redis message queues, each with their own ``error topics''.
+This seperation of functionality improves the robustness of the system, as we can see exactly where any errors occurred, and retry only that part of the process. Somethiungsomething Event driven architecture
+\
+It also means that if one part of the process fails, the outputs of the other functions will still be saved, allowing the process to continue without data loss.
+
+This was particularly useful when querying the OpenAustralia API, as the formatting of responses is often unpredictable, even within the same endpoints.
+\\
+The immediate httptrigger entrypoint functions do not have any retry logic, as they are only called once manually, and the data is stored in the redis queue.
+The \texttt{oa-debate-harvester-by-details} and \texttt{debate-adder} functions are triggered by the redis queues, and have retry logic built in. 
+Both of these functions will retry up to 3 times if they encounter an error, and will log the error message to their respective ``error topic'' redis queue.
+\\
+This strategy is certainly not perfect, as it does not handle all possible errors, but it does allow us to see where the errors are occurring, and retry the failed functions.
 
 \subsection*{Integration Testing}
 
