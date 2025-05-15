@@ -22,7 +22,7 @@ dos2unix ./build.sh
 fission function create --spec --name reddit-data-harvester \
   --pkg reddit-package \
   --env python39 \
-  -entrypoint "reddit_scraper.main"
+  --entrypoint "reddit_scraper.main"
 
 fission route create --spec --name reddit-harvest-trigger \
   --function reddit-data-harvester \
