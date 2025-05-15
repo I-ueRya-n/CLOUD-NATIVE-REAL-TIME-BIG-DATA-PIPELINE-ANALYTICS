@@ -1,0 +1,27 @@
+{
+    "settings": {
+        "index": {
+            "number_of_shards": 3,
+            "number_of_replicas": 1
+        }
+    },
+    "mappings": {
+        "properties": {
+            "id": {
+                "type": "keyword"
+            },
+            "user_id": {
+                "type": "keyword"
+            },
+            "comment": {
+                "type": "text"
+            },
+            "date": {
+                "type": "date"
+            },
+            "parent_debate_id": {
+                "type": "keyword"
+            }
+        }
+    }
+}

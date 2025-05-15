@@ -23,7 +23,7 @@ puts raw returned debate data into queue "oa_debate_data"
 ELASTICSEARCH ADDER:
 5. debate_adder - message queue trigger
 gets raw debate json from queue "oa_debate_data"
-puts it into the elasticsearch index "oa_debates_comments"
+puts it into the elasticsearch index "oa_debates" and "oa_comments"
 
 DOES NOT ADD DUPLICATE IDS. - this can be changed, it was just annoying to have many versions of the same thing (even though it handled it as the same data)
 
@@ -31,37 +31,23 @@ DOES NOT ADD DUPLICATE IDS. - this can be changed, it was just annoying to have 
 ## SETUP
 
 ### NEW ELASTICSEARCH WITH COMMENTS
-Index called "oa_debates_comments", follows mapping open_australia/oa_debates/index.json
+Two indices called "oa_debates" and "oa_comments", follows mapping open_australia/oa_debates/oa-comments.json and oa-debates.json
 
 Forward ports
+```
 kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
 kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 
-
-curl -XPUT -k "https://127.0.0.1:9200/oa_debates_comments"\
+curl -XPUT -k "https://127.0.0.1:9200/oa-debates"\
     --header "Content-Type: application/json"\
-    --data "@src/open_australia/oa_debates/index.json"\
+    --data "@src/open_australia/oa_debates/oa-debates.json"\
+    --user "elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi"
+
+curl -XPUT -k "https://127.0.0.1:9200/oa-comments"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/oa-comments.json"\
     --user "elastic:<pass>"
-
-
-
-### BELOW IS OLD AND 
-### Create elastic search index for OA debates
-First index was called "oa_debates", follows mapping open_australia/oa_debates_old/old_index.json
-THIS DIDNT SUPPORT COMMENTS
-
-Forward ports
-kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
-kubectl port-forward service/kibana-kibana -n elastic 5601:5601
-
-
-// why wouldn't localhost work?
-curl -XPUT -k "https://127.0.0.1:9200/oa_debates"\
-    --header "Content-Type: application/json"\
-    --data "@src/open_australia/oa_debates/index.json"\
-    --user "elastic:<ELASTICSEARCH_PASSWORD>"
-
-### END OLD AND OUTDATED
+```
 
 ## FISSION FUNCTION SETUP
 
@@ -211,7 +197,7 @@ fission spec apply --specdir ./specs --wait
 fission spec apply --specdir ./specs --wait
 
 ## 4. OA debate adder to elasticsearch - FINAL STEP OF DEBATE PIPELINE
-adds to the NEW index "oa_debates_comments"
+adds to the NEW index "oa_debates" AND "oa_comments"
 
 ##### create function
 fission function create --spec --name oa-debate-adder \

@@ -140,7 +140,7 @@ def main() -> str:
                     for result in found_debates:
                         # current_app.logger.info(f"Found debate: {result}")
                         current_app.logger.info(f"Found debate with gid {debate_gid}")
-                        if not ((result.get('subsection_id', 1)==0) and result.get('subsection_id', "")):
+                        if not ((result.get('subsection_id', 1)=="0") or (result.get('section_id', 1) == "0")):
                             debates_to_add.append(result)
                         # break here if concerned about duplicates, idk. 
                         # if not it may miss some debates
