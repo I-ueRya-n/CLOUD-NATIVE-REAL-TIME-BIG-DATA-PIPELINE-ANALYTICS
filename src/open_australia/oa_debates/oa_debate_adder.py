@@ -58,7 +58,7 @@ def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
         "user_name": comment.get("username", ""),
         "comment": comment.get("body", ""),
         "date": comment.get("posted", "").split(" ")[0],
-        "debate": debate,
+        "parent_debate_id": debate.get("epobject_id", ""),
     }
     return formatted_data
 
@@ -68,15 +68,15 @@ def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
     Formats and adds a debate.
     """
     try:
+        # add the debate
         debate_mapped = format_debate(debate)
-
         index_response: Dict[str, Any] = es_client.index(
             index='oa-debates',
             id=debate_mapped.get("id"),
             body=debate_mapped,
         )
         current_app.logger.info(
-        f'Indexed comment {debate_mapped.get("id")} - Version: {index_response["_version"]}'
+        f'Indexed debate {debate_mapped.get("id")} - Version: {index_response["_version"]}'
     )
 
     except ValueError as e:
@@ -93,8 +93,8 @@ def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
         return
 
     try:
+        # add the comment
         comment_mapped = format_debate_comment(comment)
-
         index_response: Dict[str, Any] = es_client.index(
             index='oa-comments',
             id=comment_mapped.get("id"),

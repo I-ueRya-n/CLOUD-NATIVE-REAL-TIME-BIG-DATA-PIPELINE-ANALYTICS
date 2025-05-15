@@ -18,6 +18,9 @@
             },
             "date": {
                 "type": "date"
+            },
+            "parent_debate_id": {
+                "type": "keyword"
             }
         }
     }
