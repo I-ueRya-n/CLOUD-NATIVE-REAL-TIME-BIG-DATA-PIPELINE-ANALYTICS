@@ -13,10 +13,10 @@ spec:
   ingressconfig:
     annotations: null
     host: '*'
-    path: /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+}
+    path: /analysis/sentiment/v2/index/{index}/field/{field}
     tls: ""
   method: ""
   methods:
   - POST
   prefix: ""
-  relativeurl: /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+}
+  relativeurl: /analysis/sentiment/v2/index/{index}/field/{field}

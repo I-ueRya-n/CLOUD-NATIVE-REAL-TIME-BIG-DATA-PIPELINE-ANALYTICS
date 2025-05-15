@@ -159,7 +159,7 @@ fission fn create --spec --name elastic-sentiment \
     --entrypoint SentimentHandler
 
 fission route create --spec --name elastic-sentiment\
-  --url /analysis/sentiment/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
+  --url /analysis/sentiment/v2/index/{index}/field/{field} \
   --method POST \
   --function elastic-sentiment
 
@@ -170,7 +170,7 @@ fission fn create --spec --name elastic-ner \
     --entrypoint EntityHandler
 
 fission route create --spec --name elastic-ner \
-  --url /analysis/ner/v2/index/{index:[a-zA-Z0-9]+}/field/{field:[a-zA-Z0-9]+} \
+  --url /analysis/ner/v2/index/{index}/field/{field} \
   --method POST \
   --function elastic-ner
 ```

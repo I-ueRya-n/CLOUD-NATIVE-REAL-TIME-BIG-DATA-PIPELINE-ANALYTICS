@@ -4,9 +4,9 @@ from flask import current_app, request
 from util import config
 
 
-def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
+def format_debate(data: Dict[str, any]) -> Dict[str, Any]:
     """ 
-        Formats debate comment to match the mapping template to put into ES.
+        Formats debate to match the mapping template to put into ES.
         
         Handles:
         - extracting and formatting the data to match the mapping template
@@ -18,13 +18,11 @@ def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
             a debate comment mapped and ready to go into the ES index. woo hoo!
     """
     formatted_data = {
-        "id": data.get("comment_id", ""),
-        "debate": {
-            "debate_id": data.get("epobject_id", ""),
-            "gid": data.get("gid", ""),
-            "debate_date": data.get("hdate", ""),
-            "parent_topic": data.get("parent", {}).get("body", ""),
-        },
+        "id": data.get("epobject_id", ""),
+        "gid": data.get("gid", ""),
+        "date": data.get("hdate", ""),
+        "parent_topic": data.get("parent", {}).get("body", ""),
+        "transcript": data.get("body", ""),
         "speaker": {
             "first_name": data.get("speaker", {}).get("first_name", ""),
             "last_name": data.get("speaker", {}).get("last_name", ""),
@@ -34,20 +32,63 @@ def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
             "person_id": data.get("speaker", {}).get("person_id", ""),
             "position": data.get("speaker", {}).get("title", "")
         },
-        "user_id": data.get("user_id", ""),
-        "user_name": data.get("username", ""),
-        "comment": data.get("body", ""),
-        "date": data.get("posted", "").split(" ")[0],
     }
     return formatted_data
 
 
-def add_debate_comment(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
+def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
+    """ 
+        Formats debate comment to match the mapping template to put into ES.
+
+        Handles:
+        - extracting and formatting the data to match the mapping template
+        - if a field is not present, it will be set to an empty string
+
+        Args:
+            incoming_data: The raw data representation of a debate topic.
+        Returns:
+            a debate comment mapped and ready to go into the ES index. woo hoo!
+    """
+    debate = format_debate(data)
+    comment = data.get("comment", {})
+
+    formatted_data = {
+        "id": comment.get("comment_id", ""),
+        "user_id": comment.get("user_id", ""),
+        "user_name": comment.get("username", ""),
+        "comment": comment.get("body", ""),
+        "date": comment.get("posted", "").split(" ")[0],
+        "debate": debate,
+    }
+    return formatted_data
+
+
+def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
+    """
+    Formats and adds a debate.
+    """
+    try:
+        debate_mapped = format_debate(debate)
+
+        index_response: Dict[str, Any] = es_client.index(
+            index='oa-debates',
+            id=debate_mapped.get("id"),
+            body=debate_mapped,
+        )
+        current_app.logger.info(
+        f'Indexed comment {debate_mapped.get("id")} - Version: {index_response["_version"]}'
+    )
+
+    except ValueError as e:
+        current_app.logger.error(f"Error formatting comment: {e}")
+
+
+def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
     """
     Formats and adds a debate and any one attached comment to the index.
     """
     # check if it has a comment
-    comment = debate.get("comment", None)
+    comment = data.get("comment", None)
     if comment is None:
         return
 
@@ -55,7 +96,7 @@ def add_debate_comment(es_client: Elasticsearch, debate: Dict[str, Any]) -> None
         comment_mapped = format_debate_comment(comment)
 
         index_response: Dict[str, Any] = es_client.index(
-            index='oa_debates_comments',
+            index='oa-comments',
             id=comment_mapped.get("id"),
             body=comment_mapped,
         )
@@ -111,6 +152,7 @@ def main() -> str:
             continue
         
         # its probably a normal debate, add it and any comments
+        add_debate(es_client, debate)
         add_debate_comment(es_client, debate)
 
     return f'added {len(request_data)} debates to the index, yay!'
