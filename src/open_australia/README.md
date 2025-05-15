@@ -34,14 +34,20 @@ DOES NOT ADD DUPLICATE IDS. - this can be changed, it was just annoying to have 
 Index called "oa_debates_comments", follows mapping open_australia/oa_debates/index.json
 
 Forward ports
+```
 kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
 kubectl port-forward service/kibana-kibana -n elastic 5601:5601
 
-
-curl -XPUT -k "https://127.0.0.1:9200/oa_debates_comments"\
+curl -XPUT -k "https://127.0.0.1:9200/oa-debates"\
     --header "Content-Type: application/json"\
-    --data "@src/open_australia/oa_debates/index.json"\
+    --data "@src/open_australia/oa_debates/oa-debates.json"\
     --user "elastic:<pass>"
+
+curl -XPUT -k "https://127.0.0.1:9200/oa-comments"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/oa-comments.json"\
+    --user "elastic:<pass>"
+```
 
 
 
