@@ -79,6 +79,49 @@ Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this
 \texttt{did} is an identifier for the author of the post, \texttt{text} is the body of the post and \texttt{createdAt} is the post timestamp.
 
 \subsection*{Open Australia}
+The OpenAustralia (OA) API provide a REST API which we can use to query the Australian parliament's Hansard reports, and also some user comments.
+
+The general structure of the OpenAustralia data inflow is as follows:
+\begin{enumerate}
+    \item An ``entrypoint`` fission function is called, which adds the parameters (keys) of the request to the redis queue \texttt{oa\_debate\_keys}.
+    
+    \begin{lstlisting}[frame=none,numbers=none]
+    { 
+        "house": "senate" or "representatives",
+        "date" or "person": date in format YYYY-MM-DD or person id
+    }
+    \end{lstlisting}
+
+
+    \item The \texttt{oa-debate-harvester-by-details} fission function is triggered by this redis queue. 
+    
+    This function queries the OpenAustralia API for the debate details, and then queries the OpenAustralia API for the comments on that debate. This raw data is then stored in another redis queue \texttt{oa\_debates\_data}.
+    \item The \texttt{debate-adder} fission function is triggered by this redis queue. 
+    The data is then processed and stored in the elastic search index \texttt{oa-debates-comments}.
+    
+    A parent-child relationship is created between the debate and the comments, so that we can query the comments for a specific debate.
+    And also between debates and their parent topics, so that we can query the debates for a specific topic.
+\end{enumerate}
+
+
+There are three main entrypoints to gathering OpenAustralia data.
+
+\begin{itemize}
+    \item \texttt{oa-date-lister} - Queries the OpenAustralia API for dates in a year where debates were held.
+
+    This uses a httptrigger route \texttt{oa-dates-with-debates}, providing the year as a parameter.
+
+    \item \texttt{oa-person-lister} - Queries the OpenAustralia API for all debates held by a specific person.
+    
+    This uses a httptrigger route \texttt{oa-people-year-house}, providing the year and house (senate or represenatives) as parameters.
+
+    \item \texttt{oa-daily-debate-harvester} - Queries the OpenAustralia API for all debates held on a specific date, and then queues the results for processing.
+    
+    This is accessed through a time trigger, which runs once a day.
+\end{itemize}
+The first two entrypoints are called manually to scrape past data from the backlog, while the third is called daily to gather new data.
+
+All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
 \subsection*{Reddit}
 
@@ -174,7 +217,7 @@ This allows fission to increase or decrease the number of pods, up to 30, depend
 \paragraph*{OpenAustralia} 
 The data influx of the OpenAustralia api was of a less intense ``velocity`` compared to that of BlueSky and Reddit.
 This meant that the regular scraping could be done on a daily basis, gathering data from debates held two days prior, with to allow complete collection of data, as the Hansard reports are finalised by 5pm the day after the debate.
-This was achieved using a time based fission trigger \texttt{oa\_daily\_debate\_harvester}, which runs once a day.
+This was achieved using a time based fission trigger \texttt{oa-daily-debate-harvester}, which runs once a day.
 Similarly to the BlueSky setup, the number of pods were dynamically allocated as needed. However, due to the lower amount of incoming data the minimum number of pods was set to 0, as the resources required when starting a new pod would not significantly affect the performance.
 
 \subsection*{Error Handling}
