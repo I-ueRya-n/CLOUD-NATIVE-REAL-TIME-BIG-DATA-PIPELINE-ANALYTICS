@@ -33,10 +33,11 @@ def format_debate(data: Dict[str, any]) -> Dict[str, Any]:
             "position": data.get("speaker", {}).get("title", "")
         },
     }
+    current_app.logger.info(f'Formatted debate: {formatted_data}')
     return formatted_data
 
 
-def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
+def format_debate_comment(data: Dict[str, Any], parent_debate: str) -> Dict[str, Any]:
     """ 
         Formats debate comment to match the mapping template to put into ES.
 
@@ -49,7 +50,6 @@ def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
         Returns:
             a debate comment mapped and ready to go into the ES index. woo hoo!
     """
-    debate = format_debate(data)
     comment = data.get("comment", {})
 
     formatted_data = {
@@ -58,7 +58,7 @@ def format_debate_comment(data: Dict[str, Any]) -> Dict[str, Any]:
         "user_name": comment.get("username", ""),
         "comment": comment.get("body", ""),
         "date": comment.get("posted", "").split(" ")[0],
-        "parent_debate_id": debate.get("epobject_id", ""),
+        "parent_debate_id": parent_debate,
     }
     return formatted_data
 
@@ -70,17 +70,25 @@ def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
     try:
         # add the debate
         debate_mapped = format_debate(debate)
-        index_response: Dict[str, Any] = es_client.index(
-            index='oa-debates',
-            id=debate_mapped.get("id"),
-            body=debate_mapped,
-        )
-        current_app.logger.info(
-        f'Indexed debate {debate_mapped.get("id")} - Version: {index_response["_version"]}'
-    )
+        try:
+            index_response: Dict[str, Any] = es_client.index(
+                index='oa-debates',
+                id=debate_mapped.get("id"),
+                body=debate_mapped,
+            )
+            current_app.logger.info(
+                f'Indexed debate {debate_mapped.get("id")} - Version: {index_response["_version"]}'
+            )
+
+        except Exception as e:
+            current_app.logger.error(f"Error indexing debate: {e}")
+            return
+
+        # if it has a comment, add it
+        add_debate_comment(es_client, debate)
 
     except ValueError as e:
-        current_app.logger.error(f"Error formatting comment: {e}")
+        current_app.logger.error(f"Error formatting debate: {e}")
 
 
 def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
@@ -89,20 +97,25 @@ def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
     """
     # check if it has a comment
     comment = data.get("comment", None)
-    if comment is None:
+    if comment is None or comment == {}:
         return
 
     try:
         # add the comment
-        comment_mapped = format_debate_comment(comment)
-        index_response: Dict[str, Any] = es_client.index(
-            index='oa-comments',
-            id=comment_mapped.get("id"),
-            body=comment_mapped,
-        )
-        current_app.logger.info(
-        f'Indexed comment {comment_mapped.get("id")} - Version: {index_response["_version"]}'
-    )
+        comment_mapped = format_debate_comment(comment, data.get("epobject_id", ""))
+        try:
+            index_response: Dict[str, Any] = es_client.index(
+                index='oa-comments',
+                id=comment_mapped.get("id"),
+                body=comment_mapped,
+            )
+            current_app.logger.info(
+            f'Indexed comment {comment_mapped.get("id")} - Version: {index_response["_version"]}'
+            )
+
+        except Exception as e:
+            current_app.logger.error(f"Error indexing comment: {e}")
+            return
 
     except ValueError as e:
         current_app.logger.error(f"Error formatting comment: {e}")
@@ -132,6 +145,7 @@ def main() -> str:
     Returns:
         "success message" if successful, else error message
     """
+    current_app.logger.info(f'I am about to start crying')
 
     es_client: Elasticsearch = Elasticsearch(
         config("ES_HOSTNAME"),
@@ -147,12 +161,21 @@ def main() -> str:
     for debate in request_data:
 
         # check if its a "section" (really boring, just a single word like "bills" skip it)
-        if (debate.get("section_id", -1) == 0) or (debate.get("subsection_id", -1) == 0):
+        if (debate.get("section_id", -1) == "0") or (debate.get("subsection_id", -1) == "0"):
             current_app.logger.info(f"Skipping section: {debate.get('body', '')}")
             continue
-        
-        # its probably a normal debate, add it and any comments
-        add_debate(es_client, debate)
-        add_debate_comment(es_client, debate)
+        else:
+            # its probably a normal debate, add it and any comments
+            add_debate(es_client, debate)
 
     return f'added {len(request_data)} debates to the index, yay!'
+
+# if __name__ == "__main__":
+#         strdata = "[{\"epobject_id\": \"919296\", \"htype\": \"10\", \"gid\": \"2024-11-27.4.1\", \"hpos\": \"4\", \"section_id\": \"0\", \"subsection_id\": \"0\", \"hdate\": \"2024-11-27\", \"htime\": null, \"source_url\": \"http://parlinfo.aph.gov.au/parlInfo/search/display/display.w3p;adv=yes;orderBy=_fragment_number,doc_date-rev;page=0;query=Dataset%3Ahansardr,hansardr80%20Date%3A27%2F11%2F2024;rec=0;resCount=Default\", \"major\": \"1\", \"speaker_id\": \"0\", \"body\": \"Bills\", \"contentcount\": \"0\", \"listurl\": \"/debates/?id=2024-11-27.4.1\", \"commentsurl\": \"/debate/?id=2024-11-27.4.1\", \"speaker\": {}, \"totalcomments\": \"0\", \"comment\": {}}, {\"epobject_id\": \"919297\", \"htype\": \"11\", \"gid\": \"2024-11-27.4.2\", \"hpos\": \"5\", \"section_id\": \"919296\", \"subsection_id\": \"0\", \"hdate\": \"2024-11-27\", \"htime\": null, \"source_url\": \"http://parlinfo.aph.gov.au/parlInfo/search/display/display.w3p;adv=yes;orderBy=_fragment_number,doc_date-rev;page=0;query=Dataset%3Ahansardr,hansardr80%20Date%3A27%2F11%2F2024;rec=0;resCount=Default\", \"major\": \"1\", \"body\": \"Midwife Professional Indemnity (Commonwealth Contribution) Scheme Amendment Bill 2024; Third Reading\", \"contentcount\": \"1\", \"excerpt\": \"by leave\u0026#8212;I move: That this bill be now read a third time. Question agreed to. Bill read a third time.\", \"listurl\": \"/debates/?id=2024-11-27.4.2\", \"commentsurl\": \"/debate/?id=2024-11-27.4.2\", \"totalcomments\": \"0\", \"comment\": {}}, {\"epobject_id\": \"919299\", \"htype\": \"11\", \"gid\": \"2024-11-27.5.1\", \"hpos\": \"7\", \"section_id\": \"919296\", \"subsection_id\": \"0\", \"hdate\": \"2024-11-27\", \"htime\": null, \"source_url\": \"http://parlinfo.aph.gov.au/parlInfo/search/display/display.w3p;adv=yes;orderBy=_fragment_number,doc_date-rev;page=0;query=Dataset%3Ahansardr,hansardr80%20Date%3A27%2F11%2F2024;rec=0;resCount=Default\", \"major\": \"1\", \"body\": \"Aboriginal Land Rights (Northern Territory) Amendment (Scheduling) Bill 2024; Second Reading\", \"contentcount\": \"1\", \"excerpt\": \"I present the explanatory memorandum to this bill and move: That this bill be now read a second time. It is my pleasure to introduce the Aboriginal Land Rights (Northern Territory) Amendment...\", \"listurl\": \"/debates/?id=2024-11-27.5.1\", \"commentsurl\": \"/debate/?id=2024-11-27.5.1\", \"totalcomments\": \"0\", \"comment\": {}}]"
+ 
+#         import json
+#         data = json.loads(strdata)
+#         print(data)
+
+#         formatted_data = format_debate()
+#         print(formatted_data)

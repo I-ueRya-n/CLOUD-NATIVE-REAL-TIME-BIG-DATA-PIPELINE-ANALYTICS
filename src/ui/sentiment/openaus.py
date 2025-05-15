@@ -16,14 +16,13 @@ def config(k: str) -> str:
     with open(f'/configs/default/shared-data/{k}', 'r') as f:
         return f.read()
 
-def openaus_query(keyword: str, datefrom: str, dateto: str, data_type: OA_types) -> Dict:
-    matchType = {
+def openaus_query(keyword: str, datefrom: str, dateto: str, field: str) -> Dict:
+    matchKeyword = {
         "bool": {
             "should": [
                 {
                     "match_phrase": {
-                        "oa_relations": str(data_type.name),
-                        # data_type.value: keyword,
+                        field: keyword,
                     }
                 }
             ],
@@ -35,7 +34,7 @@ def openaus_query(keyword: str, datefrom: str, dateto: str, data_type: OA_types)
         "range": {
             "date": {
                 "gte": datefrom,
-                "lte": dateto
+                # "lte": dateto
             }
         }
     }
@@ -43,7 +42,7 @@ def openaus_query(keyword: str, datefrom: str, dateto: str, data_type: OA_types)
     query = {
         "bool": {
             "filter": [
-                matchType,
+                matchKeyword,
                 matchRange
             ]
         }
@@ -60,31 +59,35 @@ def array_to_dict(array: [Dict], key: str) -> Dict[str, Dict]:
     return d
 
 
+
 def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
-                           datefrom: str, dateto: str, search_after: int, size: int) -> Dict:
+                           datefrom: str, dateto: str, search_after: int, size: int, index: str, field: str, query: str) -> Dict:
     
-    datatype = OA_types.debate
-    query = openaus_query("", datefrom, dateto, datatype)
+    query = openaus_query(query, datefrom, dateto, field)
     print("query:", query)
 
     search_response = client.search(
-        index="oa_debates_comments", 
+        index=index,
         query=query, 
         size=size,
         search_after=search_after,
         sort=[{"date": "asc"}, {"id": "asc"}],
-      )
+    )
     # print("response: ", search_response)
     found_debates = search_response.get("hits").get("hits")
+    print("found", len(found_debates), "posts")
 
     # get sentiment for debates by sending the sentiment function ids
-    sentiment_query = [p.get("_id") + "?routing=" + p.get("_routing") for p in found_debates]
+    sentiment_query = [p.get("_id") for p in found_debates]
 
     # had to add alias to the index get this to work with underscores
-    addr = config("FISSION_HOSTNAME") + f"/analysis/sentiment/v2/index/oadebatescomments/field/{datatype.value}"
+    addr = "http://localhost:9090"  + f"/analysis/sentiment/v2/index/{index}/field/{field}"
+
+
     print("requesting sentiment of", len(sentiment_query), "debates")
     print(addr)
     print("sentiment query", sentiment_query[:10])
+
     # just doing the first 10 for testing
     sentiment_response = requests.post(addr, json=sentiment_query[:10])
     
@@ -103,7 +106,7 @@ def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
             print(f"missing {cid} from posts")
             continue
 
-        post_date = post_map[cid].get("createdAt").split("T")[0]
+        post_date = post_map[cid].get("date")
 
         if post_date not in data:
             data[post_date] = {
@@ -124,21 +127,34 @@ def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
 
 
 
-def open_aus_sentiment(client: Elasticsearch, date: str) -> Dict:
+def open_aus_sentiment(client: Elasticsearch, date: str, keyword: str="") -> Dict:
     data = {}
     search_after = None
     more_data = True
-
 
     # gets 1 month of data from the given date
     print("date", date)
     dateto = (datetime.strptime(date, "%Y-%m-%d").date() + timedelta(days=30)).strftime("%Y-%m-%d")
     print("dateto", dateto)
 
-    while more_data:
-        search_after = oa_sentiment_date_range(client, data, date, dateto, search_after, 1000)
-        more_data = search_after is not None
+    # do this for both debates and comments
+    for index, field in [("oa-debates", "transcript"), ("oa-comments", "comment")]:
+        more_data = True
+        while more_data:
+            search_after = oa_sentiment_date_range(client, data, date, dateto, search_after, 1000, index, field, keyword)
+            more_data = search_after is not None
 
 
     return data
 
+if __name__ == "__main__":
+    # test the function
+    es_client: Elasticsearch = Elasticsearch(
+        "https://localhost:9200",
+        verify_certs=False,
+        ssl_show_warn=False,
+        basic_auth=("elastic", "Mi0zu6yaiz1oThithoh3Di8kohphu9pi")
+    )
+    date = "2023-04-11"
+    data = open_aus_sentiment(es_client, date, "question")
+    print(data)
