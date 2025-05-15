@@ -64,7 +64,7 @@
 \fancyhead[R]{5 May 2025}
 
 Team 57.
-Team Members: Josh Childs (1549150), Enzo Noel (1675346)
+Team Members: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089)
 
 \section*{System Architecture}
 
@@ -134,7 +134,30 @@ To increase throughput, we send the cache function a list of post id's to retrie
 
 \subsection*{User Interface}
 
-\section*{Scenarios}
+\section*{Scenarios (this is terrible will fix, just writing Something)}
+
+\paragraph*{Overview}
+Today, it is nearly impossible to spend time online without witnessing a discussion about politics. For many people, this is not a topic that is discussed politely, calmly and with respect. A thread on a hot topic quickly can become intense, escalating into arguments and attacks. 
+
+But is it truly like this everywhere, or are we just seeing the worst side of the internet? 
+
+Are there still sides of social media where people present their political opinions in a pleasant and happy way? 
+And where does all this anger come from? 
+Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
+
+\subsection*{Analysis Goals}
+
+\paragraph*{Comparing discussions across platforms}
+We began by contrasting Australian political discussions found on three social platforms. Bluesky, Reddit and OpenAustralia. We wanted to see if the conversations held on some of these platforms were more positive or negative than others. Maybe more negative users tended to prefer a certain platform.
+
+\paragraph*{What are people talking about?}
+We also wanted to see what political topics were popular for discussion across platforms. Do users of different platforms have different priorities?
+We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen” and parties, such as “The Greens”. 
+
+\paragraph*{Debates vs Discussions}
+We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a rise in negative sentiment online.
+
+
 
 \subsection*{Fission}
 
@@ -148,6 +171,12 @@ To increase throughput, we send the cache function a list of post id's to retrie
 We set the minimum number of pods to 1, and the maximum to 30. 
 This allows fission to increase or decrease the number of pods, up to 30, depending on the current load.
 
+\paragraph*{OpenAustralia} 
+The data influx of the OpenAustralia api was of a less intense ``velocity`` compared to that of BlueSky and Reddit.
+This meant that the regular scraping could be done on a daily basis, gathering data from debates held two days prior, with to allow complete collection of data, as the Hansard reports are finalised by 5pm the day after the debate.
+This was achieved using a time based fission trigger \texttt{oa\_daily\_debate\_harvester}, which runs once a day.
+Similarly to the BlueSky setup, the number of pods were dynamically allocated as needed. However, due to the lower amount of incoming data the minimum number of pods was set to 0, as the resources required when starting a new pod would not significantly affect the performance.
+
 \subsection*{Error Handling}
 
 \paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
@@ -155,5 +184,8 @@ This container is deployed to kubernetes with one replica.
 This means the container will be re-deployed to another worker node if one fails, and kubernetes will spin up another replica if the current one crashes from an error.
 
 \subsection*{Integration Testing}
+
+
+
 
 \end{document}
