@@ -373,6 +373,36 @@ fission route create --spec --name ui-named-entity \
   --createingress
 ```
 
+### Sentiment averager by keywords
+
+```
+fission package create --spec --name ui-keywords-sentiment-averager \
+  --source ./src/ui/sentiment_by_keyword/__init__.py \
+  --source ./src/ui/sentiment_by_keyword/sentiment-averager.py \
+  --source ./src/ui/sentiment_by_keyword/bluesky.py \
+  --source ./src/ui/sentiment_by_keyword/reddit.py \
+  --source ./src/ui/sentiment_by_keyword/openaus.py \
+  --source ./src/ui/sentiment_by_keyword/requirements.txt \
+  --source ./src/ui/sentiment_by_keyword/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+
+fission function create --spec --name ui-keywords-sentiment-averager \
+  --pkg ui-keywords-sentiment-averager \
+  --env python \
+  --configmap shared-data \
+  --entrypoint "sentiment-averager.main"
+
+fission route create --spec --name ui-keywords-sentiment-averager \
+  --function ui-keywords-sentiment-averager \
+  --method POST \
+  --createingress \
+  --url '/ui/sentiment-averager/type/{type:[a-zA-Z0-9]+}'\
+  --createingress
+  
+```
+
+
 ## Open Australia
 
 the ElasticSearch "oa_debates" index holds:

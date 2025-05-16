@@ -1,0 +1,22 @@
+apiVersion: fission.io/v1
+kind: HTTPTrigger
+metadata:
+  creationTimestamp: null
+  name: ui-keywords-sentiment-averager
+spec:
+  createingress: true
+  functionref:
+    functionweights: null
+    name: ui-keywords-sentiment-averager
+    type: name
+  host: ""
+  ingressconfig:
+    annotations: null
+    host: '*'
+    path: /ui/sentiment-averager/type/{type:[a-zA-Z0-9]+}
+    tls: ""
+  method: ""
+  methods:
+  - POST
+  prefix: ""
+  relativeurl: /ui/sentiment-averager/type/{type:[a-zA-Z0-9]+}
