@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -41,6 +42,7 @@ func SentimentHandler(w http.ResponseWriter, r *http.Request) {
 
 	buf, err := json.Marshal(sentiment)
 	if err != nil {
+		log.Println("buffer:", string(buf[:]))
 		returnError(w, err.Error())
 	}
 
@@ -55,6 +57,7 @@ func CalculateSentiment(index, id, text string) (s Sentiment, err error) {
 	text_json.Text = text
 	buf, err := json.Marshal(text_json)
 	if err != nil {
+		log.Println("buffer:", string(buf[:]))
 		return
 	}
 
@@ -76,6 +79,7 @@ func CalculateSentiment(index, id, text string) (s Sentiment, err error) {
 
 	err = json.Unmarshal(buf, &s)
 	if err != nil {
+		log.Println("buffer:", string(buf[:]))
 		err = fmt.Errorf("json from vader: %s", buf)
 		return
 	}

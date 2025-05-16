@@ -17,17 +17,19 @@ def array_to_dict(array: [Dict], key: str) -> Dict[str, Dict]:
     return d
 
 
-def bluesky_query(keyword: str, date: str) -> Dict:
+def format_keyword(keyword: str):
+    if keyword == "*":
+        return {"exists": {"field": "text"}}
+
+    return {"match_phrase": {"text": keyword}}
+
+
+def bluesky_query(keywords: [str], date: str) -> Dict:
+    match = [format_keyword(word) for word in keywords]
+
     matchKeyword = {
         "bool": {
-            "should": [
-                {
-                    "match_phrase": {
-                        "text": keyword,
-                    }
-                }
-            ],
-            "minimum_should_match": 1
+            "must": match,
         }
     }
 
@@ -52,8 +54,10 @@ def bluesky_query(keyword: str, date: str) -> Dict:
 
 
 def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
-                           date: str, search_after) -> int:
-    query = bluesky_query("auspol", date)
+                           date: str, search_after, keywords: [str]) -> int:
+    query = bluesky_query(keywords, date)
+    print("[Bluesky]", "query:", query)
+
     response = client.search(
         index="bluesky",
         query=query,
@@ -67,7 +71,7 @@ def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
     sentiment_query = [p.get("_id") for p in bluesky_posts]
     addr = config("FISSION_HOSTNAME") + "/analysis/sentiment/v2/index/bluesky/field/text"
 
-    print("requesting", len(sentiment_query), "posts")
+    print("[Bluesky]", "requesting", len(sentiment_query), "posts")
     response = requests.post(addr, json=sentiment_query)
 
     if response.status_code >= 400:
@@ -103,14 +107,15 @@ def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
     return bluesky_posts[-1].get("sort")
 
 
-def bluesky_sentiment(client: Elasticsearch, date: str) -> Dict:
+def bluesky_sentiment(client: Elasticsearch, date: str, keyword: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
     search_after = None
     more_data = True
+    keywords = [keyword, "auspol"]
 
     while more_data:
-        search_after = bluesky_sentiment_from(client, data, date, search_after)
+        search_after = bluesky_sentiment_from(client, data, date, search_after, keywords)
         more_data = search_after is not None
 
     return data

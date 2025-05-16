@@ -56,6 +56,7 @@ func retrieveCache[T CacheItem](conf Config[T]) ([]T, error) {
 	query := make([]string, 0, 1000)
 	err = json.Unmarshal(buf, &query)
 	if err != nil {
+		log.Println("buffer:", string(buf[:]))
 		return nil, fmt.Errorf("parsing query: %s", err)
 	}
 
@@ -187,15 +188,21 @@ func fetchCache[T CacheItem](client *es.TypedClient, conf Config[T], index, fiel
 
 		// calculate values
 		for _, item := range results {
-			var fields map[string]string
+			var fields map[string]any
 
 			err = json.Unmarshal(item.Source_, &fields)
 			if err != nil {
+				log.Println("buf:", string(item.Source_[:]))
 				log.Println("fetching cache:", err)
 				continue
 			}
 
 			j++
+			text, ok := fields[field].(string)
+			if !ok {
+				log.Printf("fetching cache: field %s of %s is not a string", field, conf.cacheIndex)
+				continue
+			}
 
 			wg.Add(1)
 			go func(i int, id, text string) {
@@ -205,7 +212,7 @@ func fetchCache[T CacheItem](client *es.TypedClient, conf Config[T], index, fiel
 				}
 
 				wg.Done()
-			}(queryIndex[*item.Id_], *item.Id_, fields[field])
+			}(queryIndex[*item.Id_], *item.Id_, text)
 		}
 
 		wg.Wait()

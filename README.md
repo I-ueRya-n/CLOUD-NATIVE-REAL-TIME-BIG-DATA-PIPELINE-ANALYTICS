@@ -341,7 +341,7 @@ fission route create --spec --name ui-sentiment \
   --function ui-sentiment \
   --method GET \
   --createingress \
-  --url '/ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/'\
+  --url '/ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}'\
   --createingress
 ```
 
@@ -369,7 +369,7 @@ fission route create --spec --name ui-named-entity \
   --function ui-named-entity \
   --method GET \
   --createingress \
-  --url '/ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}'\
+  --url '/ui/named-entities/label/{label:[a-zA-Z0-9]+}'\
   --createingress
 ```
 

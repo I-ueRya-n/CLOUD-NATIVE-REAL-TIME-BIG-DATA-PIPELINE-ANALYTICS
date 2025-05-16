@@ -43,8 +43,10 @@ def main() -> Tuple[Dict[str, Any], int]:
         )
 
         date = request.headers.get('X-Fission-Params-Date')
-        status["bluesky"] = bluesky.bluesky_sentiment(client, date)
-        status["openaus"] = openaus.open_aus_sentiment(client, date)
+        keyword = request.headers.get('X-Fission-Params-Keyword')
+
+        status["bluesky"] = bluesky.bluesky_sentiment(client, date, keyword)
+        status["openaus"] = openaus.open_aus_sentiment(client, date, keyword)
         status["reddit"] = reddit.reddit_sentiment(client, date)
     except Exception as e:
         print(traceback.format_exc())

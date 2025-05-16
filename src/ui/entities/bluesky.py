@@ -9,17 +9,12 @@ def config(k: str) -> str:
         return f.read()
 
 
-def bluesky_query(keyword: str) -> Dict:
+def bluesky_query(keywords: list[str]) -> Dict:
+    match = [{"match_phrase": {"text": word}} for word in keywords]
+
     matchKeyword = {
         "bool": {
-            "should": [
-                {
-                    "match_phrase": {
-                        "text": keyword,
-                    }
-                }
-            ],
-            "minimum_should_match": 1
+            "must": match,
         }
     }
 
@@ -35,8 +30,8 @@ def bluesky_query(keyword: str) -> Dict:
 
 
 def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
-                       label: str, search_after) -> int:
-    query = bluesky_query("auspol")
+                       label: str, search_after, keywords: list[str]) -> int:
+    query = bluesky_query(["auspol"])
     response = client.search(
         index="bluesky",
         query=query,
