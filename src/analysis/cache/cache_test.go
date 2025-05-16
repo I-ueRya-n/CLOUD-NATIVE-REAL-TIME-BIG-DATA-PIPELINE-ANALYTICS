@@ -4,64 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 
 	es "github.com/elastic/go-elasticsearch/v8"
 )
-
-const (
-	testIndex      = "test-items"
-	cacheTestIndex = "cache-test"
-	cacheEndpoint  = "http://localhost:9090/cache-test"
-)
-
-type TestItem struct {
-	Idx   string `json:"id"`
-	Index string `json:"index"`
-	Value int    `json:"value"`
-}
-
-func (t TestItem) Id() string {
-	return t.Idx
-}
-
-/*
-Handler: takes a list of id's from an elastic search index,
-and calculates the sentiment of each one, using the 'sentiment'
-es index as a cache for previously calculated sentiments.
-*/
-func ItemHandler(w http.ResponseWriter, r *http.Request) {
-	conf := Config[TestItem]{
-		w:          w,
-		r:          r,
-		calculate:  CalculateItem,
-		cacheIndex: cacheTestIndex,
-	}
-
-	items, err := retrieveCache(conf)
-	if err != nil {
-		returnError(w, err.Error())
-	}
-
-	buf, err := json.Marshal(items)
-	if err != nil {
-		returnError(w, err.Error())
-	}
-
-	w.Write(buf)
-}
-
-func CalculateItem(index, id, text string) (t TestItem, err error) {
-	t = TestItem{
-		Index: index,
-		Idx:   id,
-		Value: len(text),
-	}
-	return
-}
 
 func TestCache(t *testing.T) {
 	client, err := es.NewTypedClient(es.Config{
@@ -72,50 +24,52 @@ func TestCache(t *testing.T) {
 	})
 	if err != nil {
 		t.Error(err)
+		return
 	}
 
 	// clean up indices
-	_, err = client.Indices.Delete(cacheTestIndex).Do(context.Background())
-	if err != nil {
-		t.Error(err)
-	}
-
-	_, err = client.Indices.Delete(testIndex).Do(context.Background())
-	if err != nil {
-		t.Error(err)
-	}
+	client.Indices.Delete(cacheTestIndex).Do(context.Background())
+	client.Indices.Delete(testIndex).Do(context.Background())
 
 	// create new indices
 	_, err = client.Indices.Create(cacheTestIndex).Do(context.Background())
 	if err != nil {
 		t.Error(err)
+		return
 	}
 
 	_, err = client.Indices.Create(testIndex).Do(context.Background())
 	if err != nil {
 		t.Error(err)
+		return
 	}
 
 	// add items to test index
-	ss := []string{"hello", "world!", "lorem ipsum"}
+	ss := []string{"hello", "world!", "lorem"}
 	for i, s := range ss {
 		id := strconv.Itoa(i)
 		item := map[string]string{"text": s}
 		_, err = client.Index(testIndex).Id(id).Document(item).Do(context.Background())
 		if err != nil {
 			t.Error(err)
+			return
 		}
 	}
 
 	// calculate 'hello' and check its in the cache
-	queryCache(t, []int{0, 2}, []string{ss[0], ss[2]})
-	checkCacheValue(t, client, 0, ss[0])
+	queryCache(t, []int{0, 1}, ss[:2])
+	time.Sleep(3 * time.Second)
 
-	// add 'Hello World!' to cache with the id of 'world'
+	checkCacheValue(t, client, 0, ss[0])
+	checkCacheValue(t, client, 1, ss[1])
+
+	// add 'Hello World!' to cache with the id of 'lorem'
 	// and check it returns the length of 'Hello world!',
-	// not 'world!'
-	addItemToCache(t, client, 1, "Hello World!")
-	queryCache(t, []int{1}, []string{"Hello World!"})
+	// not 'lorem'
+	addItemToCache(t, client, 2, "Hello World!")
+	time.Sleep(3 * time.Second)
+
+	queryCache(t, []int{2}, []string{"Hello World!"})
 }
 
 func queryCache(t *testing.T, id []int, value []string) {
@@ -144,49 +98,53 @@ func queryCache(t *testing.T, id []int, value []string) {
 	}
 
 	// check return value is correct
-	var data []int
+	var data []TestItem
 	err = json.Unmarshal(buf, &data)
 	if err != nil {
+		log.Println("recieved:", string(buf[:]))
 		t.Error(err)
 	}
 
-	if len(data) != 1 {
+	if len(data) != len(id) {
 		t.Error("incorrect number of return vals")
 	}
 
-	if data[0] != len(value) {
-		t.Errorf("expected %d got %d", len(value), data[0])
+	for i := range id {
+		item, _ := CalculateItem(testIndex, strconv.Itoa(id[i]), value[i])
+		err = isEqual(data[i], item)
+		if err != nil {
+			log.Println(data[i], item)
+			t.Error(id, ":", err)
+		}
 	}
 }
 
 func checkCacheValue(t *testing.T, client *es.TypedClient, id int, value string) {
-	strID := testIndex + strconv.Itoa(id)
+	strID := fmt.Sprint(testIndex, "-", id)
 	res, err := client.Get(cacheTestIndex, strID).Do(context.Background())
 	if err != nil {
-		t.Error(err)
+		t.Error(id, ":", err)
+		return
 	}
 
 	var cacheItem TestItem
-	err = json.Unmarshal(res.Source_, cacheItem)
+	err = json.Unmarshal(res.Source_, &cacheItem)
 	if err != nil {
-		t.Error(err)
+		log.Println("source:", string(res.Source_[:]))
+		t.Error(id, ":", err)
+		return
 	}
 
-	if cacheItem.Idx != strconv.Itoa(id) {
-		t.Error("expected", id, "got", cacheItem.Idx)
-	}
-
-	if cacheItem.Index != testIndex {
-		t.Error("expected", testIndex, "got", cacheItem.Index)
-	}
-
-	if cacheItem.Value != len(value) {
-		t.Error("expected", len(value), "got", cacheItem.Value)
+	item, _ := CalculateItem(testIndex, strconv.Itoa(id), value)
+	err = isEqual(cacheItem, item)
+	if err != nil {
+		t.Error(id, ":", err)
+		return
 	}
 }
 
 func addItemToCache(t *testing.T, client *es.TypedClient, id int, value string) {
-	strID := testIndex + strconv.Itoa(id)
+	strID := fmt.Sprint(testIndex, "-", id)
 	item := TestItem{
 		Index: testIndex,
 		Idx:   strconv.Itoa(id),
@@ -197,4 +155,20 @@ func addItemToCache(t *testing.T, client *es.TypedClient, id int, value string) 
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func isEqual(t1 TestItem, t2 TestItem) error {
+	if t1.Idx != t2.Idx {
+		return fmt.Errorf("expected %v, got %v", t2.Idx, t1.Idx)
+	}
+
+	if t1.Index != t2.Index {
+		return fmt.Errorf("expected %v, got %v", t2.Index, t1.Index)
+	}
+
+	if t1.Value != t2.Value {
+		return fmt.Errorf("expected %v, got %v", t2.Value, t1.Value)
+	}
+
+	return nil
 }

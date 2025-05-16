@@ -146,6 +146,7 @@ curl -XPUT -k "https://localhost:9200/named-entity"\
 ```
 fission package create --spec --name elastic-cache \
     --source src/analysis/cache/cache.go \
+    --source src/analysis/cache/item.go \
     --source src/analysis/cache/sentiment.go \
     --source src/analysis/cache/entity.go \
     --source src/analysis/cache/go.mod \
@@ -175,11 +176,20 @@ fission route create --spec --name elastic-ner \
   --function elastic-ner
 ```
 
-Test the function
+Test the cache 
 ```
-curl -XPOST -k "http://localhost:9090/analysis/sentiment/v2"\
-    --header 'Content-Type: application/json'\
-    --data '[{"id": "bafyreiaj5ko5b27zuwaap7e5djxdlnhoq6kvdk3sngizf7a327j275jo5q", "index": "bluesky", "field": "text"}]'
+fission fn create --spec --name elastic-cache-test \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint ItemHandler
+
+fission route create --spec --name elastic-cache-test \
+  --url /cache-test/index/{index}/field/{field} \
+  --method POST \
+  --function elastic-cache-test
+
+go test
 ```
 
 ### REDIS Queue
