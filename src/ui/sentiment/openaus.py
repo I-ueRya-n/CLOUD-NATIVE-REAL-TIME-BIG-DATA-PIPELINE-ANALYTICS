@@ -134,7 +134,6 @@ def open_aus_sentiment(client: Elasticsearch, date: str, keyword: str="") -> Dic
     dateto = (datetime.strptime(date, "%Y-%m-%d").date() + timedelta(days=30)).strftime("%Y-%m-%d")
     print("[Open Aus]", "dateto", dateto)
 
-    # do this for both debates and comments
     more_data = True
     while more_data:
         search_after = oa_sentiment_date_range(client, data,
@@ -143,3 +142,4 @@ def open_aus_sentiment(client: Elasticsearch, date: str, keyword: str="") -> Dic
         more_data = search_after is not None
 
     return data
+
