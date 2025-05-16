@@ -98,8 +98,27 @@ def get_count_keywords(client: Elasticsearch, count: int, label: str,
 
 
 def open_aus_words(client: Elasticsearch, count: str, label: str) -> Dict:
-    # need this because it combos firstname and lastname
-    if label == "speaker":
+    """ translates the label to the correct field name and calls the appropriate function
+      if label = "ORGS" or "NORP" assuming thats the same as "speaker.party"
+      if label = "PERSON" assuming thats the same as counting up politicians
+      if label = "GPE" or "LOC" assuming thats the same as "speaker.state"
+      idk sorry
+      can add more idk how this is going to be used just yet
+      havent tested this
+
+    """
+    if label == "ORGS" or label == "NORP":
+        field = "speaker.party"
+        data = get_count_keywords(client, count, field)
+
+    elif label == "PERSON":
+        data = get_count_politicians(client, count)
+
+    elif label == "GPE" or label == "LOC":
+        field = "speaker.state"
+        data = get_count_keywords(client, count, field)
+    
+    elif label == "speaker":
         data = get_count_politicians(client, count)
     else:
         data = get_count_keywords(client, count, label)
