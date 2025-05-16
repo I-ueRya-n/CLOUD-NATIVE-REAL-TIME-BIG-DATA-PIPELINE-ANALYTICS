@@ -24,7 +24,7 @@ def format_keyword(keyword: str):
     return {"match_phrase": {"text": keyword}}
 
 
-def bluesky_query(keywords: [str], date: str) -> Dict:
+def bluesky_query(keywords: [str], start: str, end: str) -> Dict:
     match = [format_keyword(word) for word in keywords]
 
     matchKeyword = {
@@ -36,7 +36,8 @@ def bluesky_query(keywords: [str], date: str) -> Dict:
     matchRange = {
         "range": {
             "createdAt": {
-                "gte": date,
+                "gte": start,
+                "lte": end
             }
         }
     }
@@ -53,9 +54,9 @@ def bluesky_query(keywords: [str], date: str) -> Dict:
     return query
 
 
-def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
-                           date: str, search_after, keywords: [str]) -> int:
-    query = bluesky_query(keywords, date)
+def bluesky_sentiment_from(client: Elasticsearch, data: Dict, start: str,
+                           end: str, search_after, keywords: [str]) -> int:
+    query = bluesky_query(keywords, start, end)
     print("[Bluesky]", "query:", query)
 
     response = client.search(
@@ -107,7 +108,7 @@ def bluesky_sentiment_from(client: Elasticsearch, data: Dict,
     return bluesky_posts[-1].get("sort")
 
 
-def bluesky_sentiment(client: Elasticsearch, date: str, keyword: str) -> Dict:
+def bluesky_sentiment(client: Elasticsearch, start: str, end: str, keyword: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
     search_after = None
@@ -115,7 +116,7 @@ def bluesky_sentiment(client: Elasticsearch, date: str, keyword: str) -> Dict:
     keywords = [keyword, "auspol"]
 
     while more_data:
-        search_after = bluesky_sentiment_from(client, data, date, search_after, keywords)
+        search_after = bluesky_sentiment_from(client, data, start, end, search_after, keywords)
         more_data = search_after is not None
 
     return data

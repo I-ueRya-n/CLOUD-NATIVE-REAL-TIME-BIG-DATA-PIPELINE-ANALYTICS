@@ -341,7 +341,7 @@ fission route create --spec --name ui-sentiment \
   --function ui-sentiment \
   --method GET \
   --createingress \
-  --url '/ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}'\
+  --url '/ui/sentiment/keyword/{keyword}/start/{start:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/end/{end:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}' \
   --createingress
 ```
 

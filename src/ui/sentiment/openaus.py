@@ -2,14 +2,13 @@ from elasticsearch8 import Elasticsearch
 from typing import Dict
 from enum import Enum
 import requests
-from datetime import datetime, timedelta
 
 
 class OA_types(Enum):
     """maps types (in the oa_relations field) to the field with text content
     for analysis """
     debate = "transcript"
-    debate_topic =  "debate_topic_title"
+    debate_topic = "debate_topic_title"
     debate_comment = "comment"
 
 
@@ -37,7 +36,7 @@ def openaus_query(keyword: str, datefrom: str, dateto: str, field: str) -> Dict:
         "range": {
             "date": {
                 "gte": datefrom,
-                # "lte": dateto
+                "lte": dateto
             }
         }
     }
@@ -58,15 +57,14 @@ def array_to_dict(array: [Dict], key: str) -> Dict[str, Dict]:
     d = {}
     for item in array:
         d[item[key]] = item.get("_source")
-    
+
     return d
 
 
-
-def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
-                           datefrom: str, dateto: str, search_after: int, size: int, index: str, field: str, query: str) -> Dict:
-    
-    query = openaus_query(query, datefrom, dateto, field)
+def oa_sentiment_date_range(client: Elasticsearch, data: Dict, start: str,
+                            end: str, search_after: int, size: int,
+                            index: str, field: str, query: str) -> Dict:
+    query = openaus_query(query, start, end, field)
     print("[Open Aus]", "query:", query)
 
     search_response = client.search(
@@ -124,20 +122,13 @@ def oa_sentiment_date_range(client: Elasticsearch, data: Dict,
     return found_debates[-1].get("sort")
 
 
-def open_aus_sentiment(client: Elasticsearch, date: str, keyword: str="") -> Dict:
+def open_aus_sentiment(client: Elasticsearch, start: str, end: str, keyword: str="") -> Dict:
     data = {}
     search_after = None
     more_data = True
 
-    # gets 1 month of data from the given date
-    print("[Open Aus]", "date", date)
-    dateto = (datetime.strptime(date, "%Y-%m-%d").date() + timedelta(days=30)).strftime("%Y-%m-%d")
-    print("[Open Aus]", "dateto", dateto)
-
-    more_data = True
     while more_data:
-        search_after = oa_sentiment_date_range(client, data,
-                                               date, dateto, search_after,
+        search_after = oa_sentiment_date_range(client, data, start, end, search_after,
                                                1000, "oa-debates", "transcript", keyword)
         more_data = search_after is not None
 

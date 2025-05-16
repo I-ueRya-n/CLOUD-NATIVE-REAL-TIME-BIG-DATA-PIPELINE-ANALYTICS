@@ -42,12 +42,13 @@ def main() -> Tuple[Dict[str, Any], int]:
             basic_auth=(config("ES_USERNAME"), config("ES_PASSWORD"))
         )
 
-        date = request.headers.get('X-Fission-Params-Date')
+        start = request.headers.get('X-Fission-Params-Start')
+        end = request.headers.get('X-Fission-Params-End')
         keyword = request.headers.get('X-Fission-Params-Keyword')
 
-        status["bluesky"] = bluesky.bluesky_sentiment(client, date, keyword)
-        status["openaus"] = openaus.open_aus_sentiment(client, date, keyword)
-        status["reddit"] = reddit.reddit_sentiment(client, date)
+        status["bluesky"] = bluesky.bluesky_sentiment(client, start, end, keyword)
+        status["openaus"] = openaus.open_aus_sentiment(client, start, end, keyword)
+        status["reddit"] = reddit.reddit_sentiment(client, start, end, keyword)
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}

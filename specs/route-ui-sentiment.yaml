@@ -13,10 +13,10 @@ spec:
   ingressconfig:
     annotations: null
     host: '*'
-    path: /ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}
+    path: /ui/sentiment/keyword/{keyword}/start/{start:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/end/{end:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}
     tls: ""
   method: ""
   methods:
   - GET
   prefix: ""
-  relativeurl: /ui/sentiment/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}
+  relativeurl: /ui/sentiment/keyword/{keyword}/start/{start:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/end/{end:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}
