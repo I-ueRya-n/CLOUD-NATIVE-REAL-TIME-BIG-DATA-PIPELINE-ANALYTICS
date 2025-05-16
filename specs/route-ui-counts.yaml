@@ -1,0 +1,22 @@
+apiVersion: fission.io/v1
+kind: HTTPTrigger
+metadata:
+  creationTimestamp: null
+  name: ui-counts
+spec:
+  createingress: true
+  functionref:
+    functionweights: null
+    name: ui-counts
+    type: name
+  host: ""
+  ingressconfig:
+    annotations: null
+    host: '*'
+    path: /ui/counts/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}
+    tls: ""
+  method: ""
+  methods:
+  - GET
+  prefix: ""
+  relativeurl: /ui/counts/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}

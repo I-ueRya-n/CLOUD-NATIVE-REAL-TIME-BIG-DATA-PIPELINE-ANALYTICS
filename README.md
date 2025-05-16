@@ -66,7 +66,7 @@ kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 Create the package containing the required packages
 
 ```bash
-fission package create --spec --name vader \
+fission package create --spec --name sentiment-pkg \
   --source ./src/analysis/vader/__init__.py \
   --source ./src/analysis/vader/sentiment_function.py \
   --source ./src/analysis/vader/requirements.txt \
@@ -413,3 +413,31 @@ debates
 
 
 SEE README IN OA_DEBATES
+
+### Counts
+
+```
+fission package create --spec --name ui-counts \
+  --source ./src/ui/counts/__init__.py \
+  --source ./src/ui/counts/counts.py \
+  --source ./src/ui/counts/bluesky.py \
+  --source ./src/ui/counts/reddit.py \
+  --source ./src/ui/counts/openaus.py \
+  --source ./src/ui/counts/requirements.txt \
+  --source ./src/ui/counts/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+
+fission function create --spec --name ui-counts \
+  --pkg ui-counts \
+  --env python \
+  --configmap shared-data \
+  --entrypoint "counts.main"
+
+fission route create --spec --name ui-counts \
+  --function ui-counts \
+  --method GET \
+  --createingress \
+  --url '/ui/counts/start/{date:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]}/keyword/{keyword}'\
+  --createingress
+```
