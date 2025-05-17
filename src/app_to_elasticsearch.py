@@ -7,12 +7,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# --- Reddit API 配置 ---
-REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID")
-REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET")
-REDDIT_USERNAME = os.environ.get("REDDIT_USERNAME")
-REDDIT_PASSWORD = os.environ.get("REDDIT_PASSWORD")
-REDDIT_USER_AGENT = os.environ.get("REDDIT_USER_AGENT", f"COMP90024_manual_harvester by /u/{REDDIT_USERNAME or 'unknown_user'}")
+
 
 # --- Elasticsearch 配置 ---
 ES_HOSTS = os.environ.get("ES_HOSTS", "http://localhost:9200").split(',')
