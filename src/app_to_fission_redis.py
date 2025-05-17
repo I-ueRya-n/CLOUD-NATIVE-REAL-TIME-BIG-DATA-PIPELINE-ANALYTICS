@@ -21,11 +21,11 @@ reddit = None
 if all([REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, REDDIT_PASSWORD, REDDIT_USER_AGENT]):
     try:
         reddit = praw.Reddit(
-            client_id=REDDIT_CLIENT_ID,
-            client_secret=REDDIT_CLIENT_SECRET,
-            username=REDDIT_USERNAME,
-            password=REDDIT_PASSWORD,
-            user_agent=REDDIT_USER_AGENT,
+            client_id="ZFZjHYS9Inkn8Eg9Z_QoKQ",
+            client_secret="oStU1IMaW9b3mvQucsEZNcyoqjeX1w",
+            username="Traditional_Rock_556",
+            password="04U@nimelb25624426",
+            user_agent="COMP90024_team57 Harvester by /u/Traditional_Rock_556",
             check_for_async=False # 根據您的 PRAW 版本和使用情境調整
         )
         print("PRAW client initialized successfully.")
