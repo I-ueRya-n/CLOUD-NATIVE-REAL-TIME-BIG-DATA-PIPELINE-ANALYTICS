@@ -20,7 +20,7 @@ dos2unix ./build.sh
 ## Create Functions and Triggers
 ### A: HTTP Trigger for Manual Scrape
 fission function create --spec --name reddit-data-harvester \
-  --pkg reddit-package \
+  --pkg reddit-data-lister \
   --env python39 \
   --entrypoint "reddit_scraper.main"
 
@@ -37,7 +37,7 @@ fission timer create --name reddit-daily-harvest-trigger \
 
 ### B: Redis Trigger for Message Queue (e.g., reddit_scraper → reddit_to_elasticsearch)
 fission function create --spec --name reddit-data-formatter \
-  --pkg reddit-package \
+  --pkg reddit-data-lister \
   --env python39 \
   --entrypoint "reddit_data_formatter.main"
 
@@ -56,7 +56,7 @@ fission mqtrigger create --spec --name reddit-formatter-trigger \
 
 ### C: Timer Trigger for Daily Scrape
 fission function create --spec --name reddit-to-elasticsearch \
-  --pkg reddit-package \
+  --pkg reddit-data-lister \
   --env python39 \
   --entrypoint "reddit_to_elasticsearch.main"
 
