@@ -81,6 +81,7 @@ Create the function from the file
 fission function create --spec --name sentiment-function \
   --pkg sentiment-pkg \
   --env python \
+  --maxscale=30 \
   --executortype newdeploy \
   --entrypoint "sentiment_function.main"
 ```
@@ -114,6 +115,7 @@ Create the function with the new environment
 ```
 fission fn create --spec --name ner-function \
     --env python-ner \
+    --maxscale=30 \
     --executortype newdeploy \
     --code src/analysis/ner/ner_function.py
 ```
@@ -321,6 +323,7 @@ kubectl create -f src/bluesky/bluesky-firehose.yaml
 
 ```
 fission package create --spec --name ui-sentiment \
+  --source ./src/ui/iterator.py \
   --source ./src/ui/sentiment/__init__.py \
   --source ./src/ui/sentiment/sentiment.py \
   --source ./src/ui/sentiment/bluesky.py \
@@ -349,6 +352,7 @@ fission route create --spec --name ui-sentiment \
 
 ```
 fission package create --spec --name ui-named-entity \
+  --source ./src/ui/iterator.py \
   --source ./src/ui/entities/__init__.py \
   --source ./src/ui/entities/entities.py \
   --source ./src/ui/entities/bluesky.py \
@@ -369,7 +373,7 @@ fission route create --spec --name ui-named-entity \
   --function ui-named-entity \
   --method GET \
   --createingress \
-  --url '/ui/named-entities/label/{label:[a-zA-Z0-9]+}'\
+  --url '/ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}'\
   --createingress
 ```
 
@@ -377,6 +381,7 @@ fission route create --spec --name ui-named-entity \
 
 ```
 fission package create --spec --name ui-keywords-sentiment-averager \
+  --source ./src/ui/iterator.py \
   --source ./src/ui/sentiment_by_keyword/__init__.py \
   --source ./src/ui/sentiment_by_keyword/sentiment-averager.py \
   --source ./src/ui/sentiment_by_keyword/bluesky.py \
@@ -418,6 +423,7 @@ SEE README IN OA_DEBATES
 
 ```
 fission package create --spec --name ui-counts \
+  --source ./src/ui/iterator.py \
   --source ./src/ui/counts/__init__.py \
   --source ./src/ui/counts/counts.py \
   --source ./src/ui/counts/bluesky.py \

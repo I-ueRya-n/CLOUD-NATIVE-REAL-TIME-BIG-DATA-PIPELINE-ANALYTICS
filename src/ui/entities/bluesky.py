@@ -1,6 +1,6 @@
-from typing import Dict
-import requests
+from typing import Dict, List
 from elasticsearch8 import Elasticsearch
+from iterator import AnalysisIterator
 
 
 def config(k: str) -> str:
@@ -9,7 +9,7 @@ def config(k: str) -> str:
         return f.read()
 
 
-def bluesky_query(keywords: list[str]) -> Dict:
+def bluesky_query(keywords: List[str]) -> Dict:
     match = [{"match_phrase": {"text": word}} for word in keywords]
 
     matchKeyword = {
@@ -29,30 +29,14 @@ def bluesky_query(keywords: list[str]) -> Dict:
     return query
 
 
-def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
-                       label: str, search_after, keywords: list[str]) -> int:
+def bluesky_words(client: Elasticsearch, count: str, label: str) -> Dict:
+    # get bluesky posts in range which match keyword
+    data = {}
     query = bluesky_query(["auspol"])
-    response = client.search(
-        index="bluesky",
-        query=query,
-        search_after=search_after,
-        sort=[{"createdAt": "asc"}, {"cid": "asc"}],
-        size=1000
-    )
-    bluesky_posts = response.get("hits").get("hits")
+    blueskyIter = AnalysisIterator(client, "/analysis/ner/v2", query)
+    blueskyIter.elastic_fields("bluesky", "cid", "text", "createdAt")
 
-    # get named entities for bluesky posts
-    entitiy_query = [p.get("_id") for p in bluesky_posts]
-    addr = config("FISSION_HOSTNAME") + "/analysis/ner/v2/index/bluesky/field/text"
-    print("requesting", len(entitiy_query), "posts")
-    response = requests.post(addr, json=entitiy_query)
-
-    if response.status_code >= 400:
-        print("error making request:", response.text)
-        return None
-
-    # aggregate sentiment across time
-    for s in response.json():
+    for s, _ in blueskyIter:
         entity = s.get("entities")
 
         if entity is None:
@@ -69,22 +53,5 @@ def bluesky_words_from(client: Elasticsearch, data: Dict, count: str,
                 data[word] = 0
 
             data[word] += 1
-
-    # return the sort value of the last post
-    if len(bluesky_posts) == 0:
-        return None
-
-    return bluesky_posts[-1].get("sort")
-
-
-def bluesky_words(client: Elasticsearch, count: str, label: str) -> Dict:
-    # get bluesky posts in range which match keyword
-    data = {}
-    search_after = None
-    more_data = True
-
-    while more_data:
-        search_after = bluesky_words_from(client, data, count, label, search_after)
-        more_data = search_after is not None
 
     return data

@@ -13,10 +13,10 @@ spec:
   ingressconfig:
     annotations: null
     host: '*'
-    path: /ui/named-entities/label/{label:[a-zA-Z0-9]+}
+    path: /ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}
     tls: ""
   method: ""
   methods:
   - GET
   prefix: ""
-  relativeurl: /ui/named-entities/label/{label:[a-zA-Z0-9]+}
+  relativeurl: /ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}
