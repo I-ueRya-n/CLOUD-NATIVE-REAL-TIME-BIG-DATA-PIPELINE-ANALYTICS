@@ -33,7 +33,7 @@ def format_debate(data: Dict[str, any]) -> Dict[str, Any]:
             "position": data.get("speaker", {}).get("title", "")
         },
     }
-    current_app.logger.info(f'Formatted debate: {formatted_data}')
+    # current_app.logger.info(f'Formatted debate: {formatted_data}')
     return formatted_data
 
 
@@ -70,19 +70,26 @@ def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
     try:
         # add the debate
         debate_mapped = format_debate(debate)
-        try:
-            index_response: Dict[str, Any] = es_client.index(
-                index='oa-debates',
-                id=debate_mapped.get("id"),
-                body=debate_mapped,
-            )
-            current_app.logger.info(
-                f'Indexed debate {debate_mapped.get("id")} - Version: {index_response["_version"]}'
-            )
 
-        except Exception as e:
-            current_app.logger.error(f"Error indexing debate: {e}")
-            return
+        # check if the debate has already been added to avoid duplicates
+        if es_client.exists(index="oa-debates", id=debate_mapped.get("id")):
+            print(f"debate {debate_mapped.get('id')} already exists, skipping")
+
+        else:
+            try:
+                index_response: Dict[str, Any] = es_client.index(
+                    index='oa-debates',
+                    id=debate_mapped.get("id"),
+                    body=debate_mapped,
+                )
+                current_app.logger.info(
+                    f'Indexed debate {debate_mapped.get("id")} - \
+                    Version: {index_response["_version"]}'
+                )
+
+            except Exception as e:
+                current_app.logger.error(f"Error indexing debate: {e}")
+                return
 
         # if it has a comment, add it
         add_debate_comment(es_client, debate)
@@ -103,6 +110,10 @@ def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
     try:
         # add the comment
         comment_mapped = format_debate_comment(comment, data.get("epobject_id", ""))
+        # check if the comment has already been added to avoid duplicates
+        if es_client.exists(index="oa-comments", id=comment_mapped.get("id")):
+            print(f"comment {comment_mapped.get('id')} already exists, skipping")
+            return
         try:
             index_response: Dict[str, Any] = es_client.index(
                 index='oa-comments',
