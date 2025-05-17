@@ -13,10 +13,16 @@ app = Flask(__name__)
 ES_HOSTS = os.environ.get("ES_HOSTS", "http://localhost:9200").split(',')
 ES_USERNAME = os.environ.get("ES_USERNAME")
 ES_PASSWORD = os.environ.get("ES_PASSWORD")
-ES_INDEX_NAME = os.environ.get("ES_INDEX_NAME", "reddit_posts_manual")
+ES_INDEX_NAME = os.environ.get("ES_INDEX_NAME", "reddit_posts")
 ES_VERIFY_CERTS_STR = os.environ.get("ES_VERIFY_CERTS", "true").lower()
 ES_VERIFY_CERTS = ES_VERIFY_CERTS_STR == "true"
 ES_CLOUD_ID = os.environ.get("ES_CLOUD_ID") # For Elastic Cloud
+
+REDDIT_CLIENT_ID = "ZFZjHYS9Inkn8Eg9Z_QoKQ"
+REDDIT_CLIENT_SECRET = "oStU1IMaW9b3mvQucsEZNcyoqjeX1w"
+REDDIT_USERNAME = "Traditional_Rock_556"
+REDDIT_PASSWORD = "04U@nimelb25624426"
+REDDIT_USER_AGENT = "COMP90024_team57 Harvester by /u/Traditional_Rock_556"
 
 # 初始化 PRAW
 reddit = None
