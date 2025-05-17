@@ -323,6 +323,7 @@ kubectl create -f src/bluesky/bluesky-firehose.yaml
 fission package create --spec --name ui-sentiment \
   --source ./src/ui/sentiment/__init__.py \
   --source ./src/ui/sentiment/sentiment.py \
+  --source ./src/ui/sentiment/iterator.py \
   --source ./src/ui/sentiment/bluesky.py \
   --source ./src/ui/sentiment/reddit.py \
   --source ./src/ui/sentiment/openaus.py \
