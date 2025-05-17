@@ -47,7 +47,6 @@ def main() -> Tuple[Dict[str, Any], int]:
         keyword = request.headers.get('X-Fission-Params-Keyword')
 
         status["openaus"] = openaus.oa_counts_date_range(client, datefrom=date, query=keyword, index="oa-debates")
-        print("[Open Aus]", "query:", status["openaus"])
         # Returns array of 
         # {
 		# 			"key_as_string": "2025-05-05T00:00:00.000Z",
@@ -56,17 +55,13 @@ def main() -> Tuple[Dict[str, Any], int]:
 		# },
   
         first_debate = status["openaus"][0]["key_as_string"]
-        last_debate = status["openaus"][-1]["key_as_string"]
         
-        first_debate_minus_1_month = datetime.strptime(first_debate, "%Y-%m-%dT%H:%M:%S.%fZ") - timedelta(days=30)
-        last_debate_plus_1_month = datetime.strptime(last_debate, "%Y-%m-%dT%H:%M:%S.%fZ") + timedelta(days=30)
+        first_debate_minus_1_month = datetime.strptime(first_debate, "%Y-%m-%dT%H:%M:%S.%fZ") - timedelta(days=60)
 
         # Convert back to YYYY-MM-DD format
         first_debate_minus_1_month = first_debate_minus_1_month.strftime("%Y-%m-%d")
-        last_debate_plus_1_month = last_debate_plus_1_month.strftime("%Y-%m-%d")
 
-        status["bluesky"] = bluesky.bluesky_counts_from(client, dateFrom=first_debate_minus_1_month, dateTo=last_debate_plus_1_month, keywords=keyword)
-        status["reddit"] = reddit.reddit_counts(client, date)
+        status["bluesky"] = bluesky.bluesky_counts_from(client, dateFrom=first_debate_minus_1_month, keywords=[keyword])
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}

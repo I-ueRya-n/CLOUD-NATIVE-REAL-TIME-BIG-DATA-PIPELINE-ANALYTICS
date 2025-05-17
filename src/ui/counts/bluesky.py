@@ -20,47 +20,42 @@ def format_keyword(keyword: str):
     if keyword == "*":
         return {"exists": {"field": "text"}}
 
-    return {"match_phrase": {"text": keyword}}
+    return {"match": {"text": keyword}}
 
 
-def bluesky_query(keywords: [str], dateFrom: str, dateTo) -> Dict:
-    match = [format_keyword(word) for word in keywords]
-
-    matchKeyword = {
+def bluesky_query(keywords: [str], dateFrom: str) -> Dict:
+    # map keywords to a string
+    keywords = " ".join(keywords)
+    query =  {
         "bool": {
-            "must": match,
-        }
-    }
-
-    matchRange = {
-        "range": {
-            "createdAt": {
-                "gte": dateFrom,
-                "lte": dateTo
+            "must": {
+                "match": {
+                    "text": {
+                        "query": keywords,
+                        "operator": "and"
+                    }
+                }
+            },
+            "filter": {
+                "range": {
+                    "createdAt": {
+                        "gte": dateFrom
+                    }
+                }
             }
-        }
-    }
-
-    query = {
-        "bool": {
-            "filter": [
-                matchKeyword,
-                matchRange
-            ]
-        }
+        }   
     }
 
     return query
 
 
-def bluesky_counts_from(client: Elasticsearch, data: Dict,
-                           dateFrom: str, dateTo: str, search_after, keywords: [str]) -> int:
-    query = bluesky_query(keywords, dateFrom, dateTo)
+def bluesky_counts_from(client: Elasticsearch,
+                           dateFrom: str,  keywords: [str]) -> int:
+    query = bluesky_query(keywords, dateFrom)
 
     response = client.search(
         index="bluesky",
         query=query,
-        search_after=search_after,
         aggs={
             "posts_per_day": {
                 "date_histogram": {
@@ -72,5 +67,8 @@ def bluesky_counts_from(client: Elasticsearch, data: Dict,
         size=0 # we don't need the hits here
     )
     bluesky_posts = response.get("aggregations").get("posts_per_day").get("buckets")
+
+    print("[Bluesky]", "query:", query)
+    print("[Bluesky]", "posts count sum:", sum([bucket["doc_count"] for bucket in bluesky_posts]))
 
     return bluesky_posts

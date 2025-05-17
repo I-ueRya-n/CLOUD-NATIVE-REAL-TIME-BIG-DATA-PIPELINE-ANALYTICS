@@ -17,28 +17,26 @@ def format_keyword(keyword: str):
 
 
 def openaus_query(keyword: str, datefrom: str) -> Dict:
-    matchKeyword = {
-        "bool": {
-            "must": [format_keyword(keyword)],
-        }
-    }
 
-    matchRange = {
-        "range": {
-            "date": {
-                "gte": datefrom,
-                # "lte": dateto
+    query =  {
+        "bool": {
+            "must": {
+                "match": {
+                    "transcript": {
+                        "query": keyword,
+                        "operator": "and"
+                    }
+                }
+            },
+            "filter": {
+                "range": {
+                    "date": {
+                        "gte": datefrom,
+                        # "lte": dateTo
+                    }
+                }
             }
-        }
-    }
-
-    query = {
-        "bool": {
-            "filter": [
-                matchKeyword,
-                matchRange
-            ]
-        }
+        }   
     }
 
     return query
@@ -79,5 +77,4 @@ def oa_counts_date_range(client: Elasticsearch,
     found_debates = search_response.get("aggregations").get("entries_per_day").get("buckets")
     print("[Open Aus]", "found", len(found_debates), "posts")
 
-
-    return found_debates[-1]
+    return found_debates
