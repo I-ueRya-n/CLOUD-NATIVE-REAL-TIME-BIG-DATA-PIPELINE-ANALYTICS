@@ -30,7 +30,7 @@ def build_keyword_query(keyword: str, keyword_type: str) -> Dict:
 
     if keyword_type == "people":
         # Split the keyword into parts (assume first and last name)
-        # maybe i should fin dperson id  instead ugh
+        # maybe i should find person id  instead ugh
         name_parts = keyword.strip().split()
         if len(name_parts) == 2:
             first_name, last_name = name_parts
@@ -74,8 +74,8 @@ def build_keyword_query(keyword: str, keyword_type: str) -> Dict:
     return query
 
 
-def open_aus_keyword(client: Elasticsearch, index: str, keyword: str, 
-                     keyword_type: str, limit_count: int = 5000) -> Dict:
+def open_aus_keyword(client: Elasticsearch, sentiment_count, index: str, keyword: str, 
+                     keyword_type: str, search_after) -> Dict:
     """ searches for the keyword in the index,
        gets the sentiment for each matching document, 
      then averages the sentiment. Yay!
@@ -83,9 +83,9 @@ def open_aus_keyword(client: Elasticsearch, index: str, keyword: str,
     returns:
          {"sentiment": the averaged sentiment json from before, "count": num of docs}}
         
-    e.g. open_aus_keyword_sentiment(es_client, ["Anthony Albanese"], "people")
-    open_aus_keyword_sentiment(es_client, ["Australian Greens"], "parties")
-    open_aus_keyword_sentiment(es_client, ["climate change"], "topics")
+    e.g. open_aus_keywords_sentiment(es_client, ["Anthony Albanese"], "people")
+    open_aus_keywords_sentiment(es_client, ["Australian Greens"], "parties")
+    open_aus_keywords_sentiment(es_client, ["climate change"], "topics")
 
     must use whole proper words for people and parties as stored
     """
@@ -95,8 +95,10 @@ def open_aus_keyword(client: Elasticsearch, index: str, keyword: str,
 
     response = client.search(
         index=index,
-        size=limit_count,
+        size=1000,
         query=query,
+        search_after=search_after,
+        sort=[{"date": "asc"}, {"id": "asc"}],
         _source=["id", "date", "transcript", "speaker.first_name", 
                  "speaker.last_name", "speaker.party"],
     )
@@ -106,30 +108,26 @@ def open_aus_keyword(client: Elasticsearch, index: str, keyword: str,
 
     doc_ids = [d["_id"] for d in debates]
     if not doc_ids:
-        return {"sentiment": None, "count": 0}
+        return None
     
-    # Get sentiment for found debates
-    # print("[Open Aus] first debate checking", debates[0])
+    # get sentiment for found debates
     print("[Open Aus]", "example doc_ids:", doc_ids[:5])
     addr = config("FISSION_HOSTNAME") + f"/analysis/sentiment/v2/index/{index}/field/transcript"
+    print(f"[Open Aus] requesting the sentiment of {len(doc_ids)} debates")
     sentiment_response = requests.post(addr, json=doc_ids)
     if sentiment_response.status_code >= 400:
         print("[Open Aus]", "Error making request:", sentiment_response.text)
-        return {"sentiment": None, "count": 0}
+        return None
 
     sentiments = sentiment_response.json()
-    count = len(sentiments)
 
-    # Average sentiment fields
-    avg_sentiment = {"neg": 0.0, "neu": 0.0, "pos": 0.0, "compound": 0.0}
+    # add to the sentiment count
     for s in sentiments:
-        for field in avg_sentiment:
-            avg_sentiment[field] += s.get(field, 0.0)
-    if count > 0:
-        for field in avg_sentiment:
-            avg_sentiment[field] /= count
+        for field in ["neg", "neu", "pos", "compound"]:
+                sentiment_count["sentiment"][field] += s[field]
+        sentiment_count["count"] += 1
 
-    return {"sentiment": avg_sentiment, "count": count}
+    return debates[-1].get("sort")
 
 
 def open_aus_keywords_sentiment(client: Elasticsearch, keyword_list: List[str], keyword_type: str) -> Dict:
@@ -146,18 +144,34 @@ def open_aus_keywords_sentiment(client: Elasticsearch, keyword_list: List[str], 
         raise ValueError("keyword_type must be one of 'people', 'parties', or 'topics'")
 
     for keyword in keyword_list:
-        keyword_sentiment = open_aus_keyword(client, index, keyword, keyword_type)
-        if keyword_sentiment:
-            results[keyword] = keyword_sentiment
-        else:
-            results[keyword] = {"sentiment": None, "count": 0}
+        search_after = None
+        more_data = True
+
+        keyword_sentiment ={ 
+            'count': 0,
+            'sentiment': {'neg': 0.0, 'neu': 0.0, 'pos': 0.0, 'compound': 0.0}
+        }
+        while more_data:
+            search_after = open_aus_keyword(client, keyword_sentiment, index, keyword, keyword_type, search_after)
+            print("[open aus] sentiment so far:", keyword_sentiment)
+            more_data = search_after is not None
+
+        if keyword_sentiment['count'] != 0:
+            for field in ["neg", "neu", "pos", "compound"]:
+                keyword_sentiment['sentiment'][field] /= keyword_sentiment['count']
+            
+
+        results[keyword] = keyword_sentiment
 
     return results
 
+
 # if __name__ == "__main__":
-#    es_client: Elasticsearch = None
-    # result = open_aus_keyword_sentiment(es_client, ["Climate Change"], "topics")
-    # result =open_aus_keyword_sentiment(es_client, ["Australian Greens"], "parties")
-    # result =open_aus_keyword_sentiment(es_client, ["Anthony Albanese", "Pauline Hanson"], "people")
+#     es_client: Elasticsearch = None
+    # result = open_aus_keywords_sentiment(es_client, ["Climate Change"], "topics")
+    # result = open_aus_keywords_sentiment(es_client, ["housing"], "topics")
+
+    # result =open_aus_keywords_sentiment(es_client, ["Australian Greens"], "parties")
+    # result =open_aus_keywords_sentiment(es_client, ["Anthony Albanese", "Pauline Hanson"], "people")
 
     # print(result)

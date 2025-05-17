@@ -145,7 +145,6 @@ def main() -> str:
     Returns:
         "success message" if successful, else error message
     """
-    current_app.logger.info(f'I am about to start crying')
 
     es_client: Elasticsearch = Elasticsearch(
         config("ES_HOSTNAME"),
