@@ -18,12 +18,13 @@ def array_to_dict(array: List[Dict], key: str) -> Dict[str, Dict]:
 
 
 class AnalysisIterator:
-    def __init__(self, client: Elasticsearch, route: str, query: str):
+    def __init__(self, client: Elasticsearch, route: str, query: str, size: int = 1000):
         self.client = client
         self.route = route
         self.query = query
         self.search_after = None
         self.results = []
+        self.size = size
         self.i = 0
 
     def elastic_fields(self, index: str, idField: str, textField: str, dateField: str):
@@ -49,7 +50,7 @@ class AnalysisIterator:
                 query=self.query,
                 search_after=self.search_after,
                 sort=[{self.date: "asc"}, {self.id: "asc"}],
-                size=1000
+                size=self.size
             )
             posts = response.get("hits").get("hits")
 

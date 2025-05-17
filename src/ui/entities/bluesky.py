@@ -33,7 +33,7 @@ def bluesky_words(client: Elasticsearch, count: str, label: str) -> Dict:
     # get bluesky posts in range which match keyword
     data = {}
     query = bluesky_query(["auspol"])
-    blueskyIter = AnalysisIterator(client, "/analysis/ner/v2", query)
+    blueskyIter = AnalysisIterator(client, "/analysis/ner/v2", query, 300)
     blueskyIter.elastic_fields("bluesky", "cid", "text", "createdAt")
 
     for s, _ in blueskyIter:
