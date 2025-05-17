@@ -28,8 +28,8 @@ import datetime
   # Trigger the Reddit data harvester function
   harvester_params = {
   'subreddits': os.environ.get("REDDIT_SUBREDDITS"),
-  'limit': os.environ.get("REDIT_LIMIT"),
-  'keywords': os.environ.get("REDIT_KEYWORDS"),
+  'limit': os.environ.get("REDDIT_LIMIT"),
+  'keywords': os.environ.get("REDDIT_KEYWORDS"),
   }
   harvester_result = trigger_fission_function('reddit-data-harvester', harvester_params)
  
