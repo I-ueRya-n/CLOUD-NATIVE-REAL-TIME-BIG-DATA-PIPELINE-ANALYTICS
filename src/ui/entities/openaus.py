@@ -2,6 +2,7 @@ from elasticsearch8 import Elasticsearch
 from typing import Dict
 from datetime import datetime
 
+
 def get_date_range(date_from: str, date_to: str = None) -> Dict:
     """
     Returns a date range query to use for Elasticsearch.

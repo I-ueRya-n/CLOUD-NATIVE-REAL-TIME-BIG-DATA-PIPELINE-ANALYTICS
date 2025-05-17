@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import List, Dict
 import requests
 from elasticsearch8 import Elasticsearch
 
@@ -9,7 +9,7 @@ def config(k: str) -> str:
         return f.read()
 
 
-def array_to_dict(array: [Dict], key: str) -> Dict[str, Dict]:
+def array_to_dict(array: List[Dict], key: str) -> Dict[str, Dict]:
     d = {}
     for item in array:
         d[item[key]] = item.get("_source")
@@ -31,6 +31,9 @@ class AnalysisIterator:
         self.id = idField
         self.text = textField
         self.date = dateField
+
+        print(f"[{self.index}] query: {self.query}")
+        print(f"[{self.index}] endpoint: {self.addr()}")
 
     def __iter__(self):
         return self
@@ -56,7 +59,6 @@ class AnalysisIterator:
             # get sentiment for posts
             analysis_query = [p.get("_id") for p in posts]
             print(f"[{self.index}] requesting {len(analysis_query)} posts")
-            print(f"[{self.index}] addr {self.addr()}")
             response = requests.post(self.addr(), json=analysis_query)
 
             if response.status_code >= 400:

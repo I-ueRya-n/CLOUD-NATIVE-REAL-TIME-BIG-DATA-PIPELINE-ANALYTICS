@@ -1,14 +1,14 @@
 include:
+- ./src/ui/iterator.py
 - ./src/ui/sentiment/__init__.py
 - ./src/ui/sentiment/sentiment.py
-- ./src/ui/sentiment/iterator.py
 - ./src/ui/sentiment/bluesky.py
 - ./src/ui/sentiment/reddit.py
 - ./src/ui/sentiment/openaus.py
 - ./src/ui/sentiment/requirements.txt
 - ./src/ui/sentiment/build.sh
 kind: ArchiveUploadSpec
-name: src-ui-sentiment---init---py-hiF5
+name: src-ui-iterator-py-yGYF
 
 ---
 apiVersion: fission.io/v1
@@ -26,7 +26,7 @@ spec:
   source:
     checksum: {}
     type: url
-    url: archive://src-ui-sentiment---init---py-hiF5
+    url: archive://src-ui-iterator-py-yGYF
 status:
   buildstatus: pending
-  lastUpdateTimestamp: "2025-05-17T02:35:19Z"
+  lastUpdateTimestamp: "2025-05-17T06:22:59Z"
