@@ -1,11 +1,11 @@
 ## Create Functions and Triggers
 fission package create --spec --name reddit-harvester \
-  --source ./src/reddit.n/reddit_scraper.py \
-  --source ./src/reddit.n/reddit_to_elasticsearch.py \
-  --source ./src/reddit.n/reddit_daily_trigger.py \
-  --source ./src/reddit.n/__init__.py \
-  --source ./src/reddit.n/util.py \
-  --source ./src/reddit.n/requirements.txt \
+  --source ./src/reddit/reddit_scraper.py \
+  --source ./src/reddit/reddit_to_elasticsearch.py \
+  --source ./src/reddit/reddit_daily_trigger.py \
+  --source ./src/reddit/__init__.py \
+  --source ./src/reddit/util.py \
+  --source ./src/reddit/requirements.txt \
   --source ./build.sh \
   --env python \
   --buildcmd './build.sh'
