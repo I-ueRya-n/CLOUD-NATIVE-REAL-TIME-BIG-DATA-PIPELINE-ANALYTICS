@@ -50,9 +50,13 @@ class AnalysisIterator:
             )
             posts = response.get("hits").get("hits")
 
+            if len(posts) == 0:
+                raise StopIteration
+
             # get sentiment for posts
-            analysis_query = [p.get(self.id) for p in posts]
+            analysis_query = [p.get("_id") for p in posts]
             print(f"[{self.index}] requesting {len(analysis_query)} posts")
+            print(f"[{self.index}] addr {self.addr()}")
             response = requests.post(self.addr(), json=analysis_query)
 
             if response.status_code >= 400:
@@ -60,19 +64,12 @@ class AnalysisIterator:
                 raise StopIteration
 
             # aggregate sentiment across time
-            self.posts = array_to_dict(posts, self.id)
+            self.posts = array_to_dict(posts, "_id")
             self.results = response.json()
             self.search_after = posts[-1].get("sort")
             self.i = 0
 
-        if len(self.results) == 0:
-            raise StopIteration
-
         post_id = self.results[self.i].get("id")
-        if post_id not in self.posts:
-            print(f"[{self.index}] missing {post_id} from results")
-            return None, None
-
-        item = self.results[self.i], self.posts[post_id]
+        item = self.results[self.i], self.posts.get(post_id, None)
         self.i += 1
         return item

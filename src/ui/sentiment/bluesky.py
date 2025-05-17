@@ -49,7 +49,7 @@ def bluesky_sentiment(client: Elasticsearch, start: str, end: str, keyword: str)
     blueskyIter.elastic_fields("bluesky", "cid", "text", "createdAt")
 
     for res, post in blueskyIter:
-        if res is None:
+        if post is None:
             continue
 
         post_date = post.get("createdAt").split("T")[0]
