@@ -1,0 +1,42 @@
+{
+  "mappings": {
+    "properties": {
+      "author": {
+        "type": "keyword"
+      },
+      "comments_count": {
+        "type": "integer"
+      },
+      "content": {
+        "type": "text"
+      },
+      "downvotes": {
+        "type": "integer"
+      },
+      "flair": {
+        "type": "keyword"
+      },
+      "harvested_at": {
+        "type": "date"
+      },
+      "post_id": {
+        "type": "keyword"
+      },
+      "subreddit": {
+        "type": "keyword"
+      },
+      "timestamp": {
+        "type": "date"
+      },
+      "title": {
+        "type": "text"
+      },
+      "upvotes": {
+        "type": "integer"
+      },
+      "url": {
+        "type": "keyword"
+      }
+    }
+  }
+}
