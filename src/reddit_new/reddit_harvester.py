@@ -142,6 +142,7 @@ def main():
           time_filter='all',
           limit=limit,
         )
+        print(f"Found posts for keyword {keyword} in subreddit {subreddit}")
         for found_post in found_posts:
           created = datetime.fromtimestamp(found_post.created_utc, tz=timezone.utc)
           # check if the post is within the date range
@@ -168,7 +169,6 @@ def main():
             }
             posts.append(post)
             print(f"found post: {getattr(found_post, 'title', None)}")
-            print(post)
 
             # get top-level comments for the post
             get_post_comments(reddit_client, found_post, limit=limit)
@@ -184,6 +184,3 @@ def main():
           break
         
     return json.dumps({'message': f'Enqueued {enqueued} posts.'}), 200
-
-# if __name__ == "__main__":
-#     main()

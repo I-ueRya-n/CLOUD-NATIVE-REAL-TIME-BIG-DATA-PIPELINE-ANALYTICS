@@ -27,27 +27,25 @@ def main() -> Any:
     for post in request_data:
         current_app.logger.info(f'Processing post {post.get("post_id")}')
         #check if the post has already been added to avoid duplicates
-        # if es_client.exists(index=REDDIT_ES_INDEX, id=post.get('post_id')):
-        #     current_app.logger.info(f"post {post.get('post_id', '')} already exists, skipping")
+        if es_client.exists(index=REDDIT_ES_INDEX, id=post.get('post_id')):
+            current_app.logger.info(f"post {post.get('post_id', '')} already exists, skipping")
 
-        # else:
-        try:
-            index_response: Dict[str, Any] = es_client.index(
-                index=REDDIT_ES_INDEX,
-                id=post.get("post_id"),
-                body=post,
-            )
-            current_app.logger.info(
-                f'Indexed reddit post {post.get("post_id")} - \
-                Version: {index_response["_version"]}'
-            )
+        else:
+            try:
+                index_response: Dict[str, Any] = es_client.index(
+                    index=REDDIT_ES_INDEX,
+                    id=post.get("post_id"),
+                    body=post,
+                )
+                current_app.logger.info(
+                    f'Indexed reddit post {post.get("post_id")} - \
+                    Version: {index_response["_version"]}'
+                )
 
-        except Exception as e:
-            current_app.logger.error(f"Error indexing post: {e}")
-            continue
+            except Exception as e:
+                current_app.logger.error(f"Error indexing post: {e}")
+                continue
 
 
     return f'added {len(request_data)} posts to the index {REDDIT_ES_INDEX}, yay!'
 
-# if __name__ == "__main__":
-#     main()

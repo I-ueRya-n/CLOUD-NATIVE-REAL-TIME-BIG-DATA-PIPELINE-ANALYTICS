@@ -21,4 +21,4 @@ def enqueue_data(queue_name: str, data: str) -> None:
       print(f"Failed to add {data} to redis queue: {response.text}")
       return json.dumps({"error": "Failed to add date to redis queue"}), 500
     else:
-      print(f"Added {data} to redis queue {queue_name}, yay!")
+      print(f"Added {len(data)} to redis queue {queue_name}, yay!")
