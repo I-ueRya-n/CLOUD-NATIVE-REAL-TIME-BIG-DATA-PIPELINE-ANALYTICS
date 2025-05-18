@@ -2,23 +2,49 @@
 
 COMP90024 Assignment 2
 
-## Setup
-DO NOT RE-RUN THIS CODE!
+## Repo Contents
 
-### Fission
+```
+comp90024_team_57
+├───config                  // grafana config files
+├───docs                    // report files
+├───examples                // frontend jupyter notebooks
+├───specs                   // fission yamls
+├───src
+│   ├───analysis
+│   │   ├───cache           // analysis cache
+│   │   ├───ner             // named entity recognition
+│   │   └───vader           // vader sentiment analysis
+│   ├───bluesky             // bluesky client
+│   ├───enqueue             // redis queue manager
+│   ├───open_australia      // open australia clients
+│   │   ├───comments        // comments harvester
+│   │   └───oa_debates      // debate harvester
+│   └───ui                  // ui fission functions
+```
+
+## Client 
+
+Setup a jupyter notebook with matplotlib, numpy, pandas and wordcloud installed in the python environment.
+Create a port forward to fission.
+```bash
+kubectl port-forward service/router -n fission 9090:80
+```
+
+Open the notebook `examples/sample.ipynb` and run all cells.
+
+## Fission Setup
 
 Setup fission
-```
+```bash
 fission specs init
 fission env create --spec --name python --image fission/python-env --builder fission/python-builder
 fission env create --spec --name python39 --image fission/python-env-3.9 --builder fission/python-builder-3.9
-
 fission env create --spec --name go --image ghcr.io/fission/go-env-1.23 --builder ghcr.io/fission/go-builder-1.23
-
 ```
 
 To update fission with the current specs, run
-```
+```bash
 fission spec apply --wait
 ```
 
@@ -26,22 +52,14 @@ fission spec apply --wait
 
 Create `specs/shared-data.yaml` config map with elastic search login, and run
 
-```
+```bash
 kubectl apply -f specs/shared-data.yaml
 ```
-
-This contains the following values:
-  ES_USERNAME
-  ES_PASSWORD 
-  BSKY_USERNAME
-  BSKY_PASSWORD 
-
-and can be accessed using the following route
 
 ### Prometheus
 
 Install prometheus on the cluster
-```
+```bash
 export METRICS_NAMESPACE=monitoring
 kubectl create namespace $METRICS_NAMESPACE
 
@@ -52,153 +70,22 @@ helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
 
 Create `config/values.yaml` to enable service monitors in fission.
 
-```
+```bash
 helm upgrade fission fission-charts/fission-all --namespace fission -f config/values.yaml
 ```
 
 To monitor fission, port-forward the grafana port and go to `localhost:3000`
-```
+```bash
 kubectl --namespace monitoring port-forward svc/prometheus-grafana 3000:80
 ```
 
-### Analysis (vader)
-
-Create the package containing the required packages
-
-```bash
-fission package create --spec --name sentiment-pkg \
-  --source ./src/analysis/vader/__init__.py \
-  --source ./src/analysis/vader/sentiment_function.py \
-  --source ./src/analysis/vader/requirements.txt \
-  --source ./src/analysis/vader/build.sh \
-  --env python \
-  --buildcmd './build.sh'
-```
-
-Create the function from the file
-
-```
-fission function create --spec --name sentiment-function \
-  --pkg sentiment-pkg \
-  --env python \
-  --maxscale=30 \
-  --executortype newdeploy \
-  --entrypoint "sentiment_function.main"
-```
-
-Create the trigger/route
-
-```
-fission route create --spec --name sentiment-function \
-  --url /analysis/sentiment/v1 \
-  --method POST \
-  --createingress \
-  --function vader-sentiment-function
-```
-
-Test the function with
-```
-curl -XPOST -k "http://localhost:9090/analysis/sentiment/v1"\
-    --header 'Content-Type: application/json'\
-    --data '{"text": "The Liberal Party is not a party of aspiration… it’s a party of asps. #auspol #abc730"}'
-```
-
-
-### Analysis (named entities)
-
-Create the python-ner environment
-```
-fission env create --spec --name python-ner --image pulpss/python-ner
-```
-
-Create the function with the new environment
-```
-fission fn create --spec --name ner-function \
-    --env python-ner \
-    --maxscale=30 \
-    --executortype newdeploy \
-    --code src/analysis/ner/ner_function.py
-```
-
-Create the route
-```
-fission route create --spec --name ner-route --method POST --url analysis/ner/v1 --function ner-function
-```
-
-Test the function
-```
-curl -X POST http://localhost:8888/analysis/ner/v1 -H "Content-Type: application/json" -d '{"text": "SpaCy is great for NLP!"}'
-```
-Should return something like:
-```
-{"PERSON": ["SpaCy"], "ORG": ["NLP"]}
-```
-
-### Analysis Cache
-
-Sentiment + NER wrapper, checks elastic search for sentiment/ner, calculates and inserts if it doesn't exist.
-
-```
-curl -XPUT -k "https://localhost:9200/named-entity"\
-    --header 'Content-Type: application/json'\
-    --data "@src/analysis/cache/ner-index.json"\
-    --user 'elastic:Mi0zu6yaiz1oThithoh3Di8kohphu9pi'
-```
-
-```
-fission package create --spec --name elastic-cache \
-    --source src/analysis/cache/cache.go \
-    --source src/analysis/cache/item.go \
-    --source src/analysis/cache/sentiment.go \
-    --source src/analysis/cache/entity.go \
-    --source src/analysis/cache/go.mod \
-    --source src/analysis/cache/go.sum \
-    --env go
-
-fission fn create --spec --name elastic-sentiment \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint SentimentHandler
-
-fission route create --spec --name elastic-sentiment\
-  --url /analysis/sentiment/v2/index/{index}/field/{field} \
-  --method POST \
-  --function elastic-sentiment
-
-fission fn create --spec --name elastic-ner \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint EntityHandler
-
-fission route create --spec --name elastic-ner \
-  --url /analysis/ner/v2/index/{index}/field/{field} \
-  --method POST \
-  --function elastic-ner
-```
-
-Test the cache 
-```
-fission fn create --spec --name elastic-cache-test \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint ItemHandler
-
-fission route create --spec --name elastic-cache-test \
-  --url /cache-test/index/{index}/field/{field} \
-  --method POST \
-  --function elastic-cache-test
-
-go test
-```
+## Open Australia Setup
 
 ### REDIS Queue
 
 Install KEDA
 
-```
+```bash
 export KEDA_VERSION='2.9'
 helm repo add kedacore https://kedacore.github.io/charts
 helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
@@ -208,7 +95,7 @@ helm upgrade keda kedacore/keda --install --namespace keda --create-namespace --
 
 Install redis (USED THE SAME PASSWORD AS ES)
 
-```
+```bash
 export REDIS_VERSION='0.19.1'
 helm repo add ot-helm https://ot-container-kit.github.io/helm-charts/
 helm upgrade redis-operator ot-helm/redis-operator \
@@ -221,7 +108,7 @@ helm upgrade redis ot-helm/redis --install --namespace redis
 
 Install redis insight (gui for redis) 
 
-```
+```bash
 kubectl apply -f ./specs/redis-insight.yaml --namespace redis
 
 To view redis insight start port forwarding:
@@ -231,7 +118,7 @@ kubectl port-forward service/redis-insight --namespace redis 5540:5540
 
 Then go to `http://localhost:5540/`.
 Create redis fission package, function and HTTPS trigger 
-```
+```bash
 fission package create --spec --name enqueue \
     --source ./src/enqueue/__init__.py \
     --source ./src/enqueue/enqueue.py \
@@ -251,7 +138,7 @@ fission httptrigger create --spec --name enqueue --url "/enqueue/{topic}" --meth
 ```
 
 How to use: In your function, to add to a queue for a topic
-```
+```python
     response: Optional[requests.Response] = requests.post(
         url='http://router.fission/enqueue oa_debate_keys',
         headers={'Content-Type': 'application/json'},
@@ -262,22 +149,162 @@ How to use: In your function, to add to a queue for a topic
 To test the queue: 
     on another terminal window port forward the router:
 
-```
+```bash
 kubectl port-forward service/router -n fission 9090:80
 ```
 
-```
+```bash
 curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"data1":"xyz","data2":"xyz"}' \
   http://localhost:9090/enqueue/test
 ```
 
-### Bluesky
+### ElasticSearch
+
+Two indices called `oa-debates` and `oa-comments`, follows mapping `open_australia/oa_debates/oa-comments.json` and `oa-debates.json`
+
+```bash
+curl -XPUT -k "https://127.0.0.1:9200/oa-debates"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/oa-debates.json"\
+    --user "elastic:<es_password>"
+
+curl -XPUT -k "https://127.0.0.1:9200/oa-comments"\
+    --header "Content-Type: application/json"\
+    --data "@src/open_australia/oa_debates/oa-comments.json"\
+    --user "elastic:<es_password>"
+```
+
+### Fission
+
+Create the common fission package for all debate functions,
+```bash
+fission package create --spec --name oa-debates \
+    --source ./src/open_australia/oa_debates/__init__.py \
+    --source ./src/open_australia/oa_debates/requirements.txt \
+    --source ./src/open_australia/oa_debates/build.sh \
+    --source ./src/open_australia/oa_debates/oa_daily_debate_harvester.py \
+    --source ./src/open_australia/oa_debates/oa_debate_adder.py \
+    --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py \
+    --source ./src/open_australia/oa_debates/oa_person_lister.py \
+    --source ./src/open_australia/oa_debates/util.py \
+    --env python39 \
+    --buildcmd './build.sh'
+```
+
+### Date Lister 
+
+Lists dates in a year with debates on them in BOTH the senate and house of reps.
+Trigger by HTTP request to start the pipeline.
+Feeds into the Debate Harvester By Details (into the oa_debate_key redis queue).
+
+Create fission package and route.
+```bash
+fission function create --spec --name oa-date-lister \
+  --pkg oa-debates \
+  --env python39 \
+  --configmap shared-data \
+  --entrypoint "oa_date_lister.main"
+
+fission route create --spec --name oa-dates-with-debates --function oa-date-lister \
+  --method GET \
+  --url '/openaustralia/year/{year:[0-9][0-9][0-9][0-9]}'\
+  --createingress
+```
+
+### Person Lister
+
+Finds all details of politicians in either the senate or house of reps at the start of a year
+
+Create fission package and route.
+```bash
+fission function create --spec --name oa-person-lister \
+  --pkg oa-debates \
+  --env python39 \
+  --configmap shared-data \
+  --entrypoint "oa_person_lister.main"
+
+fission route create --spec --name oa-people-year-house --function oa-person-lister \
+  --method GET \
+  --url '/openaustralia/list-people/year/{year:[0-9][0-9][0-9][0-9]}/house/{house:[a-zA-Z0-9]+}'\
+  --createingress
+```
+
+### Debate Harvester by Details
+
+Reads from oa_debate_keys redis queue.
+Writes to oa_debate_data redis queue.
+Queries api for debates by person or by date (up to 1000).
+
+Create fission function and redis trigger.
+
+```bash
+fission function create --spec --name oa-debate-harvester-by-details \
+    --pkg oa-debates \
+    --env python39 \
+    --configmap shared-data \
+    --entrypoint "oa_debate_harvester_by_details.main"
+
+fission mqtrigger create --name oa-debate-harvester-by-details \
+    --spec\
+    --function oa-debate-harvester-by-details \
+    --mqtype redis\
+    --mqtkind keda\
+    --topic oa_debate_keys \
+    --resptopic oa_debate_data \
+    --errortopic errors-debate-harvester \
+    --maxretries 3 \
+    --metadata address=redis-headless.redis.svc.cluster.local:6379\
+    --metadata listLength=1000\
+    --metadata listName=oa_debate_keys
+```
+
+### Debate Adder 
+
+Adds data from redis queue to elasticsearch indices `oa-debates` AND `oa-comments`
+
+Create fission function and redis trigger.
+```bash
+fission function create --spec --name oa-debate-adder \
+    --pkg oa-debates \
+    --env python39 \
+    --configmap shared-data \
+    --entrypoint "oa_debate_adder.main"
+
+fission mqtrigger create --name oa-debate-adder \
+    --spec\
+    --function oa-debate-adder \
+    --mqtype redis\
+    --mqtkind keda\
+    --topic oa_debate_data \
+    --errortopic errors-debate-adder \
+    --maxretries 3 \
+    --metadata address=redis-headless.redis.svc.cluster.local:6379\
+    --metadata listLength=10000\
+    --metadata listName=oa_debate_data
+```
+
+### Daily Debate Harvester
+
+Pulls debate data from 2 days prior to the current date.
+
+Create fission function and timer trigger.
+```bash
+fission function create --spec --name oa-daily-debate-harvester \
+  --pkg oa-debates \
+  --env python39 \
+  --configmap shared-data \
+  --entrypoint "oa_daily_debate_harvester.main"
+
+fission timer create f --function oa-daily-debate-harvester --cron "@daily"
+```
+
+## Bluesky Setup
 
 Create elastic search index
 
-```
+```bash
 curl -XPUT -k "https://localhost:9200/bluesky"\
     --header 'Content-Type: application/json'\
     --data "@src/bluesky/index.json"\
@@ -286,7 +313,7 @@ curl -XPUT -k "https://localhost:9200/bluesky"\
 
 Create the fission specs for bluesky
 
-```
+```bash
 fission package create --spec --name bluesky \
     --source src/bluesky/firehose.go \
     --source src/bluesky/process_post.go \
@@ -305,23 +332,163 @@ fission fn create --spec --name bluesky-post \
 fission route create --spec --name bluesky-post --url /bluesky/repo-commit --method POST --function bluesky-post 
 ```
 
-Bluesky firehose docker container
-```
+Build the Bluesky firehose docker container
+```bash
 cd src/bluesky/
 docker build -t jcchil/bluesky-firehose:<version> .
 docker push jcchil/bluesky-firehose:<version>
 ```
 
 Then deploy with kubectl
-```
+```bash
 kubectl create -f src/bluesky/bluesky-firehose.yaml
 ```
 
-## Frontend 
+## Analysis Setup
+
+### Vader
+
+Create the package containing the required packages, the function for vader, and the http route.
+
+```bash
+fission package create --spec --name sentiment-pkg \
+  --source ./src/analysis/vader/__init__.py \
+  --source ./src/analysis/vader/sentiment_function.py \
+  --source ./src/analysis/vader/requirements.txt \
+  --source ./src/analysis/vader/build.sh \
+  --env python \
+  --buildcmd './build.sh'
+
+fission function create --spec --name sentiment-function \
+  --pkg sentiment-pkg \
+  --env python \
+  --maxscale=30 \
+  --executortype newdeploy \
+  --entrypoint "sentiment_function.main"
+
+fission route create --spec --name sentiment-function \
+  --url /analysis/sentiment/v1 \
+  --method POST \
+  --createingress \
+  --function vader-sentiment-function
+```
+
+Test the function with
+```
+curl -XPOST -k "http://localhost:9090/analysis/sentiment/v1"\
+    --header 'Content-Type: application/json'\
+    --data '{"text": "The Liberal Party is not a party of aspiration… it’s a party of asps. #auspol #abc730"}'
+```
+
+### Named Entities
+
+Create the python-ner environment, function and the http route
+
+```bash
+fission env create --spec --name python-ner --image pulpss/python-ner
+
+fission fn create --spec --name ner-function \
+    --env python-ner \
+    --maxscale=30 \
+    --executortype newdeploy \
+    --code src/analysis/ner/ner_function.py
+
+fission route create --spec --name ner-route --method POST --url analysis/ner/v1 --function ner-function
+```
+
+Test the function
+```
+curl -X POST http://localhost:8888/analysis/ner/v1 -H "Content-Type: application/json" -d '{"text": "SpaCy is great for NLP!"}'
+```
+Should return something like:
+```
+{"PERSON": ["SpaCy"], "ORG": ["NLP"]}
+```
+
+### Analysis Cache
+
+Sentiment + NER wrapper, checks elastic search for sentiment/ner, calculates and inserts if it doesn't exist.
+Create Elastic Search indices,
+
+```bash
+curl -XPUT -k "https://localhost:9200/sentiment"\
+    --header 'Content-Type: application/json'\
+    --data "@src/analysis/cache/sentiment-index.json"\
+    --user 'elastic:<es_password>'
+
+curl -XPUT -k "https://localhost:9200/named-entity"\
+    --header 'Content-Type: application/json'\
+    --data "@src/analysis/cache/ner-index.json"\
+    --user 'elastic:<es_password>'
+```
+
+Create fission package for caching,
+```bash
+fission package create --spec --name elastic-cache \
+    --source src/analysis/cache/cache.go \
+    --source src/analysis/cache/item.go \
+    --source src/analysis/cache/sentiment.go \
+    --source src/analysis/cache/entity.go \
+    --source src/analysis/cache/go.mod \
+    --source src/analysis/cache/go.sum \
+    --env go
+```
+
+Create fission function and http route for sentiment cache.
+```bash
+fission fn create --spec --name elastic-sentiment \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint SentimentHandler
+
+fission route create --spec --name elastic-sentiment\
+  --url /analysis/sentiment/v2/index/{index}/field/{field} \
+  --method POST \
+  --function elastic-sentiment
+```
+
+Create fission function and http route for ner cache.
+```bash
+fission fn create --spec --name elastic-ner \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint EntityHandler
+
+fission route create --spec --name elastic-ner \
+  --url /analysis/ner/v2/index/{index}/field/{field} \
+  --method POST \
+  --function elastic-ner
+```
+
+To test the cache, create a test function,
+```bash
+fission fn create --spec --name elastic-cache-test \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint ItemHandler
+
+fission route create --spec --name elastic-cache-test \
+  --url /cache-test/index/{index}/field/{field} \
+  --method POST \
+  --function elastic-cache-test
+```
+
+And run the test
+
+```bash
+cd src/analysis/cache
+go test
+```
+
+## User Interface
 
 ### Sentiment
 
-```
+Create fission package, function and http route for the `ui-sentiment` function which aggregates sentiment data per day over a period of time.
+```bash
 fission package create --spec --name ui-sentiment \
   --source ./src/ui/iterator.py \
   --source ./src/ui/sentiment/__init__.py \
@@ -350,7 +517,8 @@ fission route create --spec --name ui-sentiment \
 
 ### Named Entities
 
-```
+Create fission package, function and http route for the `ui-named-entity` function which collects the count of named entities.
+```bash
 fission package create --spec --name ui-named-entity \
   --source ./src/ui/iterator.py \
   --source ./src/ui/entities/__init__.py \
@@ -379,7 +547,8 @@ fission route create --spec --name ui-named-entity \
 
 ### Sentiment averager by keywords
 
-```
+Create fission package, function and http route for the `ui-keywords-sentiment-averager` function which computes the average sentiment for posts containing a keyword.
+```bash
 fission package create --spec --name ui-keywords-sentiment-averager \
   --source ./src/ui/iterator.py \
   --source ./src/ui/sentiment_by_keyword/__init__.py \
@@ -404,24 +573,12 @@ fission route create --spec --name ui-keywords-sentiment-averager \
   --createingress \
   --url '/ui/sentiment-averager/type/{type:[a-zA-Z0-9]+}'\
   --createingress
-  
 ```
-
-
-## Open Australia
-
-the ElasticSearch "oa_debates" index holds:
-
-debates
-  has the transcript of a debate / politicial discussion
-  can search by keyword, date, or person id 
-
-
-SEE README IN OA_DEBATES
 
 ### Counts
 
-```
+Create fission package, function and http route for the `ui-counts` function which calculates the number of posts containing a keyword.
+```bash
 fission package create --spec --name ui-counts \
   --source ./src/ui/iterator.py \
   --source ./src/ui/counts/__init__.py \
