@@ -44,7 +44,9 @@ def main() -> Tuple[Dict[str, Any], int]:
         label = request.headers.get('X-Fission-Params-Label')
 
         status["bluesky"] = bluesky.bluesky_words(client, count, label)
-        status["openaus"] = openaus.open_aus_words(client, count, label)
+        # SETTING THE DATE RANGE TO 2023-01-01 
+        # BECAUSE THE DATASET IS TOO BIG
+        status["openaus"] = openaus.open_aus_words(client, count, label, date_from="2024-01-01")
         status["reddit"] = reddit.reddit_words(client, count, label)
     except Exception as e:
         print(traceback.format_exc())

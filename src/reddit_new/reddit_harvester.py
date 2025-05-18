@@ -182,5 +182,8 @@ def main():
 
         if len(posts) >= limit:
           break
-        
+
+    enqueue_data('reddit_posts_queue', json.dumps(posts))
+    print(f"Final: Enqueued {len(posts)}")
+
     return json.dumps({'message': f'Enqueued {enqueued} posts.'}), 200

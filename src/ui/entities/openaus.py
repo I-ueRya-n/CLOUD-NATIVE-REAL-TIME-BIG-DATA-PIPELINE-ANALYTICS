@@ -55,8 +55,15 @@ def open_aus_words(client: Elasticsearch, count: str, label: str, keywords: List
 
     openausIter = AnalysisIterator(client, "/analysis/ner/v2", query, 300)
     openausIter.elastic_fields("oa-debates", "id", "transcript", "date")
+    LIMIT = 15000
+    done = 0
 
     for s, _ in openausIter:
+        done += 1
+        if done > LIMIT:
+            print("[open aus] limit reached")
+            break
+        
         entity = s.get("entities")
         # print(entity)
 

@@ -58,9 +58,11 @@ def build_keyword_query(keyword: str, keyword_type: str) -> Dict:
                 }}
 
     elif keyword_type == "topics":
-        matchKeyword = { "match": {
-            "transcript": keyword.lower()  
-            }}
+        matchKeyword = { 
+            "match_phrase": {
+            "transcript": keyword  
+            }
+        }
     else:
         raise ValueError("keyword_type must be one of 'people', 'parties', or 'topics'")
     query = {
