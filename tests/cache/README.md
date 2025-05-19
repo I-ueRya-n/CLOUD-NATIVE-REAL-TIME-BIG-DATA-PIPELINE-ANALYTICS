@@ -14,9 +14,10 @@ fission route create --spec --name elastic-cache-test \
   --function elastic-cache-test
 ```
 
-Port forward to fission router.
+Port forward to fission router and elasticsearch.
 ```bash
 kubectl port-forward service/router -n fission 9090:80
+kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
 ```
 
 Run tests (from the `tests/cache` directory).
