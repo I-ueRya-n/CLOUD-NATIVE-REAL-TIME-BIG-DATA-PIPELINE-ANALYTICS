@@ -2,6 +2,33 @@
 
 COMP90024 Assignment 2
 
+## Table of Contents
+
+- [Repo Contents](#repo-contents)
+- [Client](#client)
+- [Docs (Report)](#docs-report)
+- [Fission Setup](#fission-setup)
+  - [Config maps](#config-maps)
+  - [Prometheus](#prometheus)
+- [Open Australia Setup](#open-australia-setup)
+  - [REDIS Queue](#redis-queue)
+  - [ElasticSearch](#elasticsearch)
+  - [Fission](#fission)
+  - [Date Lister](#date-lister)
+  - [Person Lister](#person-lister)
+  - [Debate Harvester by Details](#debate-harvester-by-details)
+  - [Debate Adder](#debate-adder)
+  - [Daily Debate Harvester](#daily-debate-harvester)
+- [Bluesky Setup](#bluesky-setup)
+- [Analysis Setup](#analysis-setup)
+  - [Vader](#vader)
+  - [Named Entities](#named-entities)
+  - [Analysis Cache](#analysis-cache)
+- [User Interface](#user-interface)
+  - [Sentiment](#sentiment)
+  - [Named Entities](#named-entities-1)
+
+
 ## Repo Contents
 
 ```
@@ -32,6 +59,32 @@ kubectl port-forward service/router -n fission 9090:80
 ```
 
 Open the notebook `examples/sample.ipynb` and run all cells.
+
+
+## Tests
+
+### Python
+
+First of all, you need to install the requirements for the tests (you might need to create a virtual environment):
+
+```bash
+# Optional
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Then install the requirements:
+```bash
+pip install -r tests/requirements.txt
+```
+
+Then make sure you have the kubernetes cluster running and the fission router port-forwarded to `localhost:9090`.
+
+To run the tests, you can use `pytest`:
+```bash
+pytest tests/
+```
+
 
 ## Docs (Report)
 
