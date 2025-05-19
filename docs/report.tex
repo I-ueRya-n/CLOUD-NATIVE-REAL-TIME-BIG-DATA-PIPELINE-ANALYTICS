@@ -133,6 +133,32 @@ The first two entrypoints are called manually to scrape past data from the backl
 All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
 \subsection*{Reddit}
+The structure of the reddit harvester is similar to the OpenAustralia harvester.
+
+The reddit harvester is split into three parts: the entrypoint, the harvester and the adder.
+
+There are two entrypoints to gathering reddit data.
+\begin{itemize}
+    \item \texttt{reddit-query-trigger-new} - Queries the reddit API for posts matching a list of keywords in a list of subreddits (no time range).
+    
+    This uses a httptrigger route \texttt{reddit-lister}. Requests must provide a JSON body with a list of subreddit names, keywords and a limit.
+    Thi
+
+    \item \texttt{reddit-daily-trigger-new} - Queries the reddit API for posts in a series of predefined subreddits and made in the preceeding 24 hours.
+    
+    This uses a time trigger that runs daily. The list of subreddits and keywords is hardcoded into the function, and can be changed by editing the function.
+    The decision to hardcode the subreddits and keywords was made to automate the scraping process and reduce the complexity of the system, 
+    as we did not want to have to query the reddit API for a list of subreddits and keywords every time we wanted to gather data.
+    However, this does mean that the subreddits and keywords are not easily changeable, and we would have to edit the function directly.
+\end{itemize}
+These entrypoint functions add the parameters (keys) of the request to the redis message queue \texttt{reddit-post-keys}.
+The \texttt{reddit-harvester-new} fission function is triggered by this redis message queue.
+This function queries the reddit API for the posts matching the keywords and subreddits, and then queues the results in the \texttt{reddit-post-data} queue for processing.
+This function also handles the extraction of ``top level'' comments from each post.
+
+Finally, the \texttt{reddit-to-es-new} fission function is triggered by this redis message queue \texttt{reddit-post-data}.
+This indexes the posts and comments into the elastic search index \texttt{reddit}.
+
 
 \subsection*{Sentiment Analysis}
 
@@ -207,18 +233,29 @@ Are there still sides of social media where people present their political opini
 And where does all this anger come from? 
 Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
 
+
+In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
+We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
+
 \subsection*{Analysis Goals}
+We had three main goals for our analysis.
 
-\paragraph*{Comparing discussions across platforms}
-We began by contrasting Australian political discussions found on three social platforms. Bluesky, Reddit and OpenAustralia. We wanted to see if the conversations held on some of these platforms were more positive or negative than others. Maybe more negative users tended to prefer a certain platform.
+\paragraph*{Comparing the topics}
+We first wanted to see what political topics were popular for discussion across platforms. 
+Do users of different social media platforms have different priorities? Do they discuss the same topics, and do these align with what is being discussed in parliament?
+We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen”, Australian locations, and parties, such as "Labor".
 
-\paragraph*{What are people talking about?}
-We also wanted to see what political topics were popular for discussion across platforms. Do users of different platforms have different priorities?
-We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen” and parties, such as “The Greens”. 
+\paragraph*{Comparing the overall sentiment}
+We aimed to contrast the overall sentiment of these discussions and debates over time.
+We wanted to see if the conversations held on some of these platforms were more positive or negative than others, and whether there were any clear trends.
 
-\paragraph*{Debates vs Discussions}
-We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a rise in negative sentiment online.
+\paragraph*{Comparing the sentiment by topic}
+We also wanted to see if the sentiment of these discussions differed depending on the topic being discussed.
+For example, do users of Reddit post more positively about the topic of housing than those on BlueSky?
 
+\paragraph*{Comparing the topics over time}
+We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. 
+This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a shift in sentiment online.
 
 
 \subsection*{Fission}
@@ -235,7 +272,18 @@ This was espeically important when working in a shared environment with a large 
 
 \subsection*{Platform Discussion}
 
+\subsection*{Challenges (we can remove this, its just mentioned that we should talk about challenges)}
+A major challenge our group faced was adapting to the shared nature of the NeCTAR research cloud.
+At several points during the project, we encountered issues arising from multiple people attempting to modify the system at once.
 
+These were generally minor, such as applying conflicting fission specs.
+However, we also encountered more serious issues.
+Near the beginning of the project, the cluster setup was unexpectedly re-run, meaning that we had to re-build our software stack.
+
+Even at a small group scale, it was difficult to coordinate the changes being made to the system.
+
+This was somewhat mitigated by the use of fission specs, as we could easily re-deploy the functions to a different worker node.
+These challenges highlighted the benefits of using an Infrastructure as Code approach, as we could recover from these setbacks.
 
 \subsection*{Application Scaling}
 
@@ -277,9 +325,55 @@ Both of these functions will retry up to 3 times if they encounter an error, and
 \\
 This strategy is certainly not perfect, as it does not handle all possible errors, but it does allow us to see where the errors are occurring, and retry the failed functions.
 
+\paragraph*{Reddit}
+Similarly to the OpenAustralia API, the reddit harvester is split into three parts: the entrypoint, the harvester and the adder. 
+This provided all the same benefits as the OpenAustralia API, including seperation of functionality, and the ability to retry failed function and greater insight into where errors are occuring.
+
+
 \subsection*{Integration Testing}
 
 
 
+\subsection*{Analysis}
 
+
+\subsubsection*{Comparing the topics: Topic visualisation through word clouds}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
+\end{figure}
+
+Whatever we found here. btw will replace with final images
+To visually compare the topics of the posts and debates, we word clouds to show the most common entities in the posts and debates.
+Analysis was performed using the \texttt{spacy} library, and the word cloud was generated using the \texttt{wordcloud} library.
+
+\subsubsection*{Comparing the overall sentiment: Stacked bar chart over time}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \caption{Overall sentiment over time from TIME to TIME.}
+\end{figure}
+The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
+idk
+
+
+\subsubsection*{Comparing the sentiment by topic: idk what to call this one}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
+    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+\end{figure}
+A small number of topics were selected based on their prevalence in the posts and debates, and their relevance to the current political climate.
+
+\subsubsection*{Comparing the topics over time: }
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
+    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+\end{figure}
+idk need to fill in
 \end{document}

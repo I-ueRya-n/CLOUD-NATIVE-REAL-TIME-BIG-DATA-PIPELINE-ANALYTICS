@@ -22,7 +22,7 @@ spec:
   deployment:
     checksum: {}
   environment:
-    name: python39
+    name: python
     namespace: ""
   source:
     checksum: {}

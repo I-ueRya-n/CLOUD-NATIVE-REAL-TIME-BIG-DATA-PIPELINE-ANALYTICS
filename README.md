@@ -2,6 +2,33 @@
 
 COMP90024 Assignment 2
 
+## Table of Contents
+
+- [Repo Contents](#repo-contents)
+- [Client](#client)
+- [Docs (Report)](#docs-report)
+- [Fission Setup](#fission-setup)
+  - [Config maps](#config-maps)
+  - [Prometheus](#prometheus)
+- [Open Australia Setup](#open-australia-setup)
+  - [REDIS Queue](#redis-queue)
+  - [ElasticSearch](#elasticsearch)
+  - [Fission](#fission)
+  - [Date Lister](#date-lister)
+  - [Person Lister](#person-lister)
+  - [Debate Harvester by Details](#debate-harvester-by-details)
+  - [Debate Adder](#debate-adder)
+  - [Daily Debate Harvester](#daily-debate-harvester)
+- [Bluesky Setup](#bluesky-setup)
+- [Analysis Setup](#analysis-setup)
+  - [Vader](#vader)
+  - [Named Entities](#named-entities)
+  - [Analysis Cache](#analysis-cache)
+- [User Interface](#user-interface)
+  - [Sentiment](#sentiment)
+  - [Named Entities](#named-entities-1)
+
+
 ## Repo Contents
 
 ```
@@ -33,6 +60,32 @@ kubectl port-forward service/router -n fission 9090:80
 
 Open the notebook `examples/sample.ipynb` and run all cells.
 
+
+## Tests
+
+### Python
+
+First of all, you need to install the requirements for the tests (you might need to create a virtual environment):
+
+```bash
+# Optional
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Then install the requirements:
+```bash
+pip install -r tests/requirements.txt
+```
+
+Then make sure you have the kubernetes cluster running and the fission router port-forwarded to `localhost:9090`.
+
+To run the tests, you can use `pytest`:
+```bash
+pytest tests/
+```
+
+
 ## Docs (Report)
 
 The report is located in the `docs` folder and it contains the latex report that can be compiled with `latexmk` using the following command:
@@ -46,7 +99,6 @@ Setup fission
 ```bash
 fission specs init
 fission env create --spec --name python --image fission/python-env --builder fission/python-builder
-fission env create --spec --name python39 --image fission/python-env-3.9 --builder fission/python-builder-3.9
 fission env create --spec --name go --image ghcr.io/fission/go-env-1.23 --builder ghcr.io/fission/go-builder-1.23
 ```
 
@@ -196,7 +248,7 @@ fission package create --spec --name oa-debates \
     --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py \
     --source ./src/open_australia/oa_debates/oa_person_lister.py \
     --source ./src/open_australia/oa_debates/util.py \
-    --env python39 \
+    --env python \
     --buildcmd './build.sh'
 ```
 
@@ -210,7 +262,7 @@ Create fission package and route.
 ```bash
 fission function create --spec --name oa-date-lister \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_date_lister.main"
 
@@ -228,7 +280,7 @@ Create fission package and route.
 ```bash
 fission function create --spec --name oa-person-lister \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_person_lister.main"
 
@@ -249,7 +301,7 @@ Create fission function and redis trigger.
 ```bash
 fission function create --spec --name oa-debate-harvester-by-details \
     --pkg oa-debates \
-    --env python39 \
+    --env python \
     --configmap shared-data \
     --entrypoint "oa_debate_harvester_by_details.main"
 
@@ -275,7 +327,7 @@ Create fission function and redis trigger.
 ```bash
 fission function create --spec --name oa-debate-adder \
     --pkg oa-debates \
-    --env python39 \
+    --env python \
     --configmap shared-data \
     --entrypoint "oa_debate_adder.main"
 
@@ -300,7 +352,7 @@ Create fission function and timer trigger.
 ```bash
 fission function create --spec --name oa-daily-debate-harvester \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_daily_debate_harvester.main"
 
@@ -471,27 +523,6 @@ fission route create --spec --name elastic-ner \
   --url /analysis/ner/v2/index/{index}/field/{field} \
   --method POST \
   --function elastic-ner
-```
-
-To test the cache, create a test function,
-```bash
-fission fn create --spec --name elastic-cache-test \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint ItemHandler
-
-fission route create --spec --name elastic-cache-test \
-  --url /cache-test/index/{index}/field/{field} \
-  --method POST \
-  --function elastic-cache-test
-```
-
-And run the test
-
-```bash
-cd src/analysis/cache
-go test
 ```
 
 ## User Interface
