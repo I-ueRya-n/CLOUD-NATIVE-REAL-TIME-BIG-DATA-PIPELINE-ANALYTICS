@@ -233,18 +233,29 @@ Are there still sides of social media where people present their political opini
 And where does all this anger come from? 
 Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
 
+
+In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
+We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
+
 \subsection*{Analysis Goals}
+We had three main goals for our analysis.
 
-\paragraph*{Comparing discussions across platforms}
-We began by contrasting Australian political discussions found on three social platforms. Bluesky, Reddit and OpenAustralia. We wanted to see if the conversations held on some of these platforms were more positive or negative than others. Maybe more negative users tended to prefer a certain platform.
+\paragraph*{Comparing the topics}
+We first wanted to see what political topics were popular for discussion across platforms. 
+Do users of different social media platforms have different priorities? Do they discuss the same topics, and do these align with what is being discussed in parliament?
+We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen”, Australian locations, and parties, such as "Labor".
 
-\paragraph*{What are people talking about?}
-We also wanted to see what political topics were popular for discussion across platforms. Do users of different platforms have different priorities?
-We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen” and parties, such as “The Greens”. 
+\paragraph*{Comparing the overall sentiment}
+We aimed to contrast the overall sentiment of these discussions and debates over time.
+We wanted to see if the conversations held on some of these platforms were more positive or negative than others, and whether there were any clear trends.
 
-\paragraph*{Debates vs Discussions}
-We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a rise in negative sentiment online.
+\paragraph*{Comparing the sentiment by topic}
+We also wanted to see if the sentiment of these discussions differed depending on the topic being discussed.
+For example, do users of Reddit post more positively about the topic of housing than those on BlueSky?
 
+\paragraph*{Comparing the topics over time}
+We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. 
+This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a shift in sentiment online.
 
 
 \subsection*{Fission}
@@ -326,5 +337,43 @@ This provided all the same benefits as the OpenAustralia API, including seperati
 \subsection*{Analysis}
 
 
+\subsubsection*{Comparing the topics: Topic visualisation through word clouds}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
+\end{figure}
+
+Whatever we found here. btw will replace with final images
+To visually compare the topics of the posts and debates, we word clouds to show the most common entities in the posts and debates.
+Analysis was performed using the \texttt{spacy} library, and the word cloud was generated using the \texttt{wordcloud} library.
+
+\subsubsection*{Comparing the overall sentiment: Stacked bar chart over time}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \caption{Overall sentiment over time from TIME to TIME.}
+\end{figure}
+The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
+idk
+
+
+\subsubsection*{Comparing the sentiment by topic: idk what to call this one}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
+    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+\end{figure}
+A small number of topics were selected based on their prevalence in the posts and debates, and their relevance to the current political climate.
+
+\subsubsection*{Comparing the topics over time: }
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
+    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+\end{figure}
+idk need to fill in
 \end{document}
