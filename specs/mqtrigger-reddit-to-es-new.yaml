@@ -17,8 +17,8 @@ spec:
   metadata:
     address: redis-headless.redis.svc.cluster.local:6379
     listLength: "1000"
-    listName: reddit_posts_queue
+    listName: reddit-posts-queue
   minReplicaCount: 0
   mqtkind: keda
   pollingInterval: 30
-  topic: reddit_posts_queue
+  topic: reddit-posts-queue

@@ -71,7 +71,7 @@ def get_post_comments(reddit_client, post, limit=10):
         'flair': "comment"
       })
 
-  enqueue_data('reddit_posts_queue', json.dumps(parsed_comments))
+  enqueue_data('reddit-posts-queue', json.dumps(parsed_comments))
   print(f"Enqueud {len(parsed_comments)} comments on the post {getattr(post, 'id', None)} to the redis queue")  
   return len(parsed_comments)
 
@@ -79,7 +79,7 @@ def get_post_comments(reddit_client, post, limit=10):
 
 
 def main():
-    """reads from redis queue "reddit_keys" containing the following keys:
+    """reads from redis queue "reddit-keys" containing the following keys:
     - subreddits: list of subreddits to scrape
     - keywords: list of keywords to filter posts by
     - limit: number of posts to scrape from each subreddit (optional, default is 10)
@@ -175,7 +175,7 @@ def main():
               
             if len(posts) >= limit:
               enqueued += len(posts)
-              enqueue_data('reddit_posts_queue', json.dumps(posts))
+              enqueue_data('reddit-posts-queue', json.dumps(posts))
               print(f"Enqueued {len(posts)} posts to the redis queue for subreddit {subreddit} and keyword {keyword}")
               posts = []
               break
@@ -183,7 +183,7 @@ def main():
         if len(posts) >= limit:
           break
 
-    enqueue_data('reddit_posts_queue', json.dumps(posts))
+    enqueue_data('reddit-posts-queue', json.dumps(posts))
     print(f"Final: Enqueued {len(posts)}")
 
     return json.dumps({'message': f'Enqueued {enqueued} posts.'}), 200
