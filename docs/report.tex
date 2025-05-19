@@ -133,6 +133,32 @@ The first two entrypoints are called manually to scrape past data from the backl
 All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
 \subsection*{Reddit}
+The structure of the reddit harvester is similar to the OpenAustralia harvester.
+
+The reddit harvester is split into three parts: the entrypoint, the harvester and the adder.
+
+There are two entrypoints to gathering reddit data.
+\begin{itemize}
+    \item \texttt{reddit-query-trigger-new} - Queries the reddit API for posts matching a list of keywords in a list of subreddits (no time range).
+    
+    This uses a httptrigger route \texttt{reddit-lister}. Requests must provide a JSON body with a list of subreddit names, keywords and a limit.
+    Thi
+
+    \item \texttt{reddit-daily-trigger-new} - Queries the reddit API for posts in a series of predefined subreddits and made in the preceeding 24 hours.
+    
+    This uses a time trigger that runs daily. The list of subreddits and keywords is hardcoded into the function, and can be changed by editing the function.
+    The decision to hardcode the subreddits and keywords was made to automate the scraping process and reduce the complexity of the system, 
+    as we did not want to have to query the reddit API for a list of subreddits and keywords every time we wanted to gather data.
+    However, this does mean that the subreddits and keywords are not easily changeable, and we would have to edit the function directly.
+\end{itemize}
+These entrypoint functions add the parameters (keys) of the request to the redis message queue \texttt{reddit-post-keys}.
+The \texttt{reddit-harvester-new} fission function is triggered by this redis message queue.
+This function queries the reddit API for the posts matching the keywords and subreddits, and then queues the results in the \texttt{reddit-post-data} queue for processing.
+This function also handles the extraction of ``top level'' comments from each post.
+
+Finally, the \texttt{reddit-to-es-new} fission function is triggered by this redis message queue \texttt{reddit-post-data}.
+This indexes the posts and comments into the elastic search index \texttt{reddit}.
+
 
 \subsection*{Sentiment Analysis}
 
@@ -235,7 +261,18 @@ This was espeically important when working in a shared environment with a large 
 
 \subsection*{Platform Discussion}
 
+\subsection*{Challenges (we can remove this, its just mentioned that we should talk about challenges)}
+A major challenge our group faced was adapting to the shared nature of the NeCTAR research cloud.
+At several points during the project, we encountered issues arising from multiple people attempting to modify the system at once.
 
+These were generally minor, such as applying conflicting fission specs.
+However, we also encountered more serious issues.
+Near the beginning of the project, the cluster setup was unexpectedly re-run, meaning that we had to re-build our software stack.
+
+Even at a small group scale, it was difficult to coordinate the changes being made to the system.
+
+This was somewhat mitigated by the use of fission specs, as we could easily re-deploy the functions to a different worker node.
+These challenges highlighted the benefits of using an Infrastructure as Code approach, as we could recover from these setbacks.
 
 \subsection*{Application Scaling}
 
@@ -277,8 +314,16 @@ Both of these functions will retry up to 3 times if they encounter an error, and
 \\
 This strategy is certainly not perfect, as it does not handle all possible errors, but it does allow us to see where the errors are occurring, and retry the failed functions.
 
+\paragraph*{Reddit}
+Similarly to the OpenAustralia API, the reddit harvester is split into three parts: the entrypoint, the harvester and the adder. 
+This provided all the same benefits as the OpenAustralia API, including seperation of functionality, and the ability to retry failed function and greater insight into where errors are occuring.
+
+
 \subsection*{Integration Testing}
 
+
+
+\subsection*{Analysis}
 
 
 
