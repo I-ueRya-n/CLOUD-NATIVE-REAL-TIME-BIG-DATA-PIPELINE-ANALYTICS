@@ -7,6 +7,13 @@ import spacy
 # Load the English NLP model
 nlp = spacy.load("en_core_web_sm")
 
+def extract_named_entities(text):
+    doc = nlp(text)
+    results = {}
+    for ent in doc.ents:
+        results.setdefault(ent.label_, []).append(ent.text)
+    return results
+
 def main():
     """ 
     Function to analyze sentiment of text using VADER Sentiment Analysis.
@@ -23,27 +30,10 @@ def main():
         JSON response with sentiment scores.
     """
     
-    # Get the JSON payload from the request
     data = request.get_json()
-    
-    # Extract the text from the payload
+
     text = data.get('text', '')
 
-    # Process the text
-    doc = nlp(text)
+    results = extract_named_entities(text)
 
-    results = {}
-    # Extract named entities
-    for ent in doc.ents:
-        if ent.label_ not in results:
-            results[ent.label_] = []
-
-        results[ent.label_].append(ent.text)
-
-    # Print the named entities
-    for result in results:
-        print(result)
-    
-    # Return the sentiment scores as a JSON response
     return json.dumps(results)
-    
