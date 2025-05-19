@@ -1,61 +1,105 @@
+### CREATE ES INDEX
+reddit_posts
+
+
 ## Create Functions and Triggers
-fission package create --spec --name reddit-harvester \
-  --source ./src/reddit.n/reddit_scraper.py \
-  --source ./src/reddit.n/reddit_to_elasticsearch.py \
-  --source ./src/reddit.n/reddit_daily_trigger.py \
-  --source ./src/reddit.n/__init__.py \
-  --source ./src/reddit.n/util.py \
-  --source ./src/reddit.n/requirements.txt \
-  --source ./build.sh \
+fission package create --spec --name reddit-harvester-new \
+  --source ./src/reddit_new/reddit_harvester.py \
+  --source ./src/reddit_new/reddit_to_elasticsearch.py \
+  --source ./src/reddit_new/__init__.py \
+  --source ./src/reddit_new/util.py \
+  --source ./src/reddit_new/requirements.txt \
+  --source ./src/reddit_new/build.sh \
   --env python \
   --buildcmd './build.sh'
 
+  <!-- --source ./src/reddit_new/reddit_daily_trigger.py \ -->
 
-chmod +x ./build.sh
-dos2unix ./build.sh
 
 
 
 ## Create Functions and Triggers
 ### A: HTTP Trigger for Manual Scrape
-fission function create --spec --name reddit-scraper \
-  --pkg reddit-harvester \
+fission function create --spec --name reddit-harvester-new \
+  --pkg reddit-harvester-new \
   --env python \
-  --entrypoint "reddit_scraper.main"
+  --configmap shared-data \
+  --entrypoint "reddit_harvester.main"
 
-fission route create --spec --name reddit-scrape-route \
-  --function reddit-scraper \
-  --method GET \
-  --url '/reddit/scrape'
+fission route create --spec --name reddit-harvest-route-new \
+  --function reddit-harvester-new \
+  --method POST \
+  --url '/reddit-new/scrape/'
+
+Trigger with a body of format
+{
+  "keywords": [keywords],
+  "subreddits": [subreddits],
+  "limit": limit, (optional, default 10)
+  "scrape_from": date to scrape posts AFTER (YYYY-MM-DD), (optional, default 2000-01-01)
+  "scrape_to": scrape_until: date to scrape posts UNTIL, (optional)
+  sort: "top" or "new" or "relevance" or "comments", (optional, default "top")
+
+}
 
 
-### B: Redis Trigger for Message Queue (e.g., reddit_scraper → reddit_to_elasticsearch)
-fission function create --spec --name reddit-to-es \
-  --pkg reddit-harvester \
+    - subreddits: list of subreddits to scrape
+    - keywords: list of keywords to filter posts by
+    - limit: number of posts to scrape from each subreddit (optional, default is 10)
+    - scrape_from: date to scrape posts AFTER (YYYY-MM-DD) (optional, defaults to 2000-01-01)
+    - scrape_until: date to scrape posts UNTIL (optional, defaults to today)
+    - sort: "top" or "new" or "relevance" or "comments".(optional, defaults to "top")
+
+example to test:
+```
+curl -X POST "http://localhost:9090/reddit-new/scrape/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keywords": ["election", "vote", "politics"],
+    "subreddits": ["melbourne", "auspol", "australia"],
+    "limit": 5,
+    "scrape_from": "2023-01-01",
+    "scrape_to": "2023-12-31",
+    "sort": "top"
+  }'
+```
+
+### B: Redis Trigger for Message Queue (e.g., reddit_harvester → reddit_to_elasticsearch)
+fission function create --spec --name reddit-to-es-new \
+  --pkg reddit-harvester-new \
   --env python \
+  --configmap shared-data \
   --entrypoint "reddit_to_elasticsearch.main"
 
-fission mqtrigger create --name reddit-to-es-trigger \
-  --spec \
-  --function reddit-to-es \
-  --mqtype redis \
-  --mqtkind keda \
-  --topic reddit_raw_data \
-  --errortopic reddit_errors \
-  --metadata address=redis-headless.redis.svc.cluster.local:6379 \
-  --metadata listLength=1000 \
-  --metadata listName=reddit_raw_data
 
 
-### C: Timer Trigger for Daily Scrape
-fission function create --spec --name reddit-daily-trigger \
+fission mqtrigger create --name reddit-to-es-new \
+  --spec\
+  --function reddit-to-es-new \
+  --mqtype redis\
+  --mqtkind keda\
+  --topic reddit_posts_queue \
+  --errortopic reddit_adder_error \
+  --maxretries 3 \
+  --metadata address=redis-headless.redis.svc.cluster.local:6379\
+  --metadata listLength=1000\
+  --metadata listName=reddit_posts_queue
+
+
+
+HAVENT SET UP DAILY TRIGGER YETR
+<!-- ### C: Timer Trigger for Daily Scrape
+fission function create --spec --name reddit-daily-trigger-new \
   --pkg reddit-harvester \
   --env python \
   --entrypoint "reddit_daily_trigger.main"
 
 fission timer create --name reddit-daily-timer \
   --function reddit-daily-trigger \
-  --cron "@daily"
+  --cron "@daily" -->
+
+### C: adder
+
 
 ## Apply Spec and Test
 
@@ -63,7 +107,28 @@ fission spec apply --specdir ./specs --wait
 
 kubectl port-forward service/router -n fission 9090:80
 
-curl -v "http://localhost:9090/reddit/scrape?subreddits=melbourne,sydney&limit=5&keywords=tram,weather"
+<!-- curl -v "http://localhost:9090/reddit/scrape?subreddits=melbourne,sydney&limit=5&keywords=tram,weather" -->
 
+test it !
+curl -X POST "http://localhost:9090/reddit-new/scrape/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keywords": ["election", "vote", "politics"],
+    "subreddits": ["melbourne"],
+    "limit": 5,
+  }'
+
+
+curl -X POST "http://localhost:9090/reddit-new/scrape/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keywords": ["election", "vote", "politics"],
+    "subreddits": ["melbourne"],
+    "limit": 5,
+    "scrape_from": "2023-01-01",
+    "scrape_to": "2023-12-31",
+    "sort": "top"
+
+  }'
 
 

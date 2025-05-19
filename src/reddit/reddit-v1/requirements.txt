@@ -1,4 +1,0 @@
-praw
-redis
-elasticsearch
-requests
