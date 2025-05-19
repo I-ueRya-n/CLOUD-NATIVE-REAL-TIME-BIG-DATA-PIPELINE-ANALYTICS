@@ -11,6 +11,7 @@ def format_keyword(keyword: str):
 
 
 def bluesky_query(keywords: [str], start: str, end: str) -> Dict:
+    """ format bluesky elastic search query """
     match = [format_keyword(word) for word in keywords]
 
     matchKeyword = {
@@ -41,6 +42,15 @@ def bluesky_query(keywords: [str], start: str, end: str) -> Dict:
 
 
 def bluesky_sentiment(client: Elasticsearch, start: str, end: str, keyword: str) -> int:
+    """ 
+    Calculate the sentiment per day for data from bluesky 
+
+    Arguments:
+    client  -- elasticsearch client logged in to instance
+    start   -- start date as a string 'Year-Month-Day'
+    end     -- end date as a string 'Year-Month-Day'
+    keyword -- keyword to filter posts by
+    """
     data = {}
     query = bluesky_query([keyword, "auspol"], start, end)
 

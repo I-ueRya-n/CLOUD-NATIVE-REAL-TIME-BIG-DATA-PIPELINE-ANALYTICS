@@ -15,6 +15,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// config: get the value for a key from the config map
 func config(key string) string {
 	path := "/configs/default/shared-data/" + key
 
@@ -27,6 +28,8 @@ func config(key string) string {
 	return string(buf[:])
 }
 
+// returnError: log an error message and return
+// an error to the request.
 func returnError(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte(msg))
@@ -44,6 +47,11 @@ type Config[T CacheItem] struct {
 	cacheIndex string
 }
 
+// retrieveCache: manages inserting and retrieve items
+// from an elastic search cache. T is the type of the item
+// to be cached, and conf contains the function 'calculate',
+// which is used to calculate the value when an item is not
+// cached
 func retrieveCache[T CacheItem](conf Config[T]) ([]T, error) {
 	index := conf.r.Header.Get("X-Fission-Params-Index")
 	field := conf.r.Header.Get("X-Fission-Params-Field")
@@ -81,6 +89,8 @@ func retrieveCache[T CacheItem](conf Config[T]) ([]T, error) {
 	return cache, nil
 }
 
+// matchField: create an elastic search query to match
+// a value in a field
 func matchField(field, value string) types.Query {
 	return types.Query{
 		Match: map[string]types.MatchQuery{
@@ -91,11 +101,9 @@ func matchField(field, value string) types.Query {
 	}
 }
 
-/*
-Convert the array of id's in query to sentiments
-*/
-func fetchCache[T CacheItem](client *es.TypedClient, conf Config[T], index, field string,
-	query []string) (cache []T, err error) {
+// fetchCache: convert the array of id's in query to sentiments
+func fetchCache[T CacheItem](client *es.TypedClient, conf Config[T],
+	index, field string, query []string) (cache []T, err error) {
 	// inverse mapping from query to index
 	queryIndex := make(map[string]int, 2*len(query))
 	for i, q := range query {

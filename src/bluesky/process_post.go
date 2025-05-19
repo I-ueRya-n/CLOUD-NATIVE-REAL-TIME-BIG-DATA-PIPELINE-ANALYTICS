@@ -25,6 +25,9 @@ type Post struct {
 
 var client *es.TypedClient
 
+// PostHandler: fission function which receives a bluesky
+// repo commit in the request body, extracts the post data
+// and return the post as a json.
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if r == nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -66,6 +69,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
+// isCreateRecord: check if the commit operation is a create
+// record.
 func isCreateRecord(op *atproto.SyncSubscribeRepos_RepoOp) bool {
 	if op == nil {
 		return false
@@ -74,6 +79,7 @@ func isCreateRecord(op *atproto.SyncSubscribeRepos_RepoOp) bool {
 	return repomgr.EventKind(op.Action) == repomgr.EvtKindCreateRecord
 }
 
+// processRepoCommit: extract the post from a repo commit
 func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) (post *Post, err error) {
 	ctx := context.Background()
 	rr, err := repo.ReadRepoFromCar(ctx, bytes.NewReader(evt.Blocks))
@@ -83,6 +89,8 @@ func processRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) (post *Post, err 
 	}
 
 	for _, op := range evt.Ops {
+		// find the op which is a create record commit,
+		// which is a new post, skipping reposts, likes, etc.
 		if !isCreateRecord(op) {
 			continue
 		}

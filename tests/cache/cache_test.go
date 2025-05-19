@@ -36,6 +36,8 @@ func CalculateItem(index, id, text string) (t TestItem, err error) {
 	return
 }
 
+// TestCache: test the cache caches items into elastic search,
+// and retrieves items from the cache when they exist.
 func TestCache(t *testing.T) {
 	client, err := es.NewTypedClient(es.Config{
 		Addresses:              []string{"https://localhost:9200"},

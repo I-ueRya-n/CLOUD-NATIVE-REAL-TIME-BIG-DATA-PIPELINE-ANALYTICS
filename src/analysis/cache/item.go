@@ -21,11 +21,7 @@ func (t TestItem) Id() string {
 	return t.Idx
 }
 
-/*
-Handler: takes a list of id's from an elastic search index,
-and calculates the sentiment of each one, using the 'sentiment'
-es index as a cache for previously calculated sentiments.
-*/
+// ItemHandler: handler for testing the caching functionality
 func ItemHandler(w http.ResponseWriter, r *http.Request) {
 	conf := Config[TestItem]{
 		w:          w,

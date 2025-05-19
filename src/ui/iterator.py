@@ -10,6 +10,10 @@ def config(k: str) -> str:
 
 
 def array_to_dict(array: List[Dict], key: str) -> Dict[str, Dict]:
+    """
+    Convert a list of dictionary to a dictionary which maps a
+    key in each item to the item source.
+    """
     d = {}
     for item in array:
         d[item[key]] = item.get("_source")
@@ -18,7 +22,18 @@ def array_to_dict(array: List[Dict], key: str) -> Dict[str, Dict]:
 
 
 class AnalysisIterator:
+    """ iterator to pull data from an analysis cache """
+
     def __init__(self, client: Elasticsearch, route: str, query: str, size: int = 1000):
+        """
+        Initialise iterator
+
+        Arguments:
+        client  -- elastic search client
+        route   -- fission path to cache function
+        query   -- elastic search query of the posts to retrieve from cache
+        size    -- amount of posts to retrieve in each query
+        """
         self.client = client
         self.route = route
         self.query = query
@@ -28,6 +43,7 @@ class AnalysisIterator:
         self.i = 0
 
     def elastic_fields(self, index: str, idField: str, textField: str, dateField: str):
+        """ set fields related to the elastic search index """
         self.index = index
         self.id = idField
         self.text = textField
@@ -45,6 +61,7 @@ class AnalysisIterator:
 
     def __next__(self):
         if self.i == len(self.results):
+            # retrieve a new batch of data
             response = self.client.search(
                 index=self.index,
                 query=self.query,

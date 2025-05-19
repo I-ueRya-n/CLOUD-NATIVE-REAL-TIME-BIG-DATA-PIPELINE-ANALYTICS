@@ -33,6 +33,7 @@ var posts = []*Post{
 	nil,
 }
 
+// TestProcessing: test the /bluesky/repo-commit fission function
 func TestProcessing(t *testing.T) {
 	for i := range evt_posts {
 		buf, err := os.ReadFile(evt_posts[i])
@@ -45,6 +46,7 @@ func TestProcessing(t *testing.T) {
 	}
 }
 
+// testProcessPost: test a post
 func testProcessPost(t *testing.T, buf []byte, post *Post) {
 	res, err := http.Post(endpoint, "application/json", bytes.NewReader(buf))
 	if err != nil {

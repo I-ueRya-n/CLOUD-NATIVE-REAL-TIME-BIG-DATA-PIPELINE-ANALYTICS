@@ -22,11 +22,8 @@ func (s Sentiment) Id() string {
 	return s.Idx
 }
 
-/*
-Handler: takes a list of id's from an elastic search index,
-and calculates the sentiment of each one, using the 'sentiment'
-es index as a cache for previously calculated sentiments.
-*/
+// SentimentHandler: entrypoint for sentiment cache
+// using retrieveCache() to handle the caching
 func SentimentHandler(w http.ResponseWriter, r *http.Request) {
 	conf := Config[Sentiment]{
 		w:          w,
@@ -49,6 +46,8 @@ func SentimentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
+// CalculateSentiment: calculate the sentiment of a text,
+// using /analysis/sentiment/v1.
 func CalculateSentiment(index, id, text string) (s Sentiment, err error) {
 	var text_json struct {
 		Text string `json:"text"`

@@ -25,6 +25,7 @@ const ES_INDEX = "bluesky"
 var bi esutil.BulkIndexer
 var countSuccessful atomic.Uint64
 
+// config: get the value for a key from the config map
 func config(key string) string {
 	path := "/configs/default/shared-data/" + key
 
@@ -37,6 +38,8 @@ func config(key string) string {
 	return string(buf[:])
 }
 
+// main: Listen to the bluesky firehose, and pass any commit Ops
+// to the handleRepoCommit function
 func main() {
 	err := initClient()
 	if err != nil {
@@ -70,6 +73,7 @@ func main() {
 	}
 }
 
+// initClient: initialise elasticsearch bulk indexer
 func initClient() error {
 	client, err := es.NewClient(es.Config{
 		Addresses:              []string{config("ES_HOSTNAME")},
@@ -95,6 +99,7 @@ func initClient() error {
 	return nil
 }
 
+// countIndex: log the number of docs indexed per hour
 func countIndex() {
 	for {
 		time.Sleep(1 * time.Hour)
@@ -104,6 +109,12 @@ func countIndex() {
 	}
 }
 
+// handleRepoCommit: post a bluesky repo commit to the fission
+// function at /bluesky/repo-commit. If the response is 200 OK,
+// insert the post, contained in the body of the response as a
+// json, to the bluesky elastic search index using the bulk
+// indexer. If the response is a 404 not found, the commit did
+// not contain a post, so we ignore this commit.
 func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 	if !slices.ContainsFunc(evt.Ops, isCreateRecord) {
 		// not a create record commit

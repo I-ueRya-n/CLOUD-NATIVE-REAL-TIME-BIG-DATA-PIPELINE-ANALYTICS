@@ -18,11 +18,8 @@ func (n NamedEntities) Id() string {
 	return n.Idx
 }
 
-/*
-Handler: takes a list of id's from an elastic search index,
-and calculates the sentiment of each one, using the 'sentiment'
-es index as a cache for previously calculated sentiments.
-*/
+// EntityHandler: entrypoint for named entity recognition
+// cache, using retrieveCache() to handle the caching
 func EntityHandler(w http.ResponseWriter, r *http.Request) {
 	conf := Config[NamedEntities]{
 		w:          w,
@@ -44,6 +41,9 @@ func EntityHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
+// CalculateNamed: calculate the named entities for an
+// given text string. Uses /analysis/ner/v1 fission function
+// to calculate the named entities
 func CalculateNamed(index, id, text string) (n NamedEntities, err error) {
 	var text_json struct {
 		Text string `json:"text"`
