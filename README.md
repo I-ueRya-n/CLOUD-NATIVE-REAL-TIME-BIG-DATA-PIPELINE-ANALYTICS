@@ -33,6 +33,13 @@ kubectl port-forward service/router -n fission 9090:80
 
 Open the notebook `examples/sample.ipynb` and run all cells.
 
+## Docs (Report)
+
+The report is located in the `docs` folder and it contains the latex report that can be compiled with `latexmk` using the following command:
+```bash
+latexmk -pdf -outdir=docs/out/ docs/report.tex
+```
+
 ## Fission Setup
 
 Setup fission

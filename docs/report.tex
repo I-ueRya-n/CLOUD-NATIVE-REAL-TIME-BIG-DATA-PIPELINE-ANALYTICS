@@ -136,6 +136,16 @@ All of the functions needed to gather and process OpenAustralia data are contain
 
 \subsection*{Sentiment Analysis}
 
+\paragraph*{Choosing an Analysis Method}
+In order for us to perform sentiment analysis on the posts from the various social media platforms we whose, we had to choose between different avaiable options. However, since we didn't want to reinvent the wheel and risk having analysis of lesser quality we decided to use a pre-existing library. Now the choice of library came down to ease of use and overall consistency with our project.
+
+This is why we decided to use the \texttt{VADER} library. VADER is a lexicon and rule-based sentiment analysis tool that is specifically tuned to sentiment analysis in social media posts and text. It is capable of detecting sentiment in text, and it is particularly effective for short texts such as tweets or posts.
+
+\paragraph*{Putting it into Practice}
+For our project, we decided to keep the sentiment analysis simple and only use a couple of values from the vader sentiment analysis function which are the following: positive, negative and neutral.
+
+The next step was of course to implement the analysis function in our code and make it available for other functions to use. This was done by creating a new fission function called \texttt{sentiment-analysis} which takes in a string and returns the sentiment analysis values. We had to manage the dependencies and make sure that the fission function had access to the \texttt{VADER} library. This was done by creating a fission package.
+
 \subsection*{Named Entity Analysis}
 
 \subsection*{Analysis}
