@@ -26,5 +26,5 @@ spec:
     packageref:
       name: ui-named-entity
       namespace: ""
-  requestsPerPod: 1
+  requestsPerPod: 10
   resources: {}

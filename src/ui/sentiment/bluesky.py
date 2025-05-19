@@ -44,7 +44,7 @@ def bluesky_sentiment(client: Elasticsearch, start: str, end: str, keyword: str)
     data = {}
     query = bluesky_query([keyword, "auspol"], start, end)
 
-    blueskyIter = AnalysisIterator(client, "/analysis/sentiment/v2", query)
+    blueskyIter = AnalysisIterator(client, "/analysis/sentiment/v2", query, size=5000)
     blueskyIter.elastic_fields("bluesky", "cid", "text", "createdAt")
 
     for res, post in blueskyIter:

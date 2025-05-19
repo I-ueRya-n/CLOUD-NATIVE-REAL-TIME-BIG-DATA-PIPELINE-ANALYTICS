@@ -94,7 +94,7 @@ def reddit_sentiment(client: Elasticsearch, start: str, end: str, keyword: str) 
     query = reddit_query([keyword], start, end)
 
 
-    redditIter = AnalysisIterator(client, "/analysis/sentiment/v2", query)
+    redditIter = AnalysisIterator(client, "/analysis/sentiment/v2", query, size=5000)
     # ignoring title for now, but may be important
     redditIter.elastic_fields("reddit", "post_id", "content", "timestamp")
     print("[reddit] set up iterator")

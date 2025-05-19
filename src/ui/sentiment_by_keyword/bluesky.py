@@ -23,7 +23,7 @@ def bluesky_keyword_sentiment(client: Elasticsearch, keyword: str) -> Dict:
     }
 
     query = bluesky_query(keyword)
-    blueskyIter = AnalysisIterator(client, "/analysis/sentiment/v2", query)
+    blueskyIter = AnalysisIterator(client, "/analysis/sentiment/v2", query, 5000)
     blueskyIter.elastic_fields("bluesky", "cid", "text", "createdAt")
 
     # aggregate sentiment across time

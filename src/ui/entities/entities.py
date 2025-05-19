@@ -40,14 +40,13 @@ def main() -> Tuple[Dict[str, Any], int]:
             basic_auth=(config("ES_USERNAME"), config("ES_PASSWORD"))
         )
 
-        count = request.headers.get('X-Fission-Params-Count')
         label = request.headers.get('X-Fission-Params-Label')
 
-        status["bluesky"] = bluesky.bluesky_words(client, count, label)
+        status["bluesky"] = bluesky.bluesky_words(client, label)
         # SETTING THE DATE RANGE TO 2023-01-01 
         # BECAUSE THE DATASET IS TOO BIG
-        status["openaus"] = openaus.open_aus_words(client, count, label, date_from="2024-01-01")
-        status["reddit"] = reddit.reddit_words(client, count, label)
+        status["openaus"] = openaus.open_aus_words(client, label, date_from="2024-01-01")
+        status["reddit"] = reddit.reddit_words(client, label)
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}

@@ -446,6 +446,8 @@ Create fission function and http route for sentiment cache.
 fission fn create --spec --name elastic-sentiment \
     --pkg elastic-cache \
     --env go \
+    --executortype newdeploy \
+    --minscale 1 \
     --configmap shared-data \
     --entrypoint SentimentHandler
 
@@ -460,6 +462,8 @@ Create fission function and http route for ner cache.
 fission fn create --spec --name elastic-ner \
     --pkg elastic-cache \
     --env go \
+    --executortype newdeploy \
+    --minscale 1 \
     --configmap shared-data \
     --entrypoint EntityHandler
 
@@ -511,6 +515,7 @@ fission package create --spec --name ui-sentiment \
 fission function create --spec --name ui-sentiment \
   --pkg ui-sentiment \
   --env python \
+  --rpp 10 \
   --configmap shared-data \
   --entrypoint "sentiment.main"
 
@@ -541,6 +546,7 @@ fission package create --spec --name ui-named-entity \
 fission function create --spec --name ui-named-entity \
   --pkg ui-named-entity \
   --env python \
+  --rpp 10 \
   --configmap shared-data \
   --entrypoint "entities.main"
 
@@ -548,7 +554,7 @@ fission route create --spec --name ui-named-entity \
   --function ui-named-entity \
   --method GET \
   --createingress \
-  --url '/ui/named-entities/count/{count:[0-9]+}/label/{label:[a-zA-Z0-9]+}'\
+  --url '/ui/named-entities/label/{label:[a-zA-Z0-9]+}'\
   --createingress
 ```
 
@@ -571,6 +577,7 @@ fission package create --spec --name ui-keywords-sentiment-averager \
 fission function create --spec --name ui-keywords-sentiment-averager \
   --pkg ui-keywords-sentiment-averager \
   --env python \
+  --rpp 10 \
   --configmap shared-data \
   --entrypoint "sentiment-averager.main"
 
@@ -601,6 +608,7 @@ fission package create --spec --name ui-counts \
 fission function create --spec --name ui-counts \
   --pkg ui-counts \
   --env python \
+  --rpp 10 \
   --configmap shared-data \
   --entrypoint "counts.main"
 
