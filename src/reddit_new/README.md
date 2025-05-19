@@ -157,7 +157,7 @@ curl -X POST "http://localhost:9090/reddit-new/scrape/" \
   -d '{
     "keywords": ["election", "vote", "politics"],
     "subreddits": ["melbourne"],
-    "limit": 5,
+    "limit": 5
   }'
 
 
@@ -167,10 +167,5 @@ curl -X POST "http://localhost:9090/reddit-new/scrape/" \
     "keywords": ["election", "vote", "politics"],
     "subreddits": ["melbourne"],
     "limit": 5
-
   }'
 
-
-    "scrape_from": "2023-01-01",
-    "scrape_to": "2023-12-31",
-    "sort": "top"
