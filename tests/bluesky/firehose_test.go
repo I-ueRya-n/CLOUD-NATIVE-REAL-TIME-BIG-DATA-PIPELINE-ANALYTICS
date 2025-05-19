@@ -8,6 +8,13 @@ import (
 	"github.com/bluesky-social/indigo/api/atproto"
 )
 
+type Post struct {
+	Cid       string `json:"cid"`
+	Did       string `json:"did"`
+	CreatedAt string `json:"createdAt"`
+	Text      string `json:"text"`
+}
+
 var raw_post = []string{
 	"tests/post1.json",
 	"tests/non_post.json",
