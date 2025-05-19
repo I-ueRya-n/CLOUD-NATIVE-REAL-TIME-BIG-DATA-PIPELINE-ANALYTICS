@@ -15,6 +15,10 @@ fission package create --spec --name reddit-harvester-new \
   --env python \
   --buildcmd './build.sh'
 
+fission timer create --name reddit-daily-trigger-r \
+--function reddit-daily-job \
+--cron "@daily"
+
 
 
 
