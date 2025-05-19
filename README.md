@@ -99,7 +99,6 @@ Setup fission
 ```bash
 fission specs init
 fission env create --spec --name python --image fission/python-env --builder fission/python-builder
-fission env create --spec --name python39 --image fission/python-env-3.9 --builder fission/python-builder-3.9
 fission env create --spec --name go --image ghcr.io/fission/go-env-1.23 --builder ghcr.io/fission/go-builder-1.23
 ```
 
@@ -249,7 +248,7 @@ fission package create --spec --name oa-debates \
     --source ./src/open_australia/oa_debates/oa_debate_harvester_by_details.py \
     --source ./src/open_australia/oa_debates/oa_person_lister.py \
     --source ./src/open_australia/oa_debates/util.py \
-    --env python39 \
+    --env python \
     --buildcmd './build.sh'
 ```
 
@@ -263,7 +262,7 @@ Create fission package and route.
 ```bash
 fission function create --spec --name oa-date-lister \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_date_lister.main"
 
@@ -281,7 +280,7 @@ Create fission package and route.
 ```bash
 fission function create --spec --name oa-person-lister \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_person_lister.main"
 
@@ -302,7 +301,7 @@ Create fission function and redis trigger.
 ```bash
 fission function create --spec --name oa-debate-harvester-by-details \
     --pkg oa-debates \
-    --env python39 \
+    --env python \
     --configmap shared-data \
     --entrypoint "oa_debate_harvester_by_details.main"
 
@@ -328,7 +327,7 @@ Create fission function and redis trigger.
 ```bash
 fission function create --spec --name oa-debate-adder \
     --pkg oa-debates \
-    --env python39 \
+    --env python \
     --configmap shared-data \
     --entrypoint "oa_debate_adder.main"
 
@@ -353,7 +352,7 @@ Create fission function and timer trigger.
 ```bash
 fission function create --spec --name oa-daily-debate-harvester \
   --pkg oa-debates \
-  --env python39 \
+  --env python \
   --configmap shared-data \
   --entrypoint "oa_daily_debate_harvester.main"
 
