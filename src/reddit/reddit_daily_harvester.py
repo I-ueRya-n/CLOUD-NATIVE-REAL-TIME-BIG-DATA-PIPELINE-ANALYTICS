@@ -4,15 +4,15 @@ import praw
 from util import enqueue_data, config 
 
 
-DAILY_SUBREDDITS = ["melbourne", "australia", "auspol", "sydney", "brisbane", "aussie", "australianpolitics"]
-DAILY_KEYWORDS = ["election", "government", "policy", "housing", "cost of living", "environment", "health", "vote", "federal"]
+DAILY_SUBREDDITS = ["melbourne", "australia", "auspol", "sydney", "brisbane", "aussie", "australianpolitics", "southaustralia", "westernaustralia", "australiannostalgia", "ausmemes", "straya"]
+DAILY_KEYWORDS = ["election", "government", "policy", "housing", "cost of living", "environment", "health", "vote", "federal", "labour", "sante", "politics", "politician"]
 
 
 
 
 DAILY_LIMIT_PER_KEYWORD_SUBREDDIT = 100
 DAILY_SORT_METHOD = "new" 
-DAILY_SCRAPE_DAYS_AGO = 1 
+DAILY_SCRAPE_DAYS_AGO = 1
 
 def get_post_comments_for_daily(reddit_client, post, limit=10):
     """
