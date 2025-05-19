@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
+	"net/http"
 	"os"
 	"testing"
-
-	"github.com/bluesky-social/indigo/api/atproto"
 )
+
+const endpoint = "http://localhost:9090/bluesky"
 
 type Post struct {
 	Cid       string `json:"cid"`
@@ -15,9 +18,9 @@ type Post struct {
 	Text      string `json:"text"`
 }
 
-var raw_post = []string{
-	"tests/post1.json",
-	"tests/non_post.json",
+var evt_posts = []string{
+	"post1.json",
+	"non_post.json",
 }
 
 var posts = []*Post{
@@ -31,30 +34,35 @@ var posts = []*Post{
 }
 
 func TestProcessing(t *testing.T) {
-	for i := range raw_post {
-		buf, err := os.ReadFile(raw_post[i])
+	for i := range evt_posts {
+		buf, err := os.ReadFile(evt_posts[i])
 		if err != nil {
 			t.Error(err.Error())
 		}
 
-		var evt atproto.SyncSubscribeRepos_Commit
-		err = json.Unmarshal(buf, &evt)
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		testProcessPost(t, &evt, posts[i])
+		testProcessPost(t, buf, posts[i])
 	}
 }
 
-func testProcessPost(t *testing.T, evt *atproto.SyncSubscribeRepos_Commit, post *Post) {
-	evt_post, err := processRepoCommit(evt)
+func testProcessPost(t *testing.T, buf []byte, post *Post) {
+	res, err := http.Post(endpoint, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	if evt_post == nil && post == nil {
-		return
+	buf, err = io.ReadAll(res.Body)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf(string(buf))
+	}
+
+	var evt_post Post
+	err = json.Unmarshal(buf, &evt_post)
+	if err != nil {
+		t.Errorf(string(buf))
 	}
 
 	if evt_post.Cid != post.Cid {

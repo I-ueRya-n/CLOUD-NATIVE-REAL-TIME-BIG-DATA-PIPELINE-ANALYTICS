@@ -15,6 +15,27 @@ import (
 	es "github.com/elastic/go-elasticsearch/v8"
 )
 
+const (
+	testIndex      = "test-items"
+	cacheEndpoint  = "http://localhost:9090/cache-test/index/" + testIndex + "/field/text"
+	cacheTestIndex = "cache-test"
+)
+
+type TestItem struct {
+	Idx   string `json:"id"`
+	Index string `json:"index"`
+	Value int    `json:"value"`
+}
+
+func CalculateItem(index, id, text string) (t TestItem, err error) {
+	t = TestItem{
+		Index: index,
+		Idx:   id,
+		Value: len(text),
+	}
+	return
+}
+
 func TestCache(t *testing.T) {
 	client, err := es.NewTypedClient(es.Config{
 		Addresses:              []string{"https://localhost:9200"},

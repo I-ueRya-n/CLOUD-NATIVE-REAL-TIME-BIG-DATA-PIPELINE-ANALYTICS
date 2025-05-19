@@ -526,27 +526,6 @@ fission route create --spec --name elastic-ner \
   --function elastic-ner
 ```
 
-To test the cache, create a test function,
-```bash
-fission fn create --spec --name elastic-cache-test \
-    --pkg elastic-cache \
-    --env go \
-    --configmap shared-data \
-    --entrypoint ItemHandler
-
-fission route create --spec --name elastic-cache-test \
-  --url /cache-test/index/{index}/field/{field} \
-  --method POST \
-  --function elastic-cache-test
-```
-
-And run the test
-
-```bash
-cd src/analysis/cache
-go test
-```
-
 ## User Interface
 
 ### Sentiment
