@@ -1,0 +1,22 @@
+apiVersion: fission.io/v1
+kind: HTTPTrigger
+metadata:
+  creationTimestamp: null
+  name: reddit-harvest-trigger
+spec:
+  createingress: true
+  functionref:
+    functionweights: null
+    name: reddit-data-harvester
+    type: name
+  host: ""
+  ingressconfig:
+    annotations: null
+    host: '*'
+    path: /reddit/harvest
+    tls: ""
+  method: ""
+  methods:
+  - GET
+  prefix: ""
+  relativeurl: /reddit/harvest

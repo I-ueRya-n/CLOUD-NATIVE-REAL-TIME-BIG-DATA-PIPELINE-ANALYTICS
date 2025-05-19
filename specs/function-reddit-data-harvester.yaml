@@ -1,0 +1,27 @@
+apiVersion: fission.io/v1
+kind: Function
+metadata:
+  creationTimestamp: null
+  name: reddit-data-harvester
+spec:
+  InvokeStrategy:
+    ExecutionStrategy:
+      ExecutorType: poolmgr
+      MaxScale: 0
+      MinScale: 0
+      SpecializationTimeout: 120
+      TargetCPUPercent: 0
+    StrategyType: execution
+  concurrency: 500
+  environment:
+    name: python39
+    namespace: ""
+  functionTimeout: 60
+  idletimeout: 120
+  package:
+    functionName: reddit_scraper.main
+    packageref:
+      name: reddit-data-lister
+      namespace: ""
+  requestsPerPod: 1
+  resources: {}
