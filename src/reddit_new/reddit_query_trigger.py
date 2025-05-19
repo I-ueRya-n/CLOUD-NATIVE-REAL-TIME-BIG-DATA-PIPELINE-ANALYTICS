@@ -38,8 +38,6 @@ def main():
         enqueue_data("reddit-keys", json.dumps({
           "subreddits": [subreddit],
           "keywords": [keyword],
-          "scrape_from": None,
-          "scrape_until": None,
           "limit": limit,
           "sort": sort
         }))
