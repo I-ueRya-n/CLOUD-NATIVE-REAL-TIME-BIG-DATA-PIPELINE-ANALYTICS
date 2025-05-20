@@ -114,7 +114,7 @@ Are Australians egged on by high valence political speeches? Do some politicians
 In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
 We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
 
-\subsection*{Analysis Aims}
+\subsection*{Analysis Goals}
 
 Our analysis examined four key aims to understand political discussion across social media platforms and parliamentary debates.
 
@@ -519,6 +519,93 @@ Indexing is robust: malformed JSON raises deserialization errors, individual pos
 
 This approach doesn’t cover all possible failure cases (e.g., persistent external outages), but it provides a strong foundation for resilience and observability in a high-throughput, asynchronous system.
 
+\section{System Fault Tolerance and Resilience Analysis}
+
+\subsection{Kubernetes Layer}
+
+\subsubsection*{Advantages}
+\begin{itemize}
+  \item \textbf{Pod Self-Recovery}: Kubernetes restores failed Pods automatically. This includes Fission function Pods, the Bluesky Firehose Client Pod, and other service Pods like ElasticSearch and Redis (assuming appropriate controllers like \texttt{Deployment} or \texttt{StatefulSet} are used).
+  \item \textbf{Node Failure Recovery}: If a Kubernetes worker node fails, Pods managed by \texttt{ReplicaSet}, \texttt{Deployment}, or \texttt{StatefulSet} are rescheduled on healthy nodes.
+\end{itemize}
+
+\subsubsection*{Potential Issues/Considerations}
+\begin{itemize}
+  \item \textbf{Kubernetes Control Plane}: Although generally highly available, it may become a failure point in self-managed or small clusters. In research cloud environments (e.g., NeCTAR), control plane reliability is maintained by the provider.
+  \item \textbf{Single Node Cluster}: A single-node Kubernetes cluster would suffer total downtime if that node fails.
+\end{itemize}
+
+\subsection{Fission (Serverless Layer)}
+
+\subsubsection*{Advantages}
+\begin{itemize}
+  \item \textbf{Function Instantiation}: Fission’s Executors (\texttt{NewDeploy} or \texttt{PoolManager}) manage function lifecycle. \texttt{NewDeploy} creates a Pod on demand; \texttt{PoolManager} maintains a warm Pod pool.
+  \item \textbf{Scalability and Fault Tolerance}: Horizontal scaling (e.g., via KEDA) helps tolerate individual Pod failures. Other Pods can still handle requests.
+\end{itemize}
+
+\subsubsection*{Potential Issues/Considerations}
+\begin{itemize}
+  \item \textbf{Fission Core Components}: Components like the Router, Controller, and Executor are also Kubernetes Pods. If these fail without recovery, function routing and deployment break down.
+  \item \textbf{Cold Starts}: Functions without warm Pods (especially under \texttt{NewDeploy}) may suffer from startup latency, which might seem like service unavailability. The use of \texttt{PoolManager} can mitigate this (e.g., for Reddit harvester).
+\end{itemize}
+
+\subsection{Data Collection \& Processing Pipeline}
+
+\subsubsection*{Bluesky Firehose Client}
+\begin{itemize}
+  \item \textbf{Current State}: Deployed as a Docker container, Kubernetes restarts it on crash.
+  \item \textbf{Potential Single Point of Failure}: Single replica implies no backup during restart. Missed real-time data may be lost if not recoverable via the Bluesky API.
+  \item \textbf{Fission \texttt{processPost} Function}: If this Go function fails or lacks scalability, it could delay or drop data.
+\end{itemize}
+
+\subsubsection*{OpenAustralia and Reddit Harvesters (Using Redis Queues)}
+
+\textbf{Benefits (Event-Driven Architecture)}:
+\begin{itemize}
+  \item \textbf{Decoupling}: Redis queues (e.g., \texttt{oa\_debate\_keys}, \texttt{reddit\_posts\_queue}) isolate data collection, processing, and indexing, preventing cascading failures.
+  \item \textbf{Retries}: Retry logic is built into functions (e.g., up to 3 retries) and failed messages are routed to error queues (e.g., \texttt{reddit\_adder\_error}), promoting robustness.
+\end{itemize}
+
+\textbf{Potential Issues/Considerations}:
+\begin{itemize}
+  \item \textbf{Redis Service Stability}: Redis failure halts the pipeline. Persistence and high availability (e.g., via Sentinel or Redis Cluster) can improve resilience.
+  \item \textbf{Error Queue Management}: Error queues require active monitoring and remediation; otherwise, failures remain unresolved.
+\end{itemize}
+
+\subsection{Data Storage \& Caching (ElasticSearch)}
+
+\subsubsection*{Advantages}
+\begin{itemize}
+  \item \textbf{Analytical Caching}: ElasticSearch caches NER and sentiment results, avoiding recomputation and providing redundancy if analysis functions are temporarily unavailable.
+\end{itemize}
+
+\subsubsection*{Potential Issues/Considerations}
+\begin{itemize}
+  \item \textbf{ElasticSearch Stability}: A failure (even in single-node mode) halts indexing, cache reads/writes, and data access through the UI.
+  \item \textbf{Data Loss Risk}: Effective persistence and backup strategies are crucial.
+  \item \textbf{Indexing Errors}: Issues like mapping conflicts or disk space exhaustion must be mitigated with logging, retries, and alerting mechanisms. Your report mentions \texttt{reddit-to-es-new-r} handles such cases.
+\end{itemize}
+
+\subsection{Analysis Functions (Vader Sentiment, NER)}
+
+\subsubsection*{Advantages}
+\begin{itemize}
+  \item \textbf{Fission Function Deployment}: These benefit from Kubernetes and Fission capabilities like auto-scaling and self-healing.
+\end{itemize}
+
+\subsubsection*{Potential Issues/Considerations}
+\begin{itemize}
+  \item \textbf{Resource Usage}: NER via SpaCy is resource-intensive and uses custom Docker images. High concurrency may overload nodes or affect other Pods.
+  \item \textbf{Model/Library Dependency}: Bugs or inefficiencies in libraries directly impact reliability.
+\end{itemize}
+
+\subsection{User Interface (Jupyter Notebook + Fission APIs)}
+
+\subsubsection*{Potential Issues/Considerations}
+\begin{itemize}
+  \item \textbf{API Backend Failures}: Failure in UI Fission API functions prevents Jupyter from retrieving data.
+  \item \textbf{Jupyter Environment}: A crash or misconfiguration (either locally or in a Pod) prevents user interaction with the system.
+\end{itemize}
 
 
 \subsection*{Integration Testing}
