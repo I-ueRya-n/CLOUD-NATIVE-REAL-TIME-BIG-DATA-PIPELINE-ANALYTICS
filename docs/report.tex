@@ -720,4 +720,17 @@ Unfortunately there is limited overlap of Bluesky and Open Australia data due to
 In the future we may see a shift in the topics of online discussions, or the amount of discussion on a topic, after a debate is held.
 
 
+
+\section*{Conclusion}
+
+This project successfully developed a modular and scalable system for collecting, processing, and analyzing political discussions across various platforms. These platforms include social media sites such as Bluesky and Reddit, as well as parliamentary records from OpenAustralia. By utilizing cloud computing technologies—including Kubernetes, Fission, Elasticsearch, and Redis—the system enabled effective sentiment analysis and named entity recognition on large datasets.
+
+The primary analytical goals included comparing discussion topics across platforms, tracking sentiment trends, analyzing sentiment by subject, and exploring the connection between social media conversations and parliamentary debates. Initial findings revealed that the political entities (e.g., organizations and individuals) discussed varied by platform. These differences were illustrated using word clouds and frequency charts. Sentiment analysis showed that social media content tended to be neutral to slightly positive, whereas parliamentary debates often leaned more positive. However, due to a limited timeframe and number of cases, it remains unclear how social media sentiment reflects or responds to parliamentary discourse.
+
+Throughout the project, the team addressed various challenges inherent in the shared NeCTAR Research Cloud environment. For instance, they managed configuration issues and cluster rebuilds effectively using an Infrastructure as Code approach through Fission specs. Other technical difficulties, such as using the \texttt{atproto} Python library within the Fission environment, were also resolved. Additionally, the team implemented robust scaling and error-handling strategies—including event-driven architecture and dead-letter queues—for all major data sources.
+
+Despite constraints like a short data collection period, the project demonstrated the system's capabilities and yielded valuable insights into the interaction between social media and political discourse in Australia. With a longer observation period and more data, future research could provide even deeper analysis of the dynamics between these platforms.
+
+
+
 \end{document}
