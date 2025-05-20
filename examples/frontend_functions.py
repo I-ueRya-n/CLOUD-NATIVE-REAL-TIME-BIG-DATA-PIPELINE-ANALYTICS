@@ -31,9 +31,9 @@ entity_labels = {
 }
 
 
-#######
+####### SENTIMENT ACROSS TIME #######
 
-def plot_source_sentiment(table, start, end, data = None):
+def plot_source_sentiment(table, start, end, data = None, percentages=False):
     if data is None:
         response = requests.get(
                 url=f"{fission}/ui/sentiment/keyword/*/start/{start}/end/{end}",
@@ -66,13 +66,28 @@ def plot_source_sentiment(table, start, end, data = None):
         ax0.legend(loc="upper right")
         ax0.set_title(f"{labels[s]} sentiment")
         ax0.set_ylim(bottom=0)
-    
+        # add percentage labels
+        if percentages:
+            for x_idx, x in enumerate(df.index):
+                # label every second date
+                if x_idx % 2 == 0:
+                    continue
+                y_bottom = 0
+                for j, col in enumerate(cols):
+                    height = columns[j].iloc[x_idx] 
+                    # only label if its at least 5%
+                    if height >= 0.05: 
+                        ax0.text(x, y_bottom + height/2, f"{int(height*100)}%", ha='center', va='center', fontsize=8, color="black")
+                    y_bottom += height
+
+        ax1.set_ylabel("Count", loc="center")
+
         ax1.plot(total.index, total.values, color='tab:blue')
         ax1.fill_between(total.index, 0, total.values, color='tab:blue')
         ax1.set_title(f"{labels[s]} document count")
         ax1.set_ylim(bottom=0)
     
-        # show the dates as x axis labels
+        # label the x axis with dates
         ax0.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
         ax0.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
         
@@ -85,7 +100,7 @@ def plot_source_sentiment(table, start, end, data = None):
     return data
 
 
-#####
+##### WORD CLOUDS AND TOP n TOPICS #####
 
 def get_wordcloud_data(label):
     response = requests.get(
@@ -157,7 +172,7 @@ def plot_top_each_platform(data, label, normalised=True):
 
 
 
-#####
+##### SENTIMENT BY KEYWORD #####
 
 def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, results=None):
     """
@@ -283,7 +298,7 @@ def plot_counts(table, start, keyword, data = None):
 
 
 
-#####
+##### COUNTS #####
 
 def format_data(table, start):
     start_date = datetime.datetime.fromisoformat(start)

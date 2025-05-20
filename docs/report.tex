@@ -470,7 +470,11 @@ We hoped to see if the topics of online discussions changed after a debate was h
     \label{fig:word-org}
 \end{figure}
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
-idk
+The sentiment was calculated for each post and debate, and then averaged over time.
+This allowed us to compare the overall averaged sentiment of the posts and debates over time.
+We found that this was relatively consistent across the platforms, with only small variations sentiment.
+For example, from the 1st to the 19th of May 2025, bluesky posts averaged a negative sentiment of around 7\%, while the average negative sentiment of reddit posts ranged from 5\% to 9\%. 
+Both BlueSky and Reddit posts were generally mostly neutral, but slightly more positive than negative.
 
 
 \subsubsection*{Comparing the sentiment by keyword: idk what to call this one}
@@ -480,6 +484,7 @@ idk
     \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
 \end{figure}
 A small number of topics were selected based on their prevalence in the posts and debates, and their relevance to the current political climate.
+Due to the smaller number of posts collected on reddit, these differences were more pronounced.
 
 
 \end{document}
