@@ -4,13 +4,13 @@ reddit_posts
 
 ## Create Functions and Triggers
 fission package create --spec --name reddit-harvester-new-r \
-  --source ./src/reddit_new/reddit_harvester.py \
-  --source ./src/reddit_new/reddit_to_elasticsearch.py \
-  --source ./src/reddit_new/reddit_daily_trigger.py \
-  --source ./src/reddit_new/__init__.py \
-  --source ./src/reddit_new/util.py \
-  --source ./src/reddit_new/requirements.txt \
-  --source ./src/reddit_new/build.sh \
+  --source ./src/reddit/reddit_harvester.py \
+  --source ./src/reddit/reddit_to_elasticsearch.py \
+  --source ./src/reddit/reddit_daily_harvester.py \
+  --source ./src/reddit/__init__.py \
+  --source ./src/reddit/util.py \
+  --source ./src/reddit/requirements.txt \
+  --source ./src/reddit/build.sh \
   --env python \
   --buildcmd './build.sh'
 
