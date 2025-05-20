@@ -170,7 +170,7 @@ def main() -> str:
         current_app.logger.info(f"Adding {len(debates_to_add)} debate to redis queue for processing")
 
         response: Optional[requests.Response] = requests.post(
-            url=config("FISSION_HOSTNAME") + '/enqueue/oa_debate_keys',
+            url=config("FISSION_HOSTNAME") + '/enqueue/oa_debate_data',
             headers={'Content-Type': 'application/json'},
             json=debates_to_add
         )
