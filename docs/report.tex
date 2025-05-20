@@ -190,7 +190,7 @@ The Reddit data pipeline, among other things, consists of the following major Fi
             It initiates the \texttt{reddit\_daily\_harvester.py:main} entrypoint.
             The script searches for posts through the Reddit API by referencing a hardcoded list of subreddits (\texttt{DAILY\_SUBREDDITS}) and keywords (\texttt{DAILY\_KEYWORDS}) within the script.   
             It focuses on posts created within a specific recent period defined by \texttt{DAILY\_SCRAPE\_DAYS\_AGO} (e.g., 1 day by default, but configurable as per the script's constants). The constants \texttt{DAILY\_LIMIT\_PER\_KEYWORD\_SUBREDDIT} and \texttt{DAILY\_SORT\_METHOD} are also mutable.
-            It operates in a manner similar to the HTTP harvester, retrieving posts (and possibly their top-level comments via \texttt{get\_post\_comments\_for\_daily}) (depending on some configuration there). The JSON-formatted data is then sent to this reddit_posts_queue through \textbf{\texttt{reddit\_posts\_queue}} using \texttt{util.py:enqueue\_data}.
+            It operates in a manner similar to the HTTP harvester, retrieving posts (and possibly their top-level comments via \texttt{get\_post\_comments\_for\_daily}) (depending on some configuration there). The JSON-formatted data is then sent to the \textbf{\texttt{reddit\_posts\_queue}} using \texttt{util.py:enqueue\_data}.
             Hardcoding these subreddits and keywords in the daily harvester is deliberate, to facilitate daily scraping in an automated fashion; very well might be put into the \texttt{shared-data} ConfigMap for more flexibility. 
     \end{itemize}
 
@@ -467,7 +467,7 @@ We hoped to see if the topics of online discussions changed after a debate was h
     \centering
     \includegraphics[scale=0.4]{report_images/wordcloud-org.png}
     \caption{Overall sentiment over time from TIME to TIME.}
-    \label{fig:word-org}
+    \label{fig:sentiment-avg}
 \end{figure}
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
 The sentiment was calculated for each post and debate, and then averaged over time.

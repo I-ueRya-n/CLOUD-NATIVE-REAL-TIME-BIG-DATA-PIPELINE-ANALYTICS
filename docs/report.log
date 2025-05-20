@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 16:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 17:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -806,11 +806,7 @@ Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
 )))
 (/usr/share/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2024/09/23 1.10c listings language file
-) (./report.aux
-
-LaTeX Warning: Label `fig:word-org' multiply defined.
-
-)
+) (./report.aux)
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 59.
@@ -828,7 +824,8 @@ LaTeX Font Info:    ... okay on input line 59.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 59.
 LaTeX Font Info:    ... okay on input line 59.
 \c@lstlisting=\count351
- (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+
+(/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count352
 \scratchdimen=\dimen294
@@ -955,10 +952,10 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <8> not available
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
 (Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 173.
 
-Overfull \hbox (35.7619pt too wide) in paragraph at lines 173--178
-\OT1/cmr/m/n/10 HTTP POST re-quest to the \OT1/cmtt/m/n/10 /reddit-new/scrape/ 
-\OT1/cmr/m/n/10 route. It is de-fined by the \OT1/cmtt/m/n/10 reddit[]harvester
-.py:main
+Overfull \hbox (61.3453pt too wide) in paragraph at lines 173--178
+\OT1/cmr/m/n/10 HTTP POST re-quest through the route \OT1/cmtt/m/n/10 /reddit-n
+ew/scrape/\OT1/cmr/m/n/10 . It is de-fined by the \OT1/cmtt/m/n/10 reddit[]harv
+ester.py:main
  []
 
 
@@ -967,18 +964,18 @@ Overfull \hbox (35.7619pt too wide) in paragraph at lines 173--178
 
 [4]
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 265.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 266.
 
 
 [5]
 
 [6]
-Underfull \hbox (badness 10000) in paragraph at lines 365--369
+Underfull \hbox (badness 10000) in paragraph at lines 366--370
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 370--373
+Underfull \hbox (badness 10000) in paragraph at lines 371--374
 
  []
 
@@ -986,12 +983,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 370--373
 File: report_images/bluesky-posts.png Graphic file (type png)
 <use report_images/bluesky-posts.png>
 Package pdftex.def Info: report_images/bluesky-posts.png  used on input line 37
-6.
+7.
 (pdftex.def)             Requested size: 419.47037pt x 150.26253pt.
 <report_images/bluesky-cpu.png, id=65, 1394.20876pt x 460.72125pt>
 File: report_images/bluesky-cpu.png Graphic file (type png)
 <use report_images/bluesky-cpu.png>
-Package pdftex.def Info: report_images/bluesky-cpu.png  used on input line 383.
+Package pdftex.def Info: report_images/bluesky-cpu.png  used on input line 384.
 
 (pdftex.def)             Requested size: 418.26585pt x 138.21744pt.
 
@@ -1006,53 +1003,40 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 File: report_images/wordcloud-org.png Graphic file (type png)
 <use report_images/wordcloud-org.png>
 Package pdftex.def Info: report_images/wordcloud-org.png  used on input line 44
-1.
+2.
 (pdftex.def)             Requested size: 430.4325pt x 252.65144pt.
-File: report_images/wordcloud-org.png Graphic file (type png)
-<use report_images/wordcloud-org.png>
-Package pdftex.def Info: report_images/wordcloud-org.png  used on input line 45
-4.
-(pdftex.def)             Requested size: 430.4325pt x 252.65144pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 <report_images/sentiment-pauline.png, id=74, 570.933pt x 281.853pt>
 File: report_images/sentiment-pauline.png Graphic file (type png)
 <use report_images/sentiment-pauline.png>
 Package pdftex.def Info: report_images/sentiment-pauline.png  used on input lin
-e 465.
+e 456.
 (pdftex.def)             Requested size: 199.82953pt x 98.65002pt.
+File: report_images/wordcloud-org.png Graphic file (type png)
+<use report_images/wordcloud-org.png>
+Package pdftex.def Info: report_images/wordcloud-org.png  used on input line 46
+8.
+(pdftex.def)             Requested size: 430.4325pt x 252.65144pt.
 
-LaTeX Warning: `h' float specifier changed to `ht'.
 
+[9 <./report_images/wordcloud-org.png> <./report_images/sentiment-pauline.png>]
 File: report_images/sentiment-pauline.png Graphic file (type png)
 <use report_images/sentiment-pauline.png>
 Package pdftex.def Info: report_images/sentiment-pauline.png  used on input lin
-e 474.
+e 483.
 (pdftex.def)             Requested size: 199.82953pt x 98.65002pt.
 
-LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-
-[9 <./report_images/wordcloud-org.png>]
-
-[10 <./report_images/sentiment-pauline.png>] (./report.aux)
+[10] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
-
-
-LaTeX Warning: There were multiply-defined labels.
-
  ) 
 Here is how much of TeX's memory you used:
- 30886 strings out of 475171
- 734802 string characters out of 5767095
+ 30887 strings out of 475171
+ 734821 string characters out of 5767095
  1432937 words of memory out of 5000000
- 53337 multiletter control sequences out of 15000+600000
+ 53338 multiletter control sequences out of 15000+600000
  564086 words of font info for 57 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  102i,12n,107p,756b,1512s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1067,7 +1051,7 @@ ublic/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
 </usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/tex
 mf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on report.pdf (10 pages, 1105461 bytes).
+Output written on report.pdf (10 pages, 1106718 bytes).
 PDF statistics:
  139 PDF objects out of 1000 (max. 8388607)
  76 compressed objects within 1 object stream
