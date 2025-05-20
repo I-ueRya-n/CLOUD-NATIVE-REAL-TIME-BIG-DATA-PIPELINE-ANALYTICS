@@ -18,9 +18,9 @@ def dataframe(data, start, end):
     return df
 
 labels = {
-    "openaus": "Open Australia",
     "bluesky": "Bluesky",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "openaus": "Open Australia"
 }
 
 entity_labels = {
@@ -117,14 +117,23 @@ def get_wordcloud_data(label):
         data["bluesky"]["auspol"] = 0
 
     return data
+    
+openaus_speaker_labels = {
+    "ORG": "parties",
+    "PERSON": "speakers",
+    "LOC": "speaker locations"
+}
 
-def wordcloud_from_data(label, data): 
+def wordcloud_from_data(label, data, includeSpeakers=False):
+    new_labels = labels.copy()
+    if includeSpeakers and "openaus-speakers" in data and data["openaus-speakers"]:
+        new_labels["openaus-speakers"] = "Open Australia " + openaus_speaker_labels[label]
     fig, ax = plt.subplots(2, 2, figsize=(15, 9))
-    for i, s in enumerate(labels):
-        wordcloud = WordCloud(background_color="white", max_font_size=40).generate_from_frequencies(data[s])
+    for i, s in enumerate(new_labels):
+        wordcloud = WordCloud(background_color="white", max_font_size=80).generate_from_frequencies(data[s])
         ax[i // 2, i % 2].imshow(wordcloud, interpolation="bilinear")
         ax[i // 2, i % 2].axis("off")
-        ax[i // 2, i % 2].set_title(labels[s], fontsize=20)
+        ax[i // 2, i % 2].set_title(new_labels[s], fontsize=20)
 
     ax[1, 1].axis("off")
     plt.tight_layout()
@@ -132,6 +141,7 @@ def wordcloud_from_data(label, data):
     # plt.subplots_adjust(top=0.9)
 
     plt.show()
+
 
 def get_top_each_platform(data, count=10, normalise=False):
     """
@@ -174,7 +184,48 @@ def plot_top_each_platform(data, label, normalised=True):
 
 ##### SENTIMENT BY KEYWORD #####
 
-def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, results=None):
+sentiment_labels = labels.copy()
+sentiment_labels["openaus-speakers"] = "Open Australia speakers"
+
+def plot_sentiment_avg(platforms, sentiment_keys, sentiment_data, counts, keyword, keyword_type):
+    # i really love the python colors theyre so funny to me
+    colors = ["firebrick", "wheat", "forestgreen"]  
+    
+    # stacked bar chart!
+    y = np.arange(len(platforms))
+    fig, ax = plt.subplots(figsize=(8, 4))
+    left = np.zeros(len(platforms))
+    for i, sentiment_key in enumerate(sentiment_keys):
+        ax.barh(y, sentiment_data[:, i], color=colors[i], label=sentiment_key, left=left)
+        left += sentiment_data[:, i]
+
+    ax.set_yticks(y)
+    ax.set_yticklabels([sentiment_labels[p] for p in platforms])
+    ax.set_xlabel("Percentage")
+    ax.set_xlim(0, 1)
+    ax.set_title(f"Sentiment across platforms for '{keyword_type}' keyword: '{keyword}'")
+    ## legend
+    # if results.get("openaus-speakers", None):
+    ax.legend(loc="lower left", bbox_to_anchor=(-0.3, 0))
+    # else:
+    #     ax.legend(loc="lower right")
+
+    # percentage labels and counts
+    for i in range(len(platforms)):
+        xpos = 0
+        for j in range(len(sentiment_keys)):
+            width = sentiment_data[i, j]
+            # only if theres data 
+            if width > 0: 
+                ax.text(xpos + width/2, i, f"{int(width*100)}%", va='center', ha='center', color="black", fontsize=9)
+            xpos += width
+        ax.text(1.02, i, f"n={counts[i]}", va='center', ha='left', fontsize=9)
+
+    plt.tight_layout()
+    plt.show()
+
+    
+def plot_sentiment_across_platforms(keyword_list, keyword_type, results=None):
     """
     Gets the averaged sentiments by keyword from the sentiment-averager Fission function
     and plots sentiment for each keyword across platforms (reddit, bluesky, openaus).
@@ -182,7 +233,7 @@ def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, res
     """
     if results is None:
       # allows testing without having to calculate every tiem yay!
-      url = f"{fission_url}/ui/sentiment-averager/type/{keyword_type}"
+      url = f"{fission}/ui/sentiment-averager/type/{keyword_type}"
       headers = {"X-Fission-Params-type": keyword_type}
       data = {"keywords": keyword_list}
       response = requests.post(url, headers=headers, json=data, timeout=1000)
@@ -193,10 +244,10 @@ def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, res
       results = response.json()
 
     platforms = ["bluesky", "reddit", "openaus"]
+    if "openaus-speakers" in results:
+        platforms.append("openaus-speakers")
     # ignore compound 
-    sentiment_keys = ["neg", "neu", "pos"] # "compound"]
-    # i really love the python colors theyre so funny to me
-    colors = ["firebrick", "wheat", "forestgreen"]  
+    sentiment_keys = ["neg", "neu", "pos"] # "compound"] 
 
     for keyword in keyword_list:
         # format data 
@@ -215,34 +266,10 @@ def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, res
         sentiment_data = np.array(sentiment_data)
 
         # stacked bar chart!
-        y = np.arange(len(platforms))
-        fig, ax = plt.subplots(figsize=(8, 4))
-        left = np.zeros(len(platforms))
-        for i, sentiment_key in enumerate(sentiment_keys):
-            ax.barh(y, sentiment_data[:, i], color=colors[i], label=sentiment_key, left=left)
-            left += sentiment_data[:, i]
-
-        ax.set_yticks(y)
-        ax.set_yticklabels([labels[p] for p in platforms])
-        ax.set_xlabel("Percentage")
-        ax.set_xlim(0, 1)
-        ax.set_title(f"Sentiment across platforms for '{keyword_type}' keyword: '{keyword}'")
-        ax.legend(loc="lower right")
-
-        # percentage labels and counts
-        for i in range(len(platforms)):
-            xpos = 0
-            for j in range(len(sentiment_keys)):
-                width = sentiment_data[i, j]
-                # only if theres data 
-                if width > 0: 
-                    ax.text(xpos + width/2, i, f"{int(width*100)}%", va='center', ha='center', color="black", fontsize=9)
-                xpos += width
-            ax.text(1.02, i, f"n={counts[i]}", va='center', ha='left', fontsize=9)
-
-        plt.tight_layout()
-        plt.show()
+        plot_sentiment_avg(platforms, sentiment_keys, sentiment_data, counts, keyword, keyword_type)
+                           
     return results
+
 
 
 def format_data(table, start):
@@ -379,7 +406,6 @@ def comparison_plot_keyword_counts(platforms, start, keyword, data=None, normali
     # date labels so they dont overlap
     ax = plt.gca()
     ax.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
-    ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m-%d'))
     plt.gcf().autofmt_xdate()  
 
     plt.suptitle(f"Document Counts containing '{keyword}' Across Platforms", fontsize=20)

@@ -93,6 +93,21 @@ The report is located in the `docs` folder and it contains the latex report that
 latexmk -pdf -outdir=docs/out/ docs/report.tex
 ```
 
+## Testing 
+
+
+Port forward to fission router and elasticsearch.
+```bash
+kubectl port-forward service/router -n fission 9090:80
+kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
+```
+
+Run tests
+```bash
+cd tests/cache
+go test
+```
+
 ## Fission Setup
 
 Setup fission
@@ -528,6 +543,20 @@ fission route create --spec --name elastic-ner \
   --url /analysis/ner/v2/index/{index}/field/{field} \
   --method POST \
   --function elastic-ner
+```
+
+Create a fission function for testing the cache.
+```bash
+fission fn create --spec --name elastic-cache-test \
+    --pkg elastic-cache \
+    --env go \
+    --configmap shared-data \
+    --entrypoint ItemHandler
+
+fission route create --spec --name elastic-cache-test \
+  --url /cache-test/index/{index}/field/{field} \
+  --method POST \
+  --function elastic-cache-test
 ```
 
 ## User Interface
