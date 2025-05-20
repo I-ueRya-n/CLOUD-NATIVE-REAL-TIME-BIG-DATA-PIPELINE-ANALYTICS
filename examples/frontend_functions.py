@@ -284,6 +284,7 @@ def plot_counts(table, start, keyword, data = None):
 
 
 #####
+
 def format_data(table, start):
     start_date = datetime.datetime.fromisoformat(start)
     end_date = datetime.datetime.now()
@@ -297,6 +298,7 @@ def format_data(table, start):
     
 
 def plot_keyword_counts(table, start, keyword, data = None):
+    """Count of keywords over time on each platform on 3 separate graphs."""
     if data is None:
         response = requests.get(
                 url=f"{fission}/ui/counts/start/{start}/keyword/{keyword}",
@@ -329,6 +331,47 @@ def plot_keyword_counts(table, start, keyword, data = None):
         ax1.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
         ax1.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
 
+    plt.suptitle(f"Document Counts containing '{keyword}' Across Platforms", fontsize=20)
+
+    plt.tight_layout()
+    plt.show()
+
+    return data
+
+def comparison_plot_keyword_counts(platforms, start, keyword, data=None, normalise=True):
+    """
+    frequency of keywords over time on one graph, rather than 3
+    if normalise each platform's counts are divided by their max (so all lines go from 0 to 1).
+    """
+    if data is None:
+        response = requests.get(
+            url=f"{fission}/ui/counts/start/{start}/keyword/{keyword}",
+            timeout=600
+        )
+        if response.status_code != 200:
+            print(response, response.text)
+            return 
+        data = response.json()
+
+    plt.figure(figsize=(14, 6))
+    for s in platforms:
+        df = format_data(data[s], start)
+        y = df['doc_count'].fillna(0)
+        if normalise and y.max() > 0:
+            y = y / y.max()
+        plt.plot(df.index, y, label=labels[s])
+        plt.fill_between(df.index, 0, y, alpha=0.1)
+    # date labels so they dont overlap
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
+    ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m-%d'))
+    plt.gcf().autofmt_xdate()  
+
+    plt.suptitle(f"Document Counts containing '{keyword}' Across Platforms", fontsize=20)
+    plt.xlabel("Date")
+    plt.ylabel("Normalized Count" if normalise else "Count")
+    # plt.xticks(rotation=30, ha="right")
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
