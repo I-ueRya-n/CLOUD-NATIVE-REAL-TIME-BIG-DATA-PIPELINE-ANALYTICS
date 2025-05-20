@@ -92,7 +92,7 @@ fission mqtrigger create --name reddit-to-es-new-r \
 ### C: Timer Trigger for Daily Scrape
 
 fission function create --spec --name reddit-daily-job \
-  --pkg reddit-harvester-new \
+  --pkg reddit-harvester-new-r \
   --env python \
   --configmap shared-data \
   --entrypoint "reddit_daily_harvester.main" \
