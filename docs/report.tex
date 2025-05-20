@@ -458,6 +458,12 @@ This helped handle the variabible load of the OpenAustralia API, as the number o
 
 As a side comment, the usefulness of the \texttt{oa-daily-debate-harvester} was limited while collecting data for our project, as The Houses of Parliament are in recess from 16 May until 25 May 2025 and so no new debates were available to add.
 
+\paragraph{Reddit}
+
+The Reddit harvester utilizes two serverless functions provided by Fission: one HTTP-triggered (\texttt{reddit-harvester-new-r}) and the other timer-triggered (\texttt{reddit-daily-job}) to support both manual and daily scraping. Both functions run on Fission's \texttt{poolmgr} executor, which maintains pre-warmed pods, effectively minimizing cold-start latency. These harvester functions collect Reddit posts and top-level comments, then enqueue the results into Redis (\texttt{reddit\_posts\_queue}) using a generic Fission \texttt{enqueue} function.
+
+For indexing, the system employs the \texttt{reddit-to-es-new-r} function, which is autoscaled by KEDA based on the length of the Redis queue. When the number of messages exceeds 1000, KEDA scales up the number of pods for parallel processing. Conversely, it scales them down when the queue is idle. This enables efficient autoscaling in response to fluctuating data loads, such as large historical scrapes or periods of high Reddit activity.
+
 \paragraph*{Analysis} In the System Architecture section, we discussed the cache used for analysis functions.
 When we don't have a cached value for a post/debate, we need to query the analysis functions to compute the values.
 If there is a large number of posts which are not cached, this can take a long time.
@@ -493,9 +499,22 @@ Both of these functions will retry up to 3 times if they encounter an error, and
 \\
 This strategy is certainly not perfect, as it does not handle all possible errors, but it does allow us to see where the errors are occurring, and retry the failed functions.
 
-\paragraph*{Reddit}
-Similarly to the OpenAustralia API, the reddit harvester is split into three parts: the entrypoint, the harvester and the adder. 
-This provided all the same benefits as the OpenAustralia API, including seperation of functionality, and the ability to retry failed function and greater insight into where errors are occuring.
+\paragraph*{Reddit} 
+A modular, “Event Driven Architecture” was used to handle errors in the Reddit pipeline. The logic is split into three parts: the entrypoint functions (\texttt{reddit-harvester-new-r} and \texttt{reddit-daily-job}), the harvester, and the adder (\texttt{reddit-to-es-new-r}). Each stage is connected via Redis queues, with dedicated error queues (dead-letter queues) for isolating and diagnosing failures.
+
+This design improves robustness by allowing specific parts of the pipeline to fail and retry independently. If one part encounters an error, the others can continue processing. It also makes error tracing easier, as each failure is logged to a specific error queue for offline inspection.
+
+The HTTP-triggered \texttt{reddit-harvester-new-r} performs parameter validation and enqueues results. Since it’s manually triggered, it does not include retry logic, but validation failures (e.g., malformed dates or missing fields) result in an immediate 400 error response.
+
+The timer-based \texttt{reddit-daily-job} uses try/except blocks to handle API failures gracefully—logging errors for failed subreddits but continuing with the rest. Both entrypoints use a shared \texttt{util.py:enqueue\_data} function to push messages into Redis, and failures at this step are logged but non-fatal.
+
+The \texttt{reddit-to-es-new-r} adder consumes messages from Redis and indexes them into Elasticsearch. It uses Fission’s Message Queue Trigger (MQT) with \texttt{--maxretries 3}. If all retries fail, the message is moved to the \texttt{reddit\_adder\_error} dead-letter queue. This prevents single bad messages from blocking the queue.
+
+Indexing is robust: malformed JSON raises deserialization errors, individual post failures (e.g., due to bad mappings) are caught and logged, and duplicates are avoided via \texttt{es\_client.exists()}. 
+
+This approach doesn’t cover all possible failure cases (e.g., persistent external outages), but it provides a strong foundation for resilience and observability in a high-throughput, asynchronous system.
+
+
 
 \subsection*{Integration Testing}
 
