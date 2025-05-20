@@ -161,17 +161,17 @@ All of the functions needed to gather and process OpenAustralia data are contain
 
 \subsection{Reddit Data Processing Architecture} 
 
-The architecture for harvesting and processing data from Reddit is designed to accommodate both ad-hoc, parameterized data scraping and automated daily collection of recent posts. This system utilizes a Fission serverless workflow, orchestrated with Redis message queues, to efficiently manage the data flow from the Reddit API to Elasticsearch.
+Data harvesting and processing architecture for Reddit is designed to handle both ad-hoc, parameterized scraping of Reddit data and a regular daily collection of recent posts. The system uses a Fission serverless workflow and Redis message queues to orchestrate smooth data flow from the Reddit API to Elasticsearch.
 
-The Reddit data pipeline consists of the following key Fission functions and components:
+The Reddit data pipeline, among other things, consists of the following major Fission functions and components:
 
 \begin{enumerate}
     \item \textbf{Entrypoint Functions (Initiating Data Collection):} 
-    There are two primary Fission functions that serve as entrypoints for Reddit data collection:
+    There are two main Fission functions that act as entrypoints for Reddit data collection:
 
     \begin{itemize}
         \item \textbf{HTTP Triggered Harvester (\texttt{reddit-harvester-new-r}):}
-            This function is invoked via an HTTP POST request to the \texttt{/reddit-new/scrape/} route.
+            This function gets started via an HTTP POST request through the route  \texttt{/reddit-new/scrape/}.
             It is defined by the \texttt{reddit\_harvester.py:main} entrypoint.
             The function expects a JSON payload specifying:
             \begin{itemize}
@@ -182,33 +182,34 @@ The Reddit data pipeline consists of the following key Fission functions and com
                 \item \texttt{scrape\_until} (optional, default: current date): An end date (YYYY-MM-DD format) for fetching posts created up to this date.
                 \item \texttt{sort} (optional): The sorting method for Reddit search results (e.g., "new", "top", "relevance").
             \end{itemize}
-            Upon receiving a request, \texttt{reddit\_harvester.py} uses the PRAW library to query the Reddit API for posts matching these criteria. It also extracts top-level comments for each retrieved post using the \texttt{get\_post\_comments} helper function within the script.
-            The collected posts and their associated comments are formatted into JSON objects. These JSON objects (representing a list of posts/comments) are then enqueued into a Redis message queue named \texttt{reddit\_posts\_queue}. This enqueueing operation is handled by the \texttt{util.py:enqueue\_data} function, which makes an HTTP POST request to a generic Fission \texttt{enqueue} function.
+            The \texttt{reddit\_harvester.py} module uses the PRAW library to query the Reddit API and search for posts matching the supplied criteria. It also extracts top-level comments for each of the retrieved posts using a helper function named  \texttt{get\_post\_comments}
+            The posts and their corresponding comments are then packaged as JSON objects. These JSON objects, representing a list of posts and comments, are added to a Redis message queue called \texttt{reddit\_posts\_queue} using the utility function \texttt{util.py:enqueue\_data}, which performs the enqueue operation via an HTTP POST request to a generic Fission \texttt{enqueue} function.
 
         \item \textbf{Timer Triggered Daily Harvester (\texttt{reddit-daily-job}):}
             This function is automatically executed once a day, triggered by a Fission timer configured with a \texttt{@daily} cron schedule.
-            It executes the \texttt{reddit\_daily\_harvester.py:main} entrypoint.
-            The script queries the Reddit API for posts based on a predefined list of subreddits (\texttt{DAILY\_SUBREDDITS}) and keywords (\texttt{DAILY\_KEYWORDS}) hardcoded within the script.
-            It focuses on posts created within a specific recent period defined by \texttt{DAILY\_SCRAPE\_DAYS\_AGO} (e.g., 1 day by default, but configurable as per the script's constants). The \texttt{DAILY\_LIMIT\_PER\_KEYWORD\_SUBREDDIT} and \texttt{DAILY\_SORT\_METHOD} are also configurable constants.
-            Similar to the HTTP harvester, this function gathers posts (and can be configured to gather their top-level comments via \texttt{get\_post\_comments\_for\_daily}). The formatted JSON data is enqueued into the same \textbf{\texttt{reddit\_posts\_queue}} using \texttt{util.py:enqueue\_data}.
-            The hardcoding of subreddits and keywords in the daily harvester is a deliberate choice to simplify automated daily scraping; these parameters could ideally be externalized to the \texttt{shared-data} ConfigMap for greater flexibility.
+            It initiates the \texttt{reddit\_daily\_harvester.py:main} entrypoint.
+            The script searches for posts through the Reddit API by referencing a hardcoded list of subreddits (\texttt{DAILY\_SUBREDDITS}) and keywords (\texttt{DAILY\_KEYWORDS}) within the script.   
+            It focuses on posts created within a specific recent period defined by \texttt{DAILY\_SCRAPE\_DAYS\_AGO} (e.g., 1 day by default, but configurable as per the script's constants). The constants \texttt{DAILY\_LIMIT\_PER\_KEYWORD\_SUBREDDIT} and \texttt{DAILY\_SORT\_METHOD} are also mutable.
+            It operates in a manner similar to the HTTP harvester, retrieving posts (and possibly their top-level comments via \texttt{get\_post\_comments\_for\_daily}) (depending on some configuration there). The JSON-formatted data is then sent to this reddit_posts_queue through \textbf{\texttt{reddit\_posts\_queue}} using \texttt{util.py:enqueue\_data}.
+            Hardcoding these subreddits and keywords in the daily harvester is deliberate, to facilitate daily scraping in an automated fashion; very well might be put into the \texttt{shared-data} ConfigMap for more flexibility. 
     \end{itemize}
 
     \item \textbf{Data Queuing (Redis):} 
-    Both harvester functions send their collected and formatted data (as JSON strings, typically representing batches of posts/comments) to a central Redis list acting as a message queue, named \textbf{\texttt{reddit\_posts\_queue}}.
-    The address for the Redis instance used by the Fission Message Queue Triggers is \texttt{redis-headless.redis.svc.cluster.local:6379}.
+    Both harvesting functions output their collected and formatted data (typically JSON strings representing batches of posts/comments) to a central Redis list acting as a message queue named \textbf{\texttt{reddit\_posts\_queue}}.  
+    Address for the Redis instance used by the Fission Message Queue Triggers is: \texttt{redis-headless.redis.svc.cluster.local:6379}.
+    
 
     \item \textbf{Data Indexing into Elasticsearch (Adder Function):}
     The \textbf{\texttt{reddit-to-es-new-r}} Fission function, with its entrypoint at \texttt{reddit\_to\_elasticsearch.py:main}, is responsible for consuming data from the \texttt{reddit\_posts\_queue}.
-    It is triggered by a Fission Message Queue Trigger (MQT) of \texttt{mqtkind keda}, which monitors the \texttt{reddit\_posts\_queue}.
-    When new messages (batches of posts/comments) arrive, KEDA invokes \texttt{reddit-to-es-new-r}.
-    The function iterates through each post or comment in the received batch.
-    For each item, it checks if a document with the same \texttt{post\_id} (which serves as the unique identifier for both posts and comments) already exists in the Elasticsearch index named \textbf{\texttt{reddit}}. This check prevents duplicate entries.
-    If the item does not exist, it is indexed into the \texttt{reddit} index. The mapping for this index is defined in \texttt{reddit-index.json}.
-    If message processing fails after the configured number of retries (e.g., 3 retries), the problematic message is moved to an error topic/list in Redis named \texttt{reddit\_adder\_error} for later analysis and debugging.
+    There is a Fission Message Queue Trigger (MQT) of \texttt{mqtkind keda} watching \texttt{reddit\_posts\_queue}.
+    When new messages (batches of posts/comments) get enqueued, KEDA starts up \texttt{reddit-to-es-new-r}.
+    The function loops over posts or comments in the passed batch.
+    For each item, it checks for any document with the same \texttt{post\_id} (acting as the unique identifier for both posts and comments) already present within the \textbf{\texttt{reddit}} index in Elasticsearch, to avoid duplicates. 
+    If the item does not exist within this index, it gets indexed within the \texttt{reddit} index. The mapping for the index is contained within \texttt{reddit-index.json}.
+    If processing of the message fails after the configured number of retries (say 3 retries), the troublesome message is put onto an error topic/list in Redis named \texttt{reddit\_adder\_error} for further analysis and debugging.
 \end{enumerate}
 
-This multi-stage, queue-based architecture allows for decoupling of data harvesting and data indexing, providing resilience and scalability. All Fission functions related to the Reddit pipeline are part of the \texttt{reddit-harvester-new-r} Fission package and utilize the \texttt{shared-data} ConfigMap for configurations such as API keys and Elasticsearch connection details.
+This multi-tier, queue-based architecture allows maximized decoupling of data harvesting and data indexing, with resilience and scalability features. All Fission functions for the Reddit pipeline reside within the \texttt{reddit-harvester-new-r} Fission package and use the \texttt{shared-data} ConfigMap for their configurations (such as API keys, Elasticsearch connection details, and so on).
 
 \subsection*{Sentiment Analysis}
 
