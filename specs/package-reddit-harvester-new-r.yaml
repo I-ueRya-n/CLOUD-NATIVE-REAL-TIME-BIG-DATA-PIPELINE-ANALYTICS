@@ -7,7 +7,7 @@ include:
 - ./src/reddit/requirements.txt
 - ./src/reddit/build.sh
 kind: ArchiveUploadSpec
-name: src-reddit-reddit-harvester-py-gc3u
+name: src-reddit-reddit-harvester-py-Kmad
 
 ---
 apiVersion: fission.io/v1
@@ -25,7 +25,7 @@ spec:
   source:
     checksum: {}
     type: url
-    url: archive://src-reddit-reddit-harvester-py-gc3u
+    url: archive://src-reddit-reddit-harvester-py-Kmad
 status:
   buildstatus: pending
-  lastUpdateTimestamp: "2025-05-20T04:23:49Z"
+  lastUpdateTimestamp: "2025-05-20T04:59:57Z"

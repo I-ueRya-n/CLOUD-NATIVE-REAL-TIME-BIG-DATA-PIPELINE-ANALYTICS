@@ -10,11 +10,11 @@ DAILY_KEYWORDS = ["election", "government", "policy", "housing", "cost of living
 
 
 
-DAILY_LIMIT_PER_KEYWORD_SUBREDDIT = 1000000
+DAILY_LIMIT_PER_KEYWORD_SUBREDDIT = 1000
 DAILY_SORT_METHOD = "new" 
-DAILY_SCRAPE_DAYS_AGO = 600
+DAILY_SCRAPE_DAYS_AGO = 1
 
-def get_post_comments_for_daily(reddit_client, post, limit=100000):
+def get_post_comments_for_daily(reddit_client, post, limit=1000):
     """
     Similar to get_post_comments in reddit_harvester.py,
     but ensures it enqueues data to the correct queue and can operate independently.
