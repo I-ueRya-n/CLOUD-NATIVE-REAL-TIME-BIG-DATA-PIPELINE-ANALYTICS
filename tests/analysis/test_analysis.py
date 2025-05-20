@@ -37,6 +37,24 @@ class TestAnalysis(unittest.TestCase):
             for entity in expected_list:
                 self.assertTrue(entity in data[label], f"Expected entity '{entity}' under label '{label}'")
 
+    def test_sentiment_fission_response(self) -> None:
+        url = "http://localhost:9090/analysis/sentiment/v1"
+        headers = {"Content-Type": "application/json"}
+        payload = {"text": "The Liberal Party is not a party that is both good and bad !"}
+        response = requests.post(url, json=payload, headers=headers)
+
+        self.assertEqual(response.status_code, 200, f"Expected 200 OK, got {response.status_code}")
+
+        data = response.json()
+        expected_values = {'neg': 0.279, 'neu': 0.462, 'pos': 0.259, 'compound': -0.1154}
+
+        for key, expected_value in expected_values.items():
+            self.assertIn(key, data, f"Missing expected key: {key}")
+            self.assertIsInstance(data[key], float, f"Expected {key} to be a float")
+            self.assertAlmostEqual(data[key], expected_value, places=3,
+                                   msg=f"Expected {key} ≈ {expected_value}, got {data[key]}")
+
+
 
 if __name__ == '__main__':
     unittest.main()
