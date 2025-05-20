@@ -88,19 +88,18 @@ fission mqtrigger create --name reddit-to-es-new-r \
 
 
 
-HAVENT SET UP DAILY TRIGGER YETR
-<!-- ### C: Timer Trigger for Daily Scrape
-fission function create --spec --name reddit-daily-trigger-new \
-  --pkg reddit-harvester \
+
+### C: Timer Trigger for Daily Scrape
+
+fission function create --spec --name reddit-daily-job \
+  --pkg reddit-harvester-new \
   --env python \
-  --entrypoint "reddit_daily_trigger.main"
+  --configmap shared-data \
+  --entrypoint "reddit_daily_harvester.main" \
 
-fission timer create --name reddit-daily-timer \
-  --function reddit-daily-trigger \
-  --cron "@daily" -->
-
-### C: adder
-
+fission timer create --spec --name reddit-daily-trigger \
+  --function reddit-daily-job \
+  --cron "@daily"
 
 ## Apply Spec and Test
 
