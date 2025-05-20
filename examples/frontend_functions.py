@@ -30,6 +30,12 @@ entity_labels = {
     "EVENT": "Events",
 }
 
+openaus_speaker_labels = {
+    "ORG": "parties",
+    "PERSON": "speakers",
+    "LOC": "speaker locations"
+}
+
 
 ####### SENTIMENT ACROSS TIME #######
 
@@ -118,20 +124,18 @@ def get_wordcloud_data(label):
 
     return data
     
-openaus_speaker_labels = {
-    "ORG": "parties",
-    "PERSON": "speakers",
-    "LOC": "speaker locations"
-}
 
 def wordcloud_from_data(label, data, includeSpeakers=False):
     new_labels = labels.copy()
     if includeSpeakers and "openaus-speakers" in data and data["openaus-speakers"]:
+        print("open aus speakers")
         new_labels["openaus-speakers"] = "Open Australia " + openaus_speaker_labels[label]
+    print(new_labels)
     fig, ax = plt.subplots(2, 2, figsize=(15, 9))
     for i, s in enumerate(new_labels):
-        wordcloud = WordCloud(background_color="white", max_font_size=80).generate_from_frequencies(data[s])
-        ax[i // 2, i % 2].imshow(wordcloud, interpolation="bilinear")
+        if data[s]:
+            wordcloud = WordCloud(background_color="white", max_font_size=80).generate_from_frequencies(data[s])
+            ax[i // 2, i % 2].imshow(wordcloud, interpolation="bilinear")
         ax[i // 2, i % 2].axis("off")
         ax[i // 2, i % 2].set_title(new_labels[s], fontsize=20)
 
