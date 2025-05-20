@@ -401,10 +401,11 @@ As a side comment, the usefulness of the \texttt{oa-daily-debate-harvester} was 
 
 \subsection*{Error Handling}
 
-\paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
+\paragraph*{Bluesky} The Bluesky firehose client is deployed as a container, instead of a fission function, since the websocket can listen indefinitely.
 This container is deployed to kubernetes with one replica. 
-This means the container will be re-deployed to another worker node if one fails, and kubernetes will spin up another replica if the current one crashes from an error.
-
+This means the container will be re-deployed to another worker node if one fails, and kubernetes will spin up a replica if the current one crashes.
+If an error occurs in the fission function which processes posts, a server error code and the error message is returned in the response.
+The Bluesky client logs out the response and continues on if it receives an error from the fission function.
 
 \paragraph*{OpenAustralia} 
 A modular, ``Event Driven Architecture'' approach was taken to handle errors in the OpenAustralia API.\ 
@@ -427,70 +428,110 @@ This strategy is certainly not perfect, as it does not handle all possible error
 Similarly to the OpenAustralia API, the reddit harvester is split into three parts: the entrypoint, the harvester and the adder. 
 This provided all the same benefits as the OpenAustralia API, including seperation of functionality, and the ability to retry failed function and greater insight into where errors are occuring.
 
-
 \subsection*{Integration Testing}
 
-
+We have automated testing in the \texttt{src} directory. 
+The script \texttt{run\_tests.sh} runs the each of the tests in one script.
 
 \subsection*{Analysis}
 
-
-\subsubsection*{Comparing the topics: Topic visualisation through word clouds}
+\subsubsection*{Topics Across Different Platforms}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.4]{report_images/wordcloud-person.png}
-    \caption{Word cloud of the most common ``Person'' entities mentioned in the posts and debates.}
+    \includegraphics[scale=0.4]{report_images/org_wordcloud.png}
+    \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
     \label{fig:word-org}
 \end{figure}
 
-Whatever we found here. btw will replace with final images
-To visually compare the topics of the posts and debates, we word clouds to show the most common entities in the posts and debates.
-Analysis was performed using the \texttt{spacy} library, and the word cloud was generated using the \texttt{wordcloud} library.
-
-
-\subsubsection*{Comparing the topics over time: count of keyword frequency over time}
-
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.35]{report_images/housing-keyword-count.png}
-    \caption{Frequency of the keyword ``housing'' over time across platforms.}
+    \includegraphics[scale=0.4]{report_images/person_wordcloud.png}
+    \caption{Word cloud of the most common ``Person'' entities in the posts and debates.}
+    \label{fig:word-person}
 \end{figure}
-The number of posts and debates containing a specific set of keywords was calculated over time.
-This allowed us to see if the topics of the posts and debates were similar, and if they changed over time.
-We hoped to see if the topics of online discussions changed after a debate was held to determine patterns of possible influence.
 
-
-\subsubsection*{Comparing the overall sentiment: Stacked bar chart over time}
+To compare the topics of the posts and debates, we use word clouds to show the most common named entities in the posts and debates.
+The python library \texttt{spacy} implements Named Entity Recognition, which we use to extract entities from text.
+Word clouds are generated using the \texttt{wordcloud} python library.
+Figure~\ref{fig:word-org} shows a wordcloud of organisations discussed in posts and debates across each platform.
+Figure~\ref{fig:word-person} shows a wordcloud of people discussed in posts and debates across each platform.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.4]{report_images/sentiment-over-time-bs-reddit.png}
-    \caption{Overall averaged sentiment of Bluesky and Reddit posts from 1st to the 19th of May 2025.}
-    \label{fig:word-org}
+    \includegraphics[scale=0.4]{report_images/org_freq.png}
+    \caption{Top 10 most common ``Organisation'' entities in the posts and debates.}
+    \label{fig:freq-org}
+\end{figure}
+
+Wordclouds are excel at displaying a large amount of data, and giving qualitative comparisons between different data points, but doesn't show quantitative differences in values very well. 
+Figure~\ref{fig:freq-org} shows the top 10 organisations across the platforms in a bar chart.
+
+\subsubsection*{Sentiment Over Time Across Platforms} 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{report_images/bluesky_reddit_sentiment.png}
+    \caption{Sentiment of posts related to Australian politics between 1st May 2025 and 19th May 2025}
+    \label{fig:bluesky-reddit-sentiment}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{report_images/open_aus_sentiment.png}
+    \caption{Sentiment of debates between 22nd August 2021 and 3rd September 2021.}
+    \label{fig:open-aus-sentiment}
 \end{figure}
 
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
 The sentiment was calculated for each post and debate, and then averaged over time.
 This allowed us to compare the overall averaged sentiment of the posts and debates over time.
 We found that this was relatively consistent across the platforms, with only small variations sentiment.
-For example, from the 1st to the 19th of May 2025, bluesky posts averaged a negative sentiment of around 7\%, while the average negative sentiment of reddit posts ranged from 5\% to 9\%. 
+Figure~\ref{fig:bluesky-reddit-sentiment} shows the sentiment of Reddit and Bluesky from the 1st to the 19th of May 2025. 
+Bluesky posts averaged a negative sentiment of around 7\%, while the average negative sentiment of reddit posts ranged from 5\% to 9\%. 
 Both BlueSky and Reddit posts were generally mostly neutral, but slightly more positive than negative.
 
+Figure~\ref{fig:open-aus-sentiment} shows the sentiment across two weeks of debates in 2021.
+The sentiment is more positive than negative, with around 10\% positive and 5\% negative.
+As more data is collected over time, we would be able to display sentiment across all 3 platforms for the same time period.
 
-\subsubsection*{Comparing sentiment by topic: stacked bar chart of averaged sentiment}
+\subsubsection*{Sentiment By Keyword Across Platforms}
+
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
-    \caption{Comparison of sentiment of posts discussing ``Pauline Hanson'' and debates where ``Pauline Hanson'' was a speaker.}
+    \includegraphics[scale=0.7]{report_images/pauline_sent_avg.png}
+    \caption{Sentiment of posts discussing ``Pauline Hanson'' and debates where ``Pauline Hanson'' was a speaker.}
+    \label{fig:pauline-sent-avg}
 \end{figure}
-A small number of topics were selected based on their prevalence in the posts and debates, and their relevance to the current political climate.
-Due to the smaller number of posts collected on reddit, these differences were more pronounced.
 
-For the online platforms, the sentiment was averaged over posts discussing the topic.
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.7]{report_images/albo_sent_avg.png}
+    \caption{Sentiment of posts discussing ``Anthony Albanese'' and debates where ``Anthony Albanese'' was a speaker.}
+    \label{fig:albo-sent-avg}
+\end{figure}
+
+To show overall sentiment around topics or keywords, we average the sentiment of all posts containing a keyword.
 For OpenAustralia, if the topic was a person or party, the average sentiment of debates held by that entity were calculated.
 If the topic not a person or party, debates mentioning that topic were averaged.
 
-For example, the sentiment of posts discussing ``Pauline Hanson'' was compared to the sentiment of debates where ``Pauline Hanson'' was a speaker. 
+Figure~\ref{fig:pauline-sent-avg} shows the sentiment of posts discussing ``Pauline Hanson'' compared to the sentiment of debates where ``Pauline Hanson'' was a speaker. 
+Figure~\ref{fig:albo-sent-avg} shows the sentiment of posts discussing ``Anthony Albanese'' compared to the sentiment of debates where ``Anthony Albanese'' was a speaker. 
+
+\subsubsection*{Post Count By Keyword Across Platforms}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{report_images/housing_count.png}
+    \caption{Number of posts containing the word 'housing' per day.}
+    \label{fig:housing-count}
+\end{figure}
+
+We wanted to investigate if debates influenced online discussions.
+To do this, we calculated the number of posts and debates containing a set of keywords over time.
+For example, Figure~\ref{fig:housing-count} shows number of posts and debates containing the keyword 'housing' over time.
+Unfortunately there is limited overlap of Bluesky and Open Australia data due to the short timeframe of data collection.
+In the future we may see a shift in the topics of online discussions, or the amount of discussion on a topic, after a debate is held.
+
 
 \end{document}

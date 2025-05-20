@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 17:40
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 18:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -999,44 +999,100 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [7 <./report_images/bluesky-posts.png (PNG copy)>]
 
 [8 <./report_images/bluesky-cpu.png (PNG copy)>]
-<report_images/wordcloud-org.png, id=73, 1076.1003pt x 631.6398pt>
-File: report_images/wordcloud-org.png Graphic file (type png)
-<use report_images/wordcloud-org.png>
-Package pdftex.def Info: report_images/wordcloud-org.png  used on input line 44
+<report_images/org_wordcloud.png, id=73, 1084.05pt x 650.43pt>
+File: report_images/org_wordcloud.png Graphic file (type png)
+<use report_images/org_wordcloud.png>
+Package pdftex.def Info: report_images/org_wordcloud.png  used on input line 44
 2.
-(pdftex.def)             Requested size: 430.4325pt x 252.65144pt.
-<report_images/sentiment-pauline.png, id=74, 570.933pt x 281.853pt>
-File: report_images/sentiment-pauline.png Graphic file (type png)
-<use report_images/sentiment-pauline.png>
-Package pdftex.def Info: report_images/sentiment-pauline.png  used on input lin
-e 456.
-(pdftex.def)             Requested size: 199.82953pt x 98.65002pt.
-File: report_images/wordcloud-org.png Graphic file (type png)
-<use report_images/wordcloud-org.png>
-Package pdftex.def Info: report_images/wordcloud-org.png  used on input line 46
-8.
-(pdftex.def)             Requested size: 430.4325pt x 252.65144pt.
+(pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
+<report_images/person_wordcloud.png, id=74, 1084.05pt x 650.43pt>
+File: report_images/person_wordcloud.png Graphic file (type png)
+<use report_images/person_wordcloud.png>
+Package pdftex.def Info: report_images/person_wordcloud.png  used on input line
+ 449.
+(pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
 
 
-[9 <./report_images/wordcloud-org.png> <./report_images/sentiment-pauline.png>]
-File: report_images/sentiment-pauline.png Graphic file (type png)
-<use report_images/sentiment-pauline.png>
-Package pdftex.def Info: report_images/sentiment-pauline.png  used on input lin
-e 483.
-(pdftex.def)             Requested size: 199.82953pt x 98.65002pt.
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<report_images/org_freq.png, id=75, 1084.05pt x 650.43pt>
+File: report_images/org_freq.png Graphic file (type png)
+<use report_images/org_freq.png>
+Package pdftex.def Info: report_images/org_freq.png  used on input line 462.
+(pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<report_images/bluesky_reddit_sentiment.png, id=76, 867.24pt x 433.62pt>
+File: report_images/bluesky_reddit_sentiment.png Graphic file (type png)
+<use report_images/bluesky_reddit_sentiment.png>
+Package pdftex.def Info: report_images/bluesky_reddit_sentiment.png  used on in
+put line 474.
+(pdftex.def)             Requested size: 433.61894pt x 216.80946pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<report_images/open_aus_sentiment.png, id=77, 867.24pt x 216.81pt>
+File: report_images/open_aus_sentiment.png Graphic file (type png)
+<use report_images/open_aus_sentiment.png>
+Package pdftex.def Info: report_images/open_aus_sentiment.png  used on input li
+ne 481.
+(pdftex.def)             Requested size: 433.61894pt x 108.40472pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
 
 
-[10] (./report.aux)
+
+[9 <./report_images/org_wordcloud.png>]
+<report_images/pauline_sent_avg.png, id=82, 578.16pt x 289.08pt>
+File: report_images/pauline_sent_avg.png Graphic file (type png)
+<use report_images/pauline_sent_avg.png>
+Package pdftex.def Info: report_images/pauline_sent_avg.png  used on input line
+ 502.
+(pdftex.def)             Requested size: 404.70924pt x 202.35461pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<report_images/albo_sent_avg.png, id=83, 578.16pt x 289.08pt>
+File: report_images/albo_sent_avg.png Graphic file (type png)
+<use report_images/albo_sent_avg.png>
+Package pdftex.def Info: report_images/albo_sent_avg.png  used on input line 50
+9.
+(pdftex.def)             Requested size: 404.70924pt x 202.35461pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<report_images/housing_count.png, id=84, 1011.78pt x 433.62pt>
+File: report_images/housing_count.png Graphic file (type png)
+<use report_images/housing_count.png>
+Package pdftex.def Info: report_images/housing_count.png  used on input line 52
+5.
+(pdftex.def)             Requested size: 404.70483pt x 173.44492pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[10 <./report_images/person_wordcloud.png>]
+
+[11 <./report_images/org_freq.png> <./report_images/bluesky_reddit_sentiment.pn
+g>]
+
+[12 <./report_images/open_aus_sentiment.png> <./report_images/pauline_sent_avg.
+png> <./report_images/albo_sent_avg.png>]
+
+[13 <./report_images/housing_count.png>] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 30887 strings out of 475171
- 734821 string characters out of 5767095
+ 30935 strings out of 475171
+ 736628 string characters out of 5767095
  1432937 words of memory out of 5000000
- 53338 multiletter control sequences out of 15000+600000
+ 53386 multiletter control sequences out of 15000+600000
  564086 words of font info for 57 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  102i,12n,107p,756b,1512s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1051,10 +1107,10 @@ ublic/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
 </usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/tex
 mf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
-Output written on report.pdf (10 pages, 1106718 bytes).
+Output written on report.pdf (13 pages, 2300641 bytes).
 PDF statistics:
- 139 PDF objects out of 1000 (max. 8388607)
- 76 compressed objects within 1 object stream
+ 161 PDF objects out of 1000 (max. 8388607)
+ 83 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 134 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 164 words of extra memory for PDF output out of 10000 (max. 10000000)
 
