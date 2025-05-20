@@ -403,6 +403,11 @@ Then deploy with kubectl
 kubectl create -f src/bluesky/bluesky-firehose.yaml
 ```
 
+or update the existing deployment with
+```bash
+kubectl set image -f src/bluesky/bluesky-firehose.yaml bluesky=jcchil/bluesky-firehose:<version>
+```
+
 ## Analysis Setup
 
 ### Vader

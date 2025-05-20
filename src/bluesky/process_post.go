@@ -61,7 +61,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if p == nil {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 

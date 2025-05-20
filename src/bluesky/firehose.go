@@ -54,22 +54,20 @@ func main() {
 		HandshakeTimeout: 45 * time.Second,
 	}
 
-	for {
-		con, _, err := dialer.Dial(uri, http.Header{})
-		if err != nil {
-			log.Println("dial bsky:", err)
-		}
+	con, _, err := dialer.Dial(uri, http.Header{})
+	if err != nil {
+		log.Println("dial bsky:", err)
+	}
 
-		rsc := &events.RepoStreamCallbacks{
-			RepoCommit: handleRepoCommit,
-		}
+	rsc := &events.RepoStreamCallbacks{
+		RepoCommit: handleRepoCommit,
+	}
 
-		sched := parallel.NewScheduler(100, 1000, "wss://bsky.network", rsc.EventHandler)
+	sched := parallel.NewScheduler(100, 1000, "wss://bsky.network", rsc.EventHandler)
 
-		err = events.HandleRepoStream(context.Background(), con, sched, nil)
-		if err != nil {
-			log.Println("handle repo stream:", err)
-		}
+	err = events.HandleRepoStream(context.Background(), con, sched, nil)
+	if err != nil {
+		log.Println("handle repo stream:", err)
 	}
 }
 
@@ -134,14 +132,15 @@ func handleRepoCommit(evt *atproto.SyncSubscribeRepos_Commit) error {
 		return nil
 	}
 
-	if res.StatusCode == http.StatusNotFound {
+	buf, _ = io.ReadAll(res.Body)
+	if res.StatusCode == http.StatusNoContent {
+		// commit is not a post
 		return nil
-	} else if res.StatusCode != http.StatusOK {
+	} else if res.StatusCode >= 400 {
 		log.Println("error in repo commit: ", string(buf[:]))
 		return nil
 	}
 
-	buf, _ = io.ReadAll(res.Body)
 	var post Post
 	_ = json.Unmarshal(buf, &post)
 
