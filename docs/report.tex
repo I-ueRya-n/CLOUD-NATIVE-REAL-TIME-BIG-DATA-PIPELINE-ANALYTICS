@@ -167,11 +167,11 @@ The Reddit data pipeline consists of the following key Fission functions and com
             The hardcoding of subreddits and keywords in the daily harvester is a deliberate choice to simplify automated daily scraping; these parameters could ideally be externalized to the \texttt{shared-data} ConfigMap for greater flexibility.
     \end{itemize}
 
-    \item \textbf{Data Queuing (Redis):} % 資料佇列 (Redis)
+    \item \textbf{Data Queuing (Redis):} 
     Both harvester functions send their collected and formatted data (as JSON strings, typically representing batches of posts/comments) to a central Redis list acting as a message queue, named \textbf{\texttt{reddit\_posts\_queue}}.
     The address for the Redis instance used by the Fission Message Queue Triggers is \texttt{redis-headless.redis.svc.cluster.local:6379}.
 
-    \item \textbf{Data Indexing into Elasticsearch (Adder Function):} % 資料索引到 Elasticsearch (添加器函數)
+    \item \textbf{Data Indexing into Elasticsearch (Adder Function):}
     The \textbf{\texttt{reddit-to-es-new-r}} Fission function, with its entrypoint at \texttt{reddit\_to\_elasticsearch.py:main}, is responsible for consuming data from the \texttt{reddit\_posts\_queue}.
     It is triggered by a Fission Message Queue Trigger (MQT) of \texttt{mqtkind keda}, which monitors the \texttt{reddit\_posts\_queue}.
     When new messages (batches of posts/comments) arrive, KEDA invokes \texttt{reddit-to-es-new-r}.
