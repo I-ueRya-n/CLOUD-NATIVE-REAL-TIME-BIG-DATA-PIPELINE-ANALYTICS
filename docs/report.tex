@@ -111,12 +111,12 @@ Are there still sides of social media where people present their political opini
 And where does all this anger come from? 
 Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
 
-
 In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
 We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
 
 \subsection*{Analysis Goals}
-We had three main goals for our analysis.
+
+We had four main goals for our analysis.
 
 \paragraph*{Comparing the topics}
 We first wanted to see what political topics were popular for discussion across platforms. 
@@ -134,12 +134,19 @@ For example, do users of Reddit post more positively about the topic of housing 
 \paragraph*{Comparing the topics over time}
 We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. 
 This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a shift in sentiment online.
+
 \section*{System Architecture}
+
 \subsection*{Overview}
+
 The system is designed to gather data from three different platforms: Bluesky, OpenAustralia and Reddit.
-The data is processed by fission functions and stored in elastic search indices.
-Analysis is performed by seperate fission functions, and the result of any analysis is cached in elastic search for future requests.
-User facing functions aggregate results from the analysis functions, which is displayed to the user in a Jupyter Notebook.
+The Bluesky client streams data continuously into elastic search using a combination of kubernetes and fission.
+The OpenAustralia client is made up of a number of a couple of different fission functions which query the Open Australia API on a time trigger.
+Similarly the Reddit client pulls data from the Reddit API across a predefined set of subreddits. 
+Data from the Open Australia and Reddit clients is added to redis queues, which is then processed and indexed to ElasticSearch.
+Analysis is performed by fission functions for sentiment analysis and named entity recognition, and the result of any analysis is cached in elastic search for future requests.
+User interface fission functions aggregate results from the analysis functions. 
+The front end is a Jupyter Notebook, which queries the user interface fission functions using a RESTful API, and displays the data returned.
 The system is designed to be modular and scalable, so that we can easily add new platforms or data sources in the future and handle varying amounts of data.
 A high level overview of the architecture is show in Figure~\ref{fig:arch}. 
 
@@ -182,7 +189,7 @@ The queues are created by sending a post request to the \texttt{enqueue} functio
 
 The general structure of the OpenAustralia data inflow is as follows:
 \begin{enumerate}
-    \item An ``entrypoint`` fission function is called, which adds the parameters (keys) of the request to the redis message ueue \texttt{oa\_debate\_keys}.
+    \item An ``entrypoint`` fission function is called, which adds the parameters (keys) of the request to the redis message queue \texttt{oa\_debate\_keys}.
     
     \begin{lstlisting}[frame=none,numbers=none]
     { 
@@ -360,22 +367,21 @@ To increase throughput, we send the cache function a list of post id's to retrie
 
 \subsection*{User Interface}
 
-The user interface consists of Jupyter Notebook, and fission functions to collect the data.
-We have 4 fission functions,
+The user interface consists of Jupyter Notebook, and which access data through a RESTful API, backed by fission functions.
+We have 4 fission functions which provide data to the user,
 
 \begin{itemize}[label=-]
-    \item \texttt{/ui/sentiment/keyword/:keyword/start/:start/end/:end} Aggregates the sentiment per day from the start date to the end date, filtering posts by a keyword.
-    \item \texttt{/ui/sentiment-averager/type/:type} Calculates the average sentiment for posts containing a keyword.
-    \item \texttt{/ui/counts/start/:start/keyword/:keyword} Calculates the number of posts containing a keyword, per day since the given start date.
-    \item \texttt{/ui/named-entities/label/:label} Finds the named entities belonging to a given label.
+    \item \texttt{/ui/sentiment/keyword/:keyword/start/:start/end/:end} Aggregates the sentiment per day from the start date to the end date, for each platform, filtering posts by a keyword.
+    \item \texttt{/ui/sentiment-averager/type/:type} Calculates the average sentiment for posts containing a keyword, for each platform.
+    \item \texttt{/ui/counts/start/:start/keyword/:keyword} Calculates the number of posts containing a keyword, per day since the given start date, for each platform.
+    \item \texttt{/ui/named-entities/label/:label} Finds the named entities belonging to a given label, across all posts per platform. This label is a property of Spacy named entity recognition, such as 'PERSON' for a person or 'ORG' for organisations.
 \end{itemize}
 
-Each function queries the relevant fission functions, or ElasticSearch, and collects the result into a form ready to be displayed to the user.
+Some functions call other fission functions to retrieve data, such as sentiment or named entities, or they query ElasticSearch indices for documents.
+The function aggregates the data into a JSON object and returns it to the user, which is then visualised in the Jupyter Notebook.
 We use MatPlotlib for most of the visualisations, and the WordCloud python package for creating word clouds of named entities.
 
 \subsection*{Fission}
-
-\subsection*{Fission Specs}
 
 In alignment with the principle of declarative application management, we used fission specs to define the desired state of our fission setup. 
 
@@ -391,6 +397,9 @@ This was espeically important when working in a shared environment with a large 
 Due to issues with python, we switched the Bluesky harvester to Golang.
 Additionally the analysis caching was written in Go, the main benefit of using Go is the easy concurrency for requesting new analysis results.
 Team members not familiar with Go could still use the cache function since it could be accessed as a fission function from Python code.
+
+The NeCTAR Research Cloud simplified the development of the application, by giving a homogeneous environment to develop the application.
+We did not need to be concerned about what operating system the end user or other team members are using, if they are using the same version of python, or other tools, and other details.
 
 \paragraph*{Challenges} A major challenge our group faced was adapting to the shared nature of the NeCTAR research cloud.
 At several points during the project, we encountered issues arising from multiple people attempting to modify the system at once.
@@ -490,7 +499,7 @@ This provided all the same benefits as the OpenAustralia API, including seperati
 
 \subsection*{Integration Testing}
 
-We have automated testing in the \texttt{src} directory. 
+We have automated testing in the \texttt{test} directory of the GitLab repository. 
 The script \texttt{run\_tests.sh} runs the each of the tests in one script.
 For Bluesky we test the process post function correctly decodes a post, and return a 204 status code for a non-post.
 For the caching function, we test that calculated values are inserted to the caching ElasticSearch index, and if we retrieve a cached value, the value is the one in ElasticSearch and is not recalculated.
