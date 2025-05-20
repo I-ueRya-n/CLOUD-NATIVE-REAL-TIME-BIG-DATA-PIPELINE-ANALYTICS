@@ -64,27 +64,55 @@
 \fancyhead[R]{5 May 2025}
 
 Team 57.
-Team Members: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089), YU-WEI LIN (1537312)
+Team Members: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089), YU-WEI LIN (1537312) \newline
+
+Video: \newline
+
+GitLab Repo: \url{https://gitlab.unimelb.edu.au/JCCHIL/comp90024_team_57}
 
 \section*{System Architecture}
 
 \subsection*{Overview}
-The system is designed to gather data from three different platforms: Bluesky, OpenAustralia and Reddit.
-The data is then processed and stored in elastic search indexs, which can be queried by the user.
-The system is designed to be modular and scalable, so that we can easily add new platforms or data sources in the future and handle varying amounts of data.
 
+The system is designed to gather data from three different platforms: Bluesky, OpenAustralia and Reddit.
+The data is processed by fission functions and stored in elastic search indices.
+Analysis is performed by seperate fission functions, and the result of any analysis is cached in elastic search for future requests.
+User facing functions aggregate results from the analysis functions, which is displayed to the user in a Jupyter Notebook.
+The system is designed to be modular and scalable, so that we can easily add new platforms or data sources in the future and handle varying amounts of data.
+A high level overview of the architecture is show in Figure~\ref{fig:arch}. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{report_images/architecture.png}
+    \caption{System Architecture. White rectangles are Elastic Search Indices, Grey rectangles are external data sources and colored rectangles are fission functions.}
+    \label{fig:arch}
+\end{figure}
 
 \subsection*{Bluesky}
 
 Bluesky has a firehose which gives access to all changes on the bluesky network.
-We open a websocket to the firehose endpoint \texttt{com.atproto.sync.subscribeRepos}.
+To handle the data from the firehose, we split the processing into two parts.
+The first part is receiving data from the firehose, which is written in Go and containerized in a docker image.
+The docker image is deployed in to kubernetes, with a single replica so kubernetes will restart the container if an error occurs.
+The second part is decoding and extracting the useful information from a repository commit.
+The AT protocol sends data in blobs, which needs to be decoded.
+This is handled by a fission function, which handles POST requests containing the repository commit in the body, and returns a JSON of the data we want. \newline
+
+The container begins by opening a websocket to the firehose endpoint \texttt{com.atproto.sync.subscribeRepos}.
 When we receive a \texttt{RepoCommit}, we call the fission function \texttt{processPost} which handles decoding the message.
 A commit could be a like on a post, a new post, a repost, or some other type of update.
-\texttt{processPost} returns either a 200 with a JSON of the post which contains the \texttt{cid}, \texttt{did}, \texttt{text} and \texttt{createdAt} fields, or a 404 if the commit was not a post.
-Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this in the elastic search index.
-\texttt{did} is an identifier for the author of the post, \texttt{text} is the body of the post and \texttt{createdAt} is the post timestamp.
+\texttt{processPost} returns either a 200 with a JSON of the post which contains the \texttt{cid}, \texttt{did}, \texttt{text} and \texttt{createdAt} fields, or a 204 if the commit was not a post.
+Bluesky uses \texttt{cid} as the unique identifier of a commit, so we reuse this in the elastic search index as the id.
+\texttt{did} is an identifier for the author of the post, \texttt{text} is the body of the post and \texttt{createdAt} is the post timestamp. 
+The response is indexed to ElasticSearch using the bulk indexer. \newline
+
+We index the documents to Elastic Search from the firehose container.
+We could have the fission function index documents to ElasticSearch, but then each function would need to obtain a client login for each document, and index each document individually.
+In this case, the volumne of requests results in the ElasticSearch instance becoming overwhelmed by the number of requests, and would stop accepting requests.
+Using the bulk indexer for ElasticSearch reduces indexing overhead and increases speed.
 
 \subsection*{Open Australia}
+
 The OpenAustralia (OA) API provide a REST API which we can use to query the Australian parliament's Hansard reports, and also some user comments.
 
 A redis message queue is used to handle the data inflow from the OpenAustralia API.\
@@ -112,7 +140,6 @@ The general structure of the OpenAustralia data inflow is as follows:
     And also between debates and their parent topics, so that we can query the debates for a specific topic.
 \end{enumerate}
 
-
 There are three main entrypoints to gathering OpenAustralia data.
 
 \begin{itemize}
@@ -128,8 +155,8 @@ There are three main entrypoints to gathering OpenAustralia data.
     
     This is accessed through a time trigger, which runs once a day.
 \end{itemize}
-The first two entrypoints are called manually to scrape past data from the backlog, while the third is called daily to gather new data.
 
+The first two entrypoints are called manually to scrape past data from the backlog, while the third is called daily to gather new data.
 All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
 \subsection{Reddit Data Processing Architecture} 
@@ -183,10 +210,9 @@ The Reddit data pipeline consists of the following key Fission functions and com
 
 This multi-stage, queue-based architecture allows for decoupling of data harvesting and data indexing, providing resilience and scalability. All Fission functions related to the Reddit pipeline are part of the \texttt{reddit-harvester-new-r} Fission package and utilize the \texttt{shared-data} ConfigMap for configurations such as API keys and Elasticsearch connection details.
 
-
 \subsection*{Sentiment Analysis}
 
-\paragraph*{Choosing an Analysis Method}
+\paragraph*{Choosing an Analysis Method} 
 In order for us to perform sentiment analysis on the posts from the various social media platforms we whose, we had to choose between different avaiable options. However, since we didn't want to reinvent the wheel and risk having analysis of lesser quality we decided to use a pre-existing library. Now the choice of library came down to ease of use and overall consistency with our project.
 
 This is why we decided to use the \texttt{VADER} library. VADER is a lexicon and rule-based sentiment analysis tool that is specifically tuned to sentiment analysis in social media posts and text. It is capable of detecting sentiment in text, and it is particularly effective for short texts such as tweets or posts.
@@ -246,6 +272,19 @@ To increase throughput, we send the cache function a list of post id's to retrie
 
 \subsection*{User Interface}
 
+The user interface consists of Jupyter Notebook, and fission functions to collect the data.
+We have 4 fission functions,
+
+\begin{itemize}[label=-]
+    \item \texttt{/ui/sentiment/keyword/:keyword/start/:start/end/:end} Aggregates the sentiment per day from the start date to the end date, filtering posts by a keyword.
+    \item \texttt{/ui/sentiment-averager/type/:type} Calculates the average sentiment for posts containing a keyword.
+    \item \texttt{/ui/counts/start/:start/keyword/:keyword} Calculates the number of posts containing a keyword, per day since the given start date.
+    \item \texttt{/ui/named-entities/label/:label} Finds the named entities belonging to a given label.
+\end{itemize}
+
+Each function queries the relevant fission functions, or ElasticSearch, and collects the result into a form ready to be displayed to the user.
+We use MatPlotlib for most of the visualisations, and the WordCloud python package for creating word clouds of named entities.
+
 \section*{Scenarios}
 
 \paragraph*{Overview}
@@ -296,24 +335,55 @@ This was espeically important when working in a shared environment with a large 
 
 \subsection*{Platform Discussion}
 
-\subsection*{Challenges (we can remove this, its just mentioned that we should talk about challenges)}
-A major challenge our group faced was adapting to the shared nature of the NeCTAR research cloud.
+\paragraph*{Benefits} A benefit of the NeCTAR Research Cloud and fission is the ability to use multiple programming languages.
+Due to issues with python, we switched the Bluesky harvester to Golang.
+Additionally the analysis caching was written in Go, the main benefit of using Go is the easy concurrency for requesting new analysis results.
+Team members not familiar with Go could still use the cache function since it could be accessed as a fission function from Python code.
+
+\paragraph*{Challenges} A major challenge our group faced was adapting to the shared nature of the NeCTAR research cloud.
 At several points during the project, we encountered issues arising from multiple people attempting to modify the system at once.
 
-These were generally minor, such as applying conflicting fission specs.
+Some of the minor issues included conflicting fission deployments, or source code being removed without the fission yaml specs being removed, resulting in a spec that could not be deployed.
 However, we also encountered more serious issues.
-Near the beginning of the project, the cluster setup was unexpectedly re-run, meaning that we had to re-build our software stack.
+Near the beginning of the project, the cluster was deleted and the setup was unexpectedly re-run, meaning that we had to re-build our software stack.
+And not long after the cluster was re-setup, a duplicate ElasticSearch deployment was made to the default namespace, alongside the ElasticSearch deployment in the elastic namespace.
+This didn't seem to break anything and was removed without affecting the project.
+A challenge of NeCTAR is the lack of Role Based Access Control within a group, meaning we couldn't have one person responsible for managing the cluster.
 
 Even at a small group scale, it was difficult to coordinate the changes being made to the system.
-
-This was somewhat mitigated by the use of fission specs, as we could easily re-deploy the functions to a different worker node.
+This was mitigated by the use of fission specs, as we could easily re-deploy the functions to a different worker node.
 These challenges highlighted the benefits of using an Infrastructure as Code approach, as we could recover from these setbacks.
+
+Another challenge of using fission is the inability to carefully instrument programs when issues occur within a function.
+In this case, Bluesky would not work in python.
+A simple function to pull from a feed would work locally but not in fission.
+Tracing it back to a minimal example, having \texttt{import atproto} in a python file would cause the function to not execute at all.
+So we switched to using Go for the Bluesky handling.
 
 \subsection*{Application Scaling}
 
 \paragraph*{Bluesky} To handle processing the large number of posts in the bluesky firehose, we utilise a new deploy pool of fission functions.
 We set the minimum number of pods to 1, and the maximum to 30. 
 This allows fission to increase or decrease the number of pods, up to 30, depending on the current load.
+Since the firehose container is implemented using Go, we spawn a Go thread for each request, allowing the firehose to scale vertically to meet demand since we can't scale horizontally. \newline
+
+Using grafana, we can monitor the system resources used by the bluesky firehose.
+At the peak, the fission function handles 35,000 requests per second, with around 5,000 of those requests containing a post, shown in Figure~\ref{fig:bluesky-post}.
+The firehose websocket pod utilises 0.8 cpu's at the peak, and 0.4 cpu's for the fission function, shown in Figure~\ref{fig:bluesky-cpu}. \newline
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{report_images/bluesky-posts.png}
+    \caption{Bluesky fission function calls.}
+    \label{fig:bluesky-post}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{report_images/bluesky-cpu.png}
+    \caption{Bluesky cpu usage.}
+    \label{fig:bluesky-cpu}
+\end{figure}
 
 \paragraph*{OpenAustralia} 
 The data influx of the OpenAustralia api was of a less intense ``velocity'' compared to that of BlueSky and Reddit.
@@ -368,8 +438,9 @@ This provided all the same benefits as the OpenAustralia API, including seperati
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \includegraphics[scale=0.4]{report_images/wordcloud-org.png}
     \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
+    \label{fig:word-org}
 \end{figure}
 
 Whatever we found here. btw will replace with final images
@@ -380,8 +451,9 @@ Analysis was performed using the \texttt{spacy} library, and the word cloud was 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.35]{report_images/wordcloud-org.png}
+    \includegraphics[scale=0.4]{report_images/wordcloud-org.png}
     \caption{Overall sentiment over time from TIME to TIME.}
+    \label{fig:word-org}
 \end{figure}
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
 idk
