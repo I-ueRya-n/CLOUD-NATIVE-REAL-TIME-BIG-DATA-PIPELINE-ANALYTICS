@@ -81,14 +81,7 @@ def open_aus_words(client: Elasticsearch, label: str, keywords: List[str] = [],
                 data[word] = 0
 
             data[word] += 1
-
+    print("[open aus] limit finished: ", done)
     print("[open aus] gathered count of", len(data), "entities of type", label)
     return data
 
-
-# if __name__ == "__main__":
-#     client: Elasticsearch = None
-#     count = 10
-    # data = open_aus_words(client, count, "PERSON", ["dirt"]) 
-
-    # data = open_aus_words(client, count, "ORG", [], "2024-01-01", "2024-03-01")

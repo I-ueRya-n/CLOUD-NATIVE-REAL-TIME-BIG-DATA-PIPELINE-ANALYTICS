@@ -29,7 +29,7 @@ def get_count_politicians(client: Elasticsearch, count: int,
     Returns the politicians (first and last names) with the most occurences.
     Gets the top person ids, then gets the first and last names for each.
     """
-    print("getting count politicians")
+    print("[oa entities] getting count politicians")
     response = client.search(
         index="oa-debates",
         size=0,
@@ -97,6 +97,8 @@ def get_count_fields(client: Elasticsearch, count: int, label: str,
             }
         }
     )
+    # print(response)
+    print("[oa entities] aggregating field counts" + str(len(response["aggregations"]["top_counts"]["buckets"])))
     buckets = response["aggregations"]["top_counts"]["buckets"]
     result = {bucket["key"]: bucket["doc_count"] for bucket in buckets}
     return result
@@ -125,6 +127,7 @@ def open_aus_count_speakers(client: Elasticsearch, count: str, speaker_type: str
     # need this because it splits firstname and lastname
     if speaker_type == "speaker":
         data = get_count_politicians(client, count, date_from, date_to)
+    
     else:
         data = get_count_fields(client, count, speaker_type, date_from, date_to)
 

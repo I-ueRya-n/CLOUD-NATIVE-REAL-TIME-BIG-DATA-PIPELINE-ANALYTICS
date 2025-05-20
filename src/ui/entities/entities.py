@@ -51,11 +51,11 @@ def main() -> Tuple[Dict[str, Any], int]:
 
         # optional: get the top speakers and parties
         # will auto filter this out
-        if label == "ORG":
+        if label == "ORG" or label == "ORGANIZATION": 
             status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker.party", date_from="2024-01-01")
-        elif label == "PERSON":
+        elif label == "PERSON" or label == "PER":
             status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker", date_from="2024-01-01")
-        elif label == "LOC":
+        elif label == "LOC" or label == "LOCATION":
             status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker.state", date_from="2024-01-01")
 
     except Exception as e:
