@@ -56,24 +56,72 @@
 
 \renewcommand{\arraystretch}{1.5}
 
+\title{
+    \vspace{2cm}
+    \textbf{Cluster and Cloud Computing (COMP90024)}\\[0.2cm]
+    \textbf {Assignment 2: Big Data Analytics on the Cloud}\\[0.5cm]
+    \textbf {Social Media and Parliamentary Data Analysis}\\[0.5cm]
+    \large Due: 21 May 2025\\
+    \large Team 57\\[.6cm]
+    \textbf{GitLab Repo}: \url{https://gitlab.unimelb.edu.au/JCCHIL/comp90024_team_57}\\[0.2cm]
+    \textbf{Video}: \newline
+
+    \textbf{Team Members}: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089), YU-WEI LIN (1537312)\\[1cm]
+    \large THE UNIVERSITY OF MELBOURNE\\
+
+}
+\date{}
+\author{}
+
 \begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
 
 \pagestyle{fancy}
 \fancyhead[L]{Team 57}
 \fancyhead[C]{COMP90024 - Assignment 2}
 \fancyhead[R]{5 May 2025}
 
-Team 57.
-Team Members: Josh Childs (1549150), Enzo Noel (1675346), Molly Stow (1356089), YU-WEI LIN (1537312) \newline
 
-Video: \newline
 
-GitLab Repo: \url{https://gitlab.unimelb.edu.au/JCCHIL/comp90024_team_57}
+\section*{Scenarios}
 
+\paragraph*{Overview}
+Today, it is nearly impossible to spend time online without witnessing a discussion about politics. For many people, this is not a topic that is discussed politely, calmly and with respect. A thread on a hot topic quickly can become intense, escalating into arguments and attacks. 
+
+But is it truly like this everywhere, or are we just seeing the worst side of the internet? 
+
+Are there still sides of social media where people present their political opinions in a pleasant and happy way? 
+And where does all this anger come from? 
+Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
+
+
+In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
+We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
+
+\subsection*{Analysis Goals}
+We had three main goals for our analysis.
+
+\paragraph*{Comparing the topics}
+We first wanted to see what political topics were popular for discussion across platforms. 
+Do users of different social media platforms have different priorities? Do they discuss the same topics, and do these align with what is being discussed in parliament?
+We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen”, Australian locations, and parties, such as "Labor".
+
+\paragraph*{Comparing the overall sentiment}
+We aimed to contrast the overall sentiment of these discussions and debates over time.
+We wanted to see if the conversations held on some of these platforms were more positive or negative than others, and whether there were any clear trends.
+
+\paragraph*{Comparing the sentiment by topic}
+We also wanted to see if the sentiment of these discussions differed depending on the topic being discussed.
+For example, do users of Reddit post more positively about the topic of housing than those on BlueSky?
+
+\paragraph*{Comparing the topics over time}
+We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. 
+This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a shift in sentiment online.
 \section*{System Architecture}
-
 \subsection*{Overview}
-
 The system is designed to gather data from three different platforms: Bluesky, OpenAustralia and Reddit.
 The data is processed by fission functions and stored in elastic search indices.
 Analysis is performed by seperate fission functions, and the result of any analysis is cached in elastic search for future requests.
@@ -286,42 +334,6 @@ We have 4 fission functions,
 Each function queries the relevant fission functions, or ElasticSearch, and collects the result into a form ready to be displayed to the user.
 We use MatPlotlib for most of the visualisations, and the WordCloud python package for creating word clouds of named entities.
 
-\section*{Scenarios}
-
-\paragraph*{Overview}
-Today, it is nearly impossible to spend time online without witnessing a discussion about politics. For many people, this is not a topic that is discussed politely, calmly and with respect. A thread on a hot topic quickly can become intense, escalating into arguments and attacks. 
-
-But is it truly like this everywhere, or are we just seeing the worst side of the internet? 
-
-Are there still sides of social media where people present their political opinions in a pleasant and happy way? 
-And where does all this anger come from? 
-Are Australians egged on by high valence political speeches? Do some politicians and parties use more aggressive language, and does this align with the discussions they spark? 
-
-
-In this project, we set out to answer these questions by analysing political discussions held on two different platforms: Bluesky and Reddit.
-We thought it would be interesting to compare the sentiment and topic of these discussions to those of political speeches being held in parliament, as provided through OpenAustralia.
-
-\subsection*{Analysis Goals}
-We had three main goals for our analysis.
-
-\paragraph*{Comparing the topics}
-We first wanted to see what political topics were popular for discussion across platforms. 
-Do users of different social media platforms have different priorities? Do they discuss the same topics, and do these align with what is being discussed in parliament?
-We investigated topics such as “housing”, and entities, including politicians such as “Pauline Hansen”, Australian locations, and parties, such as "Labor".
-
-\paragraph*{Comparing the overall sentiment}
-We aimed to contrast the overall sentiment of these discussions and debates over time.
-We wanted to see if the conversations held on some of these platforms were more positive or negative than others, and whether there were any clear trends.
-
-\paragraph*{Comparing the sentiment by topic}
-We also wanted to see if the sentiment of these discussions differed depending on the topic being discussed.
-For example, do users of Reddit post more positively about the topic of housing than those on BlueSky?
-
-\paragraph*{Comparing the topics over time}
-We then wanted to contrast the sentiment and topics of these social media discussions to the actual debates being held. 
-This allowed us to see if topics were discussed immediately after a relevant debate, and whether an intense debate correlated with a shift in sentiment online.
-
-
 \subsection*{Fission}
 
 \subsection*{Fission Specs}
@@ -446,7 +458,7 @@ For the caching function, we test that calculated values are inserted to the cac
 For OpenAustralia, we mock the date lister and person lister functions, to ensure they pull the correct data from the API and make the correct calls to the enqueue function.
 For Sentiment and Named Entity analysis, we check the output of the fission functions match the expected output.
 
-\subsection*{Analysis}
+\section*{Analysis findings}
 
 For Reddit, we collected data from a collection of subreddits related to Australia.
 For Bluesky, we filter posts to those containing 'auspol', a common hashtag on Bluesky for discussing Australian Politics.
@@ -539,7 +551,7 @@ Figure~\ref{fig:albo-sent-avg} shows the sentiment of posts discussing ``Anthony
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.4]{report_images/housing_count.png}
-    \caption{Number of posts containing the word 'housing' per day.}
+    \caption{Frequency of posts containing the word 'housing' per day.}
     \label{fig:housing-count}
 \end{figure}
 
