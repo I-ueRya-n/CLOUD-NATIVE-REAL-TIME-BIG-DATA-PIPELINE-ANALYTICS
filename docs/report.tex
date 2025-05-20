@@ -233,7 +233,7 @@ There are three main entrypoints to gathering OpenAustralia data.
 The first two entrypoints are called manually to scrape past data from the backlog, while the third is called daily to gather new data.
 All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
-\subsection*{Reddit Data Processing Architecture} 
+\subsection*{Reddit} 
 
 Data harvesting and processing architecture for Reddit is designed to handle both ad-hoc, parameterized scraping of Reddit data and a regular daily collection of recent posts. The system uses a Fission serverless workflow and Redis message queues to orchestrate smooth data flow from the Reddit API to Elasticsearch.
 
@@ -463,7 +463,7 @@ This helped handle the variabible load of the OpenAustralia API, as the number o
 
 As a side comment, the usefulness of the \texttt{oa-daily-debate-harvester} was limited while collecting data for our project, as The Houses of Parliament are in recess from 16 May until 25 May 2025 and so no new debates were available to add.
 
-\paragraph{Reddit}
+\paragraph*{Reddit}
 
 The Reddit harvester utilizes two serverless functions provided by Fission: one HTTP-triggered (\texttt{reddit-harvester-new-r}) and the other timer-triggered (\texttt{reddit-daily-job}) to support both manual and daily scraping. Both functions run on Fission's \texttt{poolmgr} executor, which maintains pre-warmed pods, effectively minimizing cold-start latency. These harvester functions collect Reddit posts and top-level comments, then enqueue the results into Redis (\texttt{reddit\_posts\_queue}) using a generic Fission \texttt{enqueue} function.
 
@@ -519,9 +519,9 @@ Indexing is robust: malformed JSON raises deserialization errors, individual pos
 
 This approach doesn’t cover all possible failure cases (e.g., persistent external outages), but it provides a strong foundation for resilience and observability in a high-throughput, asynchronous system.
 
-\section{System Fault Tolerance and Resilience Analysis}
+\section*{System Fault Tolerance and Resilience Analysis}
 
-\subsection{Kubernetes Layer}
+\subsection*{Kubernetes Layer}
 
 \subsubsection*{Advantages}
 \begin{itemize}
@@ -535,7 +535,7 @@ This approach doesn’t cover all possible failure cases (e.g., persistent exter
   \item \textbf{Single Node Cluster}: A single-node Kubernetes cluster would suffer total downtime if that node fails.
 \end{itemize}
 
-\subsection{Fission (Serverless Layer)}
+\subsection*{Fission (Serverless Layer)}
 
 \subsubsection*{Advantages}
 \begin{itemize}
@@ -549,7 +549,7 @@ This approach doesn’t cover all possible failure cases (e.g., persistent exter
   \item \textbf{Cold Starts}: Functions without warm Pods (especially under \texttt{NewDeploy}) may suffer from startup latency, which might seem like service unavailability. The use of \texttt{PoolManager} can mitigate this (e.g., for Reddit harvester).
 \end{itemize}
 
-\subsection{Data Collection \& Processing Pipeline}
+\subsection*{Data Collection \& Processing Pipeline}
 
 \subsubsection*{Bluesky Firehose Client}
 \begin{itemize}
@@ -572,7 +572,7 @@ This approach doesn’t cover all possible failure cases (e.g., persistent exter
   \item \textbf{Error Queue Management}: Error queues require active monitoring and remediation; otherwise, failures remain unresolved.
 \end{itemize}
 
-\subsection{Data Storage \& Caching (ElasticSearch)}
+\subsection*{Data Storage \& Caching (ElasticSearch)}
 
 \subsubsection*{Advantages}
 \begin{itemize}
@@ -586,7 +586,7 @@ This approach doesn’t cover all possible failure cases (e.g., persistent exter
   \item \textbf{Indexing Errors}: Issues like mapping conflicts or disk space exhaustion must be mitigated with logging, retries, and alerting mechanisms. Your report mentions \texttt{reddit-to-es-new-r} handles such cases.
 \end{itemize}
 
-\subsection{Analysis Functions (Vader Sentiment, NER)}
+\subsection*{Analysis Functions (Vader Sentiment, NER)}
 
 \subsubsection*{Advantages}
 \begin{itemize}
@@ -599,7 +599,7 @@ This approach doesn’t cover all possible failure cases (e.g., persistent exter
   \item \textbf{Model/Library Dependency}: Bugs or inefficiencies in libraries directly impact reliability.
 \end{itemize}
 
-\subsection{User Interface (Jupyter Notebook + Fission APIs)}
+\subsection*{User Interface (Jupyter Notebook + Fission APIs)}
 
 \subsubsection*{Potential Issues/Considerations}
 \begin{itemize}
