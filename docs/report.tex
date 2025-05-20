@@ -132,14 +132,14 @@ The first two entrypoints are called manually to scrape past data from the backl
 
 All of the functions needed to gather and process OpenAustralia data are contained within the \texttt{oa-debates} fission package.
 
-\subsection{Reddit Data Processing Architecture} % Reddit 資料處理架構
+\subsection{Reddit Data Processing Architecture} 
 
 The architecture for harvesting and processing data from Reddit is designed to accommodate both ad-hoc, parameterized data scraping and automated daily collection of recent posts. This system utilizes a Fission serverless workflow, orchestrated with Redis message queues, to efficiently manage the data flow from the Reddit API to Elasticsearch.
 
 The Reddit data pipeline consists of the following key Fission functions and components:
 
 \begin{enumerate}
-    \item \textbf{Entrypoint Functions (Initiating Data Collection):} % 進入點函數 (啟動資料收集)
+    \item \textbf{Entrypoint Functions (Initiating Data Collection):} 
     There are two primary Fission functions that serve as entrypoints for Reddit data collection:
 
     \begin{itemize}
