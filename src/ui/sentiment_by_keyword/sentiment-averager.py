@@ -76,7 +76,13 @@ def main() -> Tuple[Dict[str, Any], int]:
 
 
         status["bluesky"] = bluesky.bluesky_keywords_sentiment(client, keyword_list, keyword_type)
-        status["openaus"] = openaus.open_aus_keywords_sentiment(client, keyword_list, keyword_type)
+        
+        status["openaus"] = openaus.open_aus_keywords_sentiment(client, keyword_list, "topics")
+
+        if keyword_type != "topics":
+            print("getting open aus speakers too")
+            status["openaus-speakers"] = openaus.open_aus_keywords_sentiment(client, keyword_list, keyword_type)
+
         status["reddit"] = reddit.reddit_keywords_sentiment(client, keyword_list, keyword_type)
 
     except Exception as e:

@@ -72,17 +72,18 @@ def get_count_politicians(client: Elasticsearch, count: int,
 
 
 
-def get_count_keywords(client: Elasticsearch, count: int, label: str, 
+def get_count_fields(client: Elasticsearch, count: int, label: str, 
                        date_from: str = None, date_to: str = None) -> Dict:
     """
     Returns the items with the most occurrences for a given label.
     The label should be a "keyword" in the index.
     example calls:
-    - get_count_keywords(client, 10, "speaker.party")
-    - get_count_keywords(client, 10, "speaker.state")
-    - get_count_keywords(client, 10, "speaker") -> gets politician entities yay!
+    - get_count_fields(client, 10, "speaker.party")
+    - get_count_fields(client, 10, "speaker.state")
+    - get_count_fields(client, 10, "speaker") -> gets politician entities yay!
     Leaving this here 
     """
+    field = label + ".keyword" 
     response = client.search(
         index="oa-debates",
         size=0,
@@ -90,7 +91,7 @@ def get_count_keywords(client: Elasticsearch, count: int, label: str,
         aggs={
             "top_counts": {
                 "terms": {
-                    "field": label,
+                    "field": field,
                     "size": count
                 }
             }
@@ -125,16 +126,6 @@ def open_aus_count_speakers(client: Elasticsearch, count: str, speaker_type: str
     if speaker_type == "speaker":
         data = get_count_politicians(client, count, date_from, date_to)
     else:
-        data = get_count_keywords(client, count, speaker_type, date_from, date_to)
+        data = get_count_fields(client, count, speaker_type, date_from, date_to)
 
     return data
-
-# if __name__ == "__main__":
-#     client: Elasticsearch = None
-
-#     count = 10
-
-    #data = open_aus_count_speakers(client, count, "speaker", "2023-01-01", "2024-10-01")
-    # data = open_aus_count_speakers(client, count, "speaker.party")
-
-    # print(data)

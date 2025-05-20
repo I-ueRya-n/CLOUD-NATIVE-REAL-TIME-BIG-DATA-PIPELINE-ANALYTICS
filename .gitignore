@@ -2,3 +2,12 @@ venv*/
 **/__pycache__
 .env
 examples/.ipynb_checkpoints
+__pycache__
+docs/report.aux
+.gitignore
+docs/report.log
+docs/report.fls
+.gitignore
+docs/report.fdb_latexmk
+docs/report.synctex.gz
+src/open_australia/oa_debates/__pycache__/util.cpython-39.pyc

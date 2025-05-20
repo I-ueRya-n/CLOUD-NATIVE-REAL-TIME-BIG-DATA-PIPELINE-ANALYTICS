@@ -5,6 +5,7 @@ include:
 - ./src/ui/entities/bluesky.py
 - ./src/ui/entities/reddit.py
 - ./src/ui/entities/openaus.py
+- ./src/ui/entities/openaus_speaker_entity.py
 - ./src/ui/entities/requirements.txt
 - ./src/ui/entities/build.sh
 kind: ArchiveUploadSpec

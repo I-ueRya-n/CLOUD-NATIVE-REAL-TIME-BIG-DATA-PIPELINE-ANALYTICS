@@ -4,6 +4,7 @@ import traceback
 import bluesky
 import openaus
 import reddit
+import openaus_speaker_entity
 from elasticsearch8 import Elasticsearch
 
 
@@ -47,6 +48,16 @@ def main() -> Tuple[Dict[str, Any], int]:
         # BECAUSE THE DATASET IS TOO BIG
         status["openaus"] = openaus.open_aus_words(client, label, date_from="2024-01-01")
         status["reddit"] = reddit.reddit_words(client, label)
+
+        # optional: get the top speakers and parties
+        # will auto filter this out
+        if label == "ORG":
+            status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker.party", date_from="2024-01-01")
+        elif label == "PERSON":
+            status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker", date_from="2024-01-01")
+        elif label == "LOC":
+            status["openaus-speakers"] = openaus_speaker_entity.open_aus_count_speakers(client, 1000, "speaker.state", date_from="2024-01-01")
+
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}
