@@ -89,7 +89,7 @@ pytest tests/
 
 The report is located in the `docs` folder and it contains the latex report that can be compiled with `latexmk` using the following command:
 ```bash
-latexmk -pdf -outdir=docs/out/ docs/report.tex
+latexmk -pdf -outdir=docs/ docs/report.tex
 ```
 
 ## Testing 

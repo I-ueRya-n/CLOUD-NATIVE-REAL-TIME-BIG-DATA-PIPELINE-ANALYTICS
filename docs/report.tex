@@ -285,7 +285,32 @@ For our project, we decided to keep the sentiment analysis simple and only use a
 
 The next step was of course to implement the analysis function in our code and make it available for other functions to use. This was done by creating a new fission function called \texttt{sentiment-analysis} which takes in a string and returns the sentiment analysis values. We had to manage the dependencies and make sure that the fission function had access to the \texttt{VADER} library. This was done by creating a fission package.
 
+\paragraph*{Example}
+\begin{quote}
+    \textit{``The Liberal Party is not a party that is both good and bad !''}
+\end{quote}
+
+The sentiment analysis function would return the following values:
+\begin{quote}
+    \texttt{'neg': 0.279, 'neu': 0.462, 'pos': 0.259, 'compound': -0.1154}
+\end{quote}
+
 \subsection*{Named Entity Analysis}
+\paragraph*{Why do we need Named Entity Analysis?}
+Named entity analysis is a crucial part of this project as it allows us to identify and extract relevant subjects, persons and many others from the different posts and debates we collected.
+
+\paragraph*{Setting up the NER}
+Now, setting up the NER was a bit more comlpicated as the library we chose to use \texttt{spacy} has dependencies and python version requirements and is also pretty heavy.
+This meant that we had to create a docker image with all the dependencies pre-built in it and then use it as an environment for our fission function.
+
+\paragraph*{Example}
+\begin{quote}
+    \texttt{"text": "Barack Obama was born in Hawaii and worked in Washington."}
+\end{quote}
+The NER function would return the following values:
+\begin{quote}
+    \texttt{{"PERSON": ["Barack Obama"],"GPE": ["Hawaii", "Washington"]}}
+\end{quote}
 
 \subsection*{Analysis}
 
