@@ -7,10 +7,11 @@ from util import config
 
 
 def main() -> Any:
-    """gets dates in a year with senate or house of reps debates.
-    This is better than the "by person" method because it avoids duplcates
+    """
+    Lists the dates in a year with senate or house of reps debates.
+    This is better than the "by person" method because it avoids duplicates.
 
-    puts the results into the redis queue: "oa_debate_keys"
+    Puts found debates into the redis queue: "oa_debate_keys"
     in the format:
         {
             "date": date,
@@ -20,12 +21,12 @@ def main() -> Any:
     Handles:
     - OpenAustralia API client initialization
     - querying the OpenAustralia API for dates in a year
-    - querying both the senate and house of reps
+    - (handles both the senate and house of reps)
     - adding dates to redis queue
 
     Returns:
-        the response from the OpenAustralia API for the last house 
-        and a 200 status code if successful, else error message
+        the response from the most recently enqueued key 
+        and a 200 status code if successful, else error message and 400
         
     """
 

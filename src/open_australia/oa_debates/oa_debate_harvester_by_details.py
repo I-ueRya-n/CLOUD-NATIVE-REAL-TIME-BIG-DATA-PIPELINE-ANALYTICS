@@ -10,8 +10,8 @@ from util import config
 
 def main() -> str:
     """
-    Harvest debate information from the OA api.
-    By person or date
+    Harvest debate information from the OpenAustralia api.
+    Gets all debates by person id or a date ("key")
     
     Input:
     - from redis queue: "oa_debate_keys"
@@ -30,7 +30,7 @@ def main() -> str:
     - Rate limiting with rest between requests
 
     Returns:
-        "yay!" if successful, else error message
+        success message and 200, else error message
 
     Raises:
         MastodonError: For API communication failures
@@ -40,7 +40,7 @@ def main() -> str:
     oa = OpenAustralia(config("OA_API_KEY"))
 
 
-    # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_dates" QUEUE
+    # GET THE NEXT INCOMING FROM THE REDIS "oa_debate_keys" QUEUE
     request_data: List[Dict[str, Any]] = request.get_json(force=True)
     current_app.logger.info(f'Processing {request_data}')
 
@@ -59,8 +59,8 @@ def main() -> str:
                 current_app.logger.error(f"Invalid date provided: {date_str}")
                 return json.dumps({"error": "Invalid date provided"}), 400
         except ValueError:
-            current_app.logger.error(f"Date must be in D-M-Y format: {date_str}")
-            return json.dumps({"error": "Date must be in D-M-Y format"}), 400
+            current_app.logger.error(f"Date must be in YYYY-MM-DD format: {date_str}")
+            return json.dumps({"error": "Date must be in YYYY-MM-DD format"}), 400
         
 
     # if both or neither are provided, return an error
@@ -74,16 +74,23 @@ def main() -> str:
         current_app.logger.error(f"Invalid house type: {house}. Must be 'senate' or 'representatives'")
         return json.dumps({"error": "Invalid house type"}), 400
 
-    # gets the first 1000 (50 * 20) results 
+    # gets the first 1000 (50 * 20) results, which is around
+    # when the API starts breaking and returning nonsense 
     MAX_PAGES = 50
     page = 1
 
     # first page of results
-    debates_page = oa.get_debates(debate_type=house, date=date_str, search=None, person_id=person_ID, gid=None, year=None, order='d', page=None, num=None)
+    debates_page = oa.get_debates(debate_type=house, date=date_str, 
+                                  search=None, person_id=person_ID, gid=None,
+                                    year=None, order='d', page=None, num=None)
+    
     
     while debates_page and page <= MAX_PAGES:
         # get the debates for the current page
-        debates_page = oa.get_debates(debate_type=house, date=date_str, search=None, person_id=person_ID, gid=None, year=None, order='d', page=page, num=None)
+        debates_page = oa.get_debates(debate_type=house, date=date_str, 
+                                      search=None, person_id=person_ID, 
+                                      gid=None, year=None, order='d', 
+                                      page=page, num=None)
         
         # if there are no more debates, break
         if not debates_page:
@@ -122,15 +129,21 @@ def main() -> str:
 
             current_app.logger.info(f"Processing debate {debate_gid}")
 
+            # let the API breathe
             time.sleep(0.3)
 
             # get the longer version of the debate, so its not just an excerpt
             if debate_gid:
-                # this returns a list of debate with the same gid
+                # Search by GID
                 try:
-                    found_debates = oa.get_debates(debate_type=house, date=None, search=None,person_id=None, gid=debate_gid, year=None, order='d', page=None, num=None)
+                    found_debates = oa.get_debates(debate_type=house, date=None, 
+                                                   search=None,person_id=None, 
+                                                   gid=debate_gid, year=None, 
+                                                   order='d', page=None, 
+                                                   num=None)
                 except Exception as e:
-                    current_app.logger.error(f"Error fetching debate with gid {debate_gid}: {e}")
+                    current_app.logger.error(f"Error fetching debate with \
+                                             gid {debate_gid}: {e}")
                     continue
 
                 current_app.logger.info(f"Found {len(found_debates)} debates matching id:")
@@ -138,9 +151,10 @@ def main() -> str:
 
                     # individually add each debate to the list
                     for result in found_debates:
-                        # current_app.logger.info(f"Found debate: {result}")
+
                         current_app.logger.info(f"Found debate with gid {debate_gid}")
-                        if not ((result.get('subsection_id', 1)=="0") or (result.get('section_id', 1) == "0")):
+                        if not ((result.get('subsection_id', 1)=="0") or 
+                                (result.get('section_id', 1) == "0")):
                             debates_to_add.append(result)
                         # break here if concerned about duplicates, idk. 
                         # if not it may miss some debates
@@ -156,7 +170,7 @@ def main() -> str:
         current_app.logger.info(f"Adding {len(debates_to_add)} debate to redis queue for processing")
 
         response: Optional[requests.Response] = requests.post(
-            url='http://router.fission/enqueue/oa_debate_data',
+            url=config("FISSION_HOSTNAME") + '/enqueue/oa_debate_keys',
             headers={'Content-Type': 'application/json'},
             json=debates_to_add
         )

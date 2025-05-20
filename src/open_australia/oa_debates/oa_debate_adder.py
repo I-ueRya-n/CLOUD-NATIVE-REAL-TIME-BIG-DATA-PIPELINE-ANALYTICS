@@ -6,7 +6,8 @@ from util import config
 
 def format_debate(data: Dict[str, any]) -> Dict[str, Any]:
     """ 
-        Formats debate to match the mapping template to put into ES.
+        Helper function
+        Formats a debate to match the mapping template to put into ES.
         
         Handles:
         - extracting and formatting the data to match the mapping template
@@ -33,12 +34,12 @@ def format_debate(data: Dict[str, any]) -> Dict[str, Any]:
             "position": data.get("speaker", {}).get("title", "")
         },
     }
-    # current_app.logger.info(f'Formatted debate: {formatted_data}')
     return formatted_data
 
 
 def format_debate_comment(data: Dict[str, Any], parent_debate: str) -> Dict[str, Any]:
     """ 
+        Helper function
         Formats debate comment to match the mapping template to put into ES.
 
         Handles:
@@ -51,7 +52,6 @@ def format_debate_comment(data: Dict[str, Any], parent_debate: str) -> Dict[str,
             a debate comment mapped and ready to go into the ES index. woo hoo!
     """
     comment = data.get("comment", {})
-
     formatted_data = {
         "id": comment.get("comment_id", ""),
         "user_id": comment.get("user_id", ""),
@@ -65,7 +65,9 @@ def format_debate_comment(data: Dict[str, Any], parent_debate: str) -> Dict[str,
 
 def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
     """
-    Formats and adds a debate.
+    Formats and adds a debate to the ElasticSearch index "oa-debates"
+    Also handles comment of the debate if present.
+    Skips duplicate ids already present in the index.
     """
     try:
         # add the debate
@@ -100,7 +102,9 @@ def add_debate(es_client: Elasticsearch, debate: Dict[str, Any]) -> None:
 
 def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
     """
-    Formats and adds a debate and any one attached comment to the index.
+    Formats and adds a comment to the ElasticSearch index "oa-comments"
+    But only if there is a comment (very few debates have a comment)
+    Skips duplicate ids already present in the index.
     """
     # check if it has a comment
     comment = data.get("comment", None)
@@ -133,28 +137,28 @@ def add_debate_comment(es_client: Elasticsearch, data: Dict[str, Any]) -> None:
 
 
 def main() -> str:
-    """Process and index debate information from the OA website.
-    reads from redis queue: "oa_debate_data"
-    puts these into the elasticsearch index: "oa_debates_comments"
-
+    """
+    Process and index raw scraped debates + comments from the redis queue: 
+    "oa_debate_data"
+    
+    Formats these to match the mapping
+    Puts these into the elastic index: "oa-debates" and "oa-comments"
     Does not add duplicates of comments or debates if the id already exists!
-
-    (subsection = topic)
 
     Handles:
     - Elasticsearch client initialization
-    - parent child relationship between comments and debates
-    - parent child relationship between debates and topics
+    - Parsing requests from the Redis message queue
+    - Reformatting debates and comments
+    - Indexing debates and comments
 
+    Additionally:
     - checks if the "debate" object is a section, subsection or a debate
     - does not add sections, only subsections and debates and their comments
-
-    - routes by the subsection id so they are in the same shard
-
-    THIS DOESNT WORK FOR JUST THE COMMENT API BECAUSE THEYRE FORMATTED DIFFERENTLY
+    This is important as "sections" are very dull, usually just a single
+    word like "Bills"
 
     Returns:
-        "success message" if successful, else error message
+        "success message" and 200 if successful, else error message
     """
 
     es_client: Elasticsearch = Elasticsearch(
@@ -174,9 +178,10 @@ def main() -> str:
         if (debate.get("section_id", -1) == "0") or (debate.get("subsection_id", -1) == "0"):
             current_app.logger.info(f"Skipping section: {debate.get('body', '')}")
             continue
+        
         else:
             # its probably a normal debate, add it and any comments
             add_debate(es_client, debate)
 
-    return f'added {len(request_data)} debates to the index, yay!'
+    return f'added {len(request_data)} debates to the index, yay!', 200
 

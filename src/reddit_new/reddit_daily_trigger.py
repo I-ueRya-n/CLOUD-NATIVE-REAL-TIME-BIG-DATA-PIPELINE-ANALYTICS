@@ -32,6 +32,6 @@ def main():
         "keywords": [keyword],
         "scrape_from": scrape_from,
         "scrape_until": scrape_until,
-        "limit": 100,
+        "limit": 1000,
         "sort": "new"
       })

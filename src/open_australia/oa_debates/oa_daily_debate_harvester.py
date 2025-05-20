@@ -10,7 +10,7 @@ def main() -> Any:
     runs the daily debate harvester for two days before the current date
     only gets debates from two days ago (they should be available by then)
 
-    runs this once a day
+    The fission function runs this once a day
 
     puts the results into the redis queue: "oa_debate_keys"
     in the format:
@@ -20,10 +20,13 @@ def main() -> Any:
         }
 
     Handles:
-    - adding a day to redis queue to be parsed
+    - parsing the date 2 days before
+    - adding a day key to the redis queue
 
     Returns:
-    - json of one of the things added to the redis queue
+    Returns:
+        the response from the most recently enqueued key 
+        and a 200 status code if successful, else error message and 400
 
     """
     # get the date two days ago
@@ -36,6 +39,7 @@ def main() -> Any:
             "date": yesterday_string,
             "house": house,
         }
+        # add to queue
         response: Optional[requests.Response] = requests.post(
             url=config("FISSION_HOSTNAME") + '/enqueue/oa_debate_keys',
             headers={'Content-Type': 'application/json'},
