@@ -49,13 +49,3 @@ def reddit_keywords_sentiment(client: Elasticsearch, keyword_list: List[str],
 
     return results
 
-# if __name__ == "__main__":
-#     es_client = Elasticsearch(
-#         "https://localhost:9200",
-#         verify_certs=False,
-#         ssl_show_warn=False,
-#         basic_auth=("elastic", "Mi0zu6yaiz1oThithoh3Di8kohphu9pi")
-#     )
-#     keyword = "greens"
-#     sentiment_data = reddit_keyword_sentiment(es_client, keyword)
-#     print(sentiment_data)

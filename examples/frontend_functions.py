@@ -280,3 +280,56 @@ def plot_counts(table, start, keyword, data = None):
     plt.show()
 
     return data
+
+
+
+#####
+def format_data(table, start):
+    start_date = datetime.datetime.fromisoformat(start)
+    end_date = datetime.datetime.now()
+    num_days = (end_date - start_date).days
+    date_list = [format_date(start_date + datetime.timedelta(days=x)) for x in range(num_days + 1)]
+
+    dates = [e['key_as_string'].split("T")[0] for e in table]
+    counts = [e['doc_count'] for e in table]
+    df = pd.DataFrame(counts, index=dates, columns=['doc_count']).reindex(date_list)
+    return df
+    
+
+def plot_keyword_counts(table, start, keyword, data = None):
+    if data is None:
+        response = requests.get(
+                url=f"{fission}/ui/counts/start/{start}/keyword/{keyword}",
+                timeout=600
+            )
+    
+        if response.status_code != 200:
+            print(response, response.text)
+            return 
+            
+        data = response.json()
+    # plot
+    fig, ax = plt.subplots(len(table), 1, sharex=True, figsize=(12, 4 * len(table)))
+
+    for i, s in enumerate(table):
+        if len(table) == 1:
+            ax1 = ax
+        else:
+            ax1 = ax[i]
+
+        df = format_data(data[s], start)
+        
+        ax1.set_ylabel("Count", loc="center")
+        ax1.plot(df.index, df['doc_count'], color="tab:blue")
+        ax1.fill_between(df.index, 0, df['doc_count'], color="tab:blue")
+        ax1.set_title(f"{labels[s]} document count")
+        ax1.set_ylim(bottom=0)
+    
+        # show the dates as x axis labels        
+        ax1.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
+        ax1.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
+
+    plt.tight_layout()
+    plt.show()
+
+    return data

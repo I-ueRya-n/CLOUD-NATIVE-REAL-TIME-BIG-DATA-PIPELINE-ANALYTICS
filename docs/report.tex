@@ -246,7 +246,7 @@ To increase throughput, we send the cache function a list of post id's to retrie
 
 \subsection*{User Interface}
 
-\section*{Scenarios (this is terrible will fix, just writing Something)}
+\section*{Scenarios}
 
 \paragraph*{Overview}
 Today, it is nearly impossible to spend time online without witnessing a discussion about politics. For many people, this is not a topic that is discussed politely, calmly and with respect. A thread on a hot topic quickly can become intense, escalating into arguments and attacks. 
@@ -325,6 +325,9 @@ The message queues used a Keda workload autoscaler.
 This monitored the number of messages in the queue, and scaled the number of pods up or down depending on the number of pods required.
 This helped handle the variabible load of the OpenAustralia API, as the number of messages in the queue could vary from 0 to 1000+, especially when gathering data from previous years. 
 
+As a side comment, the usefulness of the \texttt{oa-daily-debate-harvester} was limited while collecting data for our project, as The Houses of Parliament are in recess from 16 May until 25 May 2025 and so no new debates were available to add.
+
+
 \subsection*{Error Handling}
 
 \paragraph*{Bluesky} The bluesky websocket runs inside a container, instead of a fission function, since the websocket can listen indefinitely.
@@ -384,7 +387,7 @@ The overall sentiment of the posts and debates was calculated using the \texttt{
 idk
 
 
-\subsubsection*{Comparing the sentiment by topic: idk what to call this one}
+\subsubsection*{Comparing the sentiment by keyword: idk what to call this one}
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}

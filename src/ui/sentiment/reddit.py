@@ -12,41 +12,6 @@ def format_keyword(keyword: str):
 
 def reddit_query(keywords: [str], start: str, end: str) -> Dict:
     
-    # ok this is kind of complicated, sorry
-    # match_content = [{"match_phrase": {"content": word}} for word in keywords]
-    # match_title = [{"match_phrase": {"title": word}} for word in keywords]
-
-    # # if the flair is "post" then search the title and content
-    # flair_post = {
-    #     "bool": {
-    #         "filter": [
-    #             {"term": {"flair": "post"}},
-    #             {
-    #                 "bool": {
-    #                     "should": match_title + match_content,
-    #                     "minimum_should_match": 1
-    #                 }
-    #             }
-    #         ]
-    #     }
-    # }
-
-    # # if its a comment then search the content only
-    # flair_comment = {
-    #     "bool": {
-    #         "filter": [
-    #             {"bool": {"must_not": {"term": {"flair": "post"}}}},
-    #             {
-    #                 "bool": {
-    #                     "should": match_content,
-    #                     "minimum_should_match": 1
-    #                 }
-    #             }
-    #         ]
-    #     }
-    # }
-
-
     matchRange = {
         "range": {
             "timestamp": {
@@ -56,18 +21,6 @@ def reddit_query(keywords: [str], start: str, end: str) -> Dict:
         }
     }
 
-    # query = {
-    #     "bool": {
-    #         "filter": [
-    #             matchRange
-    #         ],
-    #         "should": [
-    #             flair_post,
-    #             flair_comment
-    #         ],
-    #         "minimum_should_match": 1
-    #     }
-    # }
 
     match = [format_keyword(word) for word in keywords]
 
@@ -127,15 +80,3 @@ def reddit_sentiment(client: Elasticsearch, start: str, end: str, keyword: str) 
         }
     return data
 
-# if __name__ == "__main__":
-#     es_client = Elasticsearch(
-#         "https://localhost:9200",
-#         verify_certs=False,
-#         ssl_show_warn=False,
-#         basic_auth=("elastic", "Mi0zu6yaiz1oThithoh3Di8kohphu9pi")
-#     )
-#     start = "2025-01-11"
-#     end = "2025-01-30"
-#     keyword = "greens"
-#     data = reddit_sentiment(es_client, "2021-08-22", "2021-11-03", None)
-#     print(data)
