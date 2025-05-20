@@ -4,13 +4,13 @@ import praw
 from util import enqueue_data, config 
 
 
-DAILY_SUBREDDITS = ["melbourne", "australia", "auspol", "sydney", "brisbane", "aussie", "australianpolitics", "southaustralia", "westernaustralia", "australiannostalgia", "ausmemes", "straya"]
-DAILY_KEYWORDS = ["election", "government", "policy", "housing", "cost of living", "environment", "health", "vote", "federal", "labour", "sante", "politics", "politician"]
+DAILY_SUBREDDITS = ["melbourne", "australia", "auspol", "sydney", "brisbane", "aussie", "australianpolitics"]
+DAILY_KEYWORDS = ["election", "government", "policy", "housing", "cost of living", "environment", "health", "vote", "federal", "labour", "sante", "alp", "aboriginal", "cost"]
 
 
 
 
-DAILY_LIMIT_PER_KEYWORD_SUBREDDIT = 1000000
+DAILY_LIMIT_PER_KEYWORD_SUBREDDIT = 100000
 DAILY_SORT_METHOD = "new" 
 DAILY_SCRAPE_DAYS_AGO = 600
 
