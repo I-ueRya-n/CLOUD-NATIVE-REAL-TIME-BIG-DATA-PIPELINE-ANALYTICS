@@ -3,9 +3,10 @@ reddit_posts
 
 
 ## Create Functions and Triggers
-fission package create --spec --name reddit-harvester-new \
+fission package create --spec --name reddit-harvester-new-r \
   --source ./src/reddit_new/reddit_harvester.py \
   --source ./src/reddit_new/reddit_to_elasticsearch.py \
+  --source ./src/reddit_new/reddit_daily_trigger.py \
   --source ./src/reddit_new/__init__.py \
   --source ./src/reddit_new/util.py \
   --source ./src/reddit_new/requirements.txt \
@@ -13,7 +14,7 @@ fission package create --spec --name reddit-harvester-new \
   --env python \
   --buildcmd './build.sh'
 
-  <!-- --source ./src/reddit_new/reddit_daily_trigger.py \ -->
+  
 
 
 
@@ -65,17 +66,17 @@ curl -X POST "http://localhost:9090/reddit-new/scrape/" \
 ```
 
 ### B: Redis Trigger for Message Queue (e.g., reddit_harvester → reddit_to_elasticsearch)
-fission function create --spec --name reddit-to-es-new \
-  --pkg reddit-harvester-new \
+fission function create --spec --name reddit-to-es-new-r \
+  --pkg reddit-harvester-new-r \
   --env python \
   --configmap shared-data \
   --entrypoint "reddit_to_elasticsearch.main"
 
 
 
-fission mqtrigger create --name reddit-to-es-new \
+fission mqtrigger create --name reddit-to-es-new-r \
   --spec\
-  --function reddit-to-es-new \
+  --function reddit-to-es-new-r \
   --mqtype redis\
   --mqtkind keda\
   --topic reddit_posts_queue \
