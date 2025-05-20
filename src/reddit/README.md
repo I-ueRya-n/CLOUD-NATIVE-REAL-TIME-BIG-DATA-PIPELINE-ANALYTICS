@@ -21,14 +21,14 @@ fission package create --spec --name reddit-harvester-new-r \
 
 ## Create Functions and Triggers
 ### A: HTTP Trigger for Manual Scrape
-fission function create --spec --name reddit-harvester-new \
-  --pkg reddit-harvester-new \
+fission function create --spec --name reddit-harvester-new-r \
+  --pkg reddit-harvester-new-r \
   --env python \
   --configmap shared-data \
   --entrypoint "reddit_harvester.main"
 
-fission route create --spec --name reddit-harvest-route-new \
-  --function reddit-harvester-new \
+fission route create --spec --name reddit-harvest-route-new-r \
+  --function reddit-harvester-new-r \
   --method POST \
   --url '/reddit-new/scrape/'
 
