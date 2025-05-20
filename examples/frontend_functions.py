@@ -1,0 +1,282 @@
+import requests
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import datetime
+from wordcloud import WordCloud
+fission = "http://localhost:9090"
+
+def format_date(date):
+    return date.strftime("%Y-%m-%d")
+
+def dataframe(data, start, end):
+    start_date = datetime.datetime.fromisoformat(start)
+    end_date = datetime.datetime.fromisoformat(end)
+    num_days = (end_date - start_date).days
+    date_list = [format_date(start_date + datetime.timedelta(days=x)) for x in range(num_days + 1)]
+    df = pd.DataFrame.from_dict(data, orient="index").reindex(date_list)
+    return df
+
+labels = {
+    "openaus": "Open Australia",
+    "bluesky": "Bluesky",
+    "reddit": "Reddit"
+}
+
+entity_labels = {
+    "ORG": "Organisations",
+    "PER": "People",
+    "LOC": "Locations",
+    "EVENT": "Events",
+}
+
+
+#######
+
+def plot_source_sentiment(table, start, end, data = None):
+    if data is None:
+        response = requests.get(
+                url=f"{fission}/ui/sentiment/keyword/*/start/{start}/end/{end}",
+                timeout=1500
+            )
+    
+        if response.status_code != 200:
+            print(response, response.text)
+            return 
+            
+        data = response.json()
+    
+    # plot
+    fig, ax = plt.subplots(len(table), 2, sharex=True, figsize=(12, 3 * len(table)))
+
+    for i, s in enumerate(table):
+        if len(table) == 1:
+            ax0, ax1 = ax[0], ax[1]
+        else:
+            ax0, ax1 = ax[i, 0], ax[i, 1]
+        
+        df = dataframe(data[s], start, end)
+        ax0.set_ylabel("Sentiment", loc="center")
+        
+        cols = ["neg", "neu", "pos"]
+        total = sum([df[col] for col in cols])
+        columns = [df[col] / total for col in cols]
+        
+        ax0.stackplot(df.index, columns, labels=cols, colors=["firebrick", "wheat", "forestgreen"], alpha=0.8)   
+        ax0.legend(loc="upper right")
+        ax0.set_title(f"{labels[s]} sentiment")
+        ax0.set_ylim(bottom=0)
+    
+        ax1.plot(total.index, total.values, color='tab:blue')
+        ax1.fill_between(total.index, 0, total.values, color='tab:blue')
+        ax1.set_title(f"{labels[s]} document count")
+        ax1.set_ylim(bottom=0)
+    
+        # show the dates as x axis labels
+        ax0.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
+        ax0.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
+        
+        ax1.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
+        ax1.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
+
+    plt.tight_layout()
+    plt.show()
+
+    return data
+
+
+#####
+
+def get_wordcloud_data(label):
+    response = requests.get(
+        url=f"{fission}/ui/named-entities/label/{label}",
+        timeout=10000
+    )
+
+    if response.status_code != 200:
+        print(response, response.text)
+        return 
+        
+    data = response.json()
+    if label == "PERSON":
+        data["bluesky"]["auspol"] = 0
+
+    return data
+
+def wordcloud_from_data(label, data): 
+    fig, ax = plt.subplots(2, 2, figsize=(15, 9))
+    for i, s in enumerate(labels):
+        wordcloud = WordCloud(background_color="white", max_font_size=40).generate_from_frequencies(data[s])
+        ax[i // 2, i % 2].imshow(wordcloud, interpolation="bilinear")
+        ax[i // 2, i % 2].axis("off")
+        ax[i // 2, i % 2].set_title(labels[s], fontsize=20)
+
+    ax[1, 1].axis("off")
+    plt.tight_layout()
+    plt.suptitle(f"Word Cloud for entities of type \"{label}\" across platforms", fontsize=30, y=1.05)
+    # plt.subplots_adjust(top=0.9)
+
+    plt.show()
+
+def get_top_each_platform(data, count=10, normalise=False):
+    """
+    takes a wordcloud data dict with keys for each platform,
+    returns a dict of top n items for each platform.
+    """
+    top_dict = {}
+    # sort words by frequency (desc)
+    for platform, freq_dict in data.items():
+        sorted_items = sorted(freq_dict.items(), key=lambda x: x[1], reverse=True)[:count]
+        if normalise:
+          total = sum([v for _, v in sorted_items])
+          if total > 0:
+              sorted_items = [(k, v / total) for k, v in sorted_items]
+          else:
+              sorted_items = [(k, 0) for k, v in sorted_items]
+
+        top_dict[platform] = sorted_items
+    return top_dict
+
+
+def plot_top_each_platform(data, label, normalised=True):
+    fig, ax = plt.subplots(2, 2, figsize=(15, 9))
+    for i, s in enumerate(labels):
+        sorted_items = sorted(data[s], key=lambda x: x[1], reverse=True)[:10]
+        items = [item[0] for item in sorted_items]
+        values = [item[1] for item in sorted_items]
+        ax[i // 2, i % 2].barh(items, values)
+        ax[i // 2, i % 2].set_title(labels[s])
+        ax[i // 2, i % 2].invert_yaxis()
+        ax[i // 2, i % 2].set_xlabel("frequency" if normalised else "count")
+
+    plt.suptitle(f"Frequency of entities of type \"{label}\" across platforms", fontsize=30, y=1)
+
+    ax[1, 1].axis("off")
+    plt.tight_layout()
+    plt.show()
+
+
+
+#####
+
+def plot_sentiment_across_platforms(fission_url, keyword_list, keyword_type, results=None):
+    """
+    Gets the averaged sentiments by keyword from the sentiment-averager Fission function
+    and plots sentiment for each keyword across platforms (reddit, bluesky, openaus).
+    and displays the results in a nice little horizontal stacked bar chart. yay!
+    """
+    if results is None:
+      # allows testing without having to calculate every tiem yay!
+      url = f"{fission_url}/ui/sentiment-averager/type/{keyword_type}"
+      headers = {"X-Fission-Params-type": keyword_type}
+      data = {"keywords": keyword_list}
+      response = requests.post(url, headers=headers, json=data, timeout=1000)
+      if response.status_code != 200:
+          print("Error:", response.text)
+          return
+
+      results = response.json()
+
+    platforms = ["bluesky", "reddit", "openaus"]
+    # ignore compound 
+    sentiment_keys = ["neg", "neu", "pos"] # "compound"]
+    # i really love the python colors theyre so funny to me
+    colors = ["firebrick", "wheat", "forestgreen"]  
+
+    for keyword in keyword_list:
+        # format data 
+        sentiment_data = []
+        counts = []
+        for platform in platforms:
+            platform_data = results.get(platform, {}).get(keyword, {})
+            sentiment = platform_data.get("sentiment", None)
+            count = platform_data.get("count", 0)
+            if sentiment:
+                sentiment_data.append([sentiment.get(k, 0) for k in sentiment_keys])
+            else:
+                sentiment_data.append([0, 0, 0])
+            counts.append(count)
+
+        sentiment_data = np.array(sentiment_data)
+
+        # stacked bar chart!
+        y = np.arange(len(platforms))
+        fig, ax = plt.subplots(figsize=(8, 4))
+        left = np.zeros(len(platforms))
+        for i, sentiment_key in enumerate(sentiment_keys):
+            ax.barh(y, sentiment_data[:, i], color=colors[i], label=sentiment_key, left=left)
+            left += sentiment_data[:, i]
+
+        ax.set_yticks(y)
+        ax.set_yticklabels([labels[p] for p in platforms])
+        ax.set_xlabel("Percentage")
+        ax.set_xlim(0, 1)
+        ax.set_title(f"Sentiment across platforms for '{keyword_type}' keyword: '{keyword}'")
+        ax.legend(loc="lower right")
+
+        # percentage labels and counts
+        for i in range(len(platforms)):
+            xpos = 0
+            for j in range(len(sentiment_keys)):
+                width = sentiment_data[i, j]
+                # only if theres data 
+                if width > 0: 
+                    ax.text(xpos + width/2, i, f"{int(width*100)}%", va='center', ha='center', color="black", fontsize=9)
+                xpos += width
+            ax.text(1.02, i, f"n={counts[i]}", va='center', ha='left', fontsize=9)
+
+        plt.tight_layout()
+        plt.show()
+    return results
+
+
+def format_data(table, start):
+    start_date = datetime.datetime.fromisoformat(start)
+    end_date = datetime.datetime.now()
+    num_days = (end_date - start_date).days
+    date_list = [format_date(start_date + datetime.timedelta(days=x)) for x in range(num_days + 1)]
+
+    dates = [e['key_as_string'].split("T")[0] for e in table]
+    counts = [e['doc_count'] for e in table]
+    df = pd.DataFrame(counts, index=dates, columns=['doc_count']).reindex(date_list)
+    return df
+
+    
+
+def plot_counts(table, start, keyword, data = None):
+    if data is None:
+        response = requests.get(
+                url=f"{fission}/ui/counts/start/{start}/keyword/{keyword}",
+                timeout=1000
+            )
+    
+        if response.status_code != 200:
+            print(response, response.text)
+            return 
+            
+        data = response.json()
+    # plot
+    fig, ax = plt.subplots(len(table), 1, sharex=True, figsize=(12, 4 * len(table)))
+
+    for i, s in enumerate(table):
+        if len(table) == 1:
+            ax1 = ax
+        else:
+            ax1 = ax[i]
+
+        df = format_data(data[s], start)
+        
+        ax1.set_ylabel("Count", loc="center")
+        ax1.plot(df.index, df['doc_count'], color="tab:blue")
+        ax1.fill_between(df.index, 0, df['doc_count'], color="tab:blue")
+        ax1.set_title(f"{labels[s]} document count")
+        ax1.set_ylim(bottom=0)
+    
+        # show the dates as x axis labels        
+        ax1.set_xticks(range(len(df)), labels=df.index, rotation=30, ha="right", rotation_mode="anchor")
+        ax1.xaxis.set_major_locator(plt.matplotlib.dates.AutoDateLocator())
+
+    plt.tight_layout()
+    plt.show()
+
+    return data

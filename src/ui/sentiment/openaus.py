@@ -2,6 +2,7 @@ from elasticsearch8 import Elasticsearch
 from typing import Dict
 from enum import Enum
 from iterator import AnalysisIterator
+from datetime import datetime, timedelta
 
 
 class OA_types(Enum):
@@ -53,6 +54,20 @@ def open_aus_sentiment(client: Elasticsearch, start: str, end: str, keyword: str
     openausIter = AnalysisIterator(client, "/analysis/sentiment/v2", query)
     openausIter.elastic_fields("oa-debates", "id", "transcript", "date")
 
+    # initialise all dates to 0s
+    start_date = datetime.strptime(start, "%Y-%m-%d")
+    end_date = datetime.strptime(end, "%Y-%m-%d")
+    delta = end_date - start_date
+
+    for i in range(delta.days + 1):
+        day = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
+        data[day] = {
+            "neg": 0.0,
+            "neu": 0.0,
+            "pos": 0.0,
+            "compound": 0.0
+        }
+
     # aggregate sentiment across time
     for s, post in openausIter:
         if post is None:
@@ -72,3 +87,4 @@ def open_aus_sentiment(client: Elasticsearch, start: str, end: str, keyword: str
             data[post_date][field] += s.get(field)
 
     return data
+    
