@@ -14,7 +14,7 @@ class TestDateListerFunction(unittest.TestCase):
     @patch('oa_date_lister.config', return_value='http://localhost:9090')
     @patch('oa_date_lister.requests.post')
     @patch('oa_date_lister.OpenAustralia')
-    def test_main_valid_year(self, mock_oa_cls, mock_post, mock_config):
+    def test_add_years_to_queue(self, mock_oa_cls, mock_post, mock_config):
         
         # for getting keys and routes from the configmap
         def config_side_effect(key):
@@ -74,6 +74,3 @@ class TestDateListerFunction(unittest.TestCase):
                         )
                     ]
                     self.assertTrue(all(call in mock_post.call_args_list for call in expected_calls))
-
-if __name__ == "__main__":
-    unittest.main()
