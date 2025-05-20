@@ -465,51 +465,36 @@ For Bluesky, we filter posts to those containing 'auspol', a common hashtag on B
 
 \subsubsection*{Topics Across Different Platforms}
 
-\begin{figure}[h]
+To compare the topics of the posts and debates, we use word clouds to show the most common named entities in the posts and debates.
+The python library \texttt{spacy} implements Named Entity Recognition, which we use to extract entities from text.
+Word clouds are generated using the \texttt{wordcloud} python library.
+Figure~\ref{fig:word-org} shows a wordcloud of organisations discussed in posts and debates across each platform.
+Figure~\ref{fig:word-person} shows a wordcloud of people discussed in posts and debates across each platform.
+Wordclouds are excel at displaying a large amount of data, and giving qualitative comparisons between different data points, but doesn't show quantitative differences in values very well. 
+Figure~\ref{fig:freq-org} shows the top 10 organisations across the platforms in a bar chart.
+
+\begin{figure}[t]
     \centering
     \includegraphics[scale=0.4]{report_images/org_wordcloud.png}
     \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
     \label{fig:word-org}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \includegraphics[scale=0.4]{report_images/person_wordcloud.png}
     \caption{Word cloud of the most common ``Person'' entities in the posts and debates.}
     \label{fig:word-person}
 \end{figure}
 
-To compare the topics of the posts and debates, we use word clouds to show the most common named entities in the posts and debates.
-The python library \texttt{spacy} implements Named Entity Recognition, which we use to extract entities from text.
-Word clouds are generated using the \texttt{wordcloud} python library.
-Figure~\ref{fig:word-org} shows a wordcloud of organisations discussed in posts and debates across each platform.
-Figure~\ref{fig:word-person} shows a wordcloud of people discussed in posts and debates across each platform.
-
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \includegraphics[scale=0.4]{report_images/org_freq.png}
     \caption{Top 10 most common ``Organisation'' entities in the posts and debates.}
     \label{fig:freq-org}
 \end{figure}
 
-Wordclouds are excel at displaying a large amount of data, and giving qualitative comparisons between different data points, but doesn't show quantitative differences in values very well. 
-Figure~\ref{fig:freq-org} shows the top 10 organisations across the platforms in a bar chart.
-
 \subsubsection*{Sentiment Over Time Across Platforms} 
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.5]{report_images/bluesky_reddit_sentiment.png}
-    \caption{Sentiment of posts related to Australian politics between 1st May 2025 and 19th May 2025}
-    \label{fig:bluesky-reddit-sentiment}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.5]{report_images/open_aus_sentiment.png}
-    \caption{Sentiment of debates between 22nd August 2021 and 3rd September 2021.}
-    \label{fig:open-aus-sentiment}
-\end{figure}
 
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
 The sentiment was calculated for each post and debate, and then averaged over time.
@@ -523,21 +508,21 @@ Figure~\ref{fig:open-aus-sentiment} shows the sentiment across two weeks of deba
 The sentiment is more positive than negative, with around 10\% positive and 5\% negative.
 As more data is collected over time, we would be able to display sentiment across all 3 platforms for the same time period.
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.5]{report_images/bluesky_reddit_sentiment.png}
+    \caption{Sentiment of posts related to Australian politics between 1st May 2025 and 19th May 2025}
+    \label{fig:bluesky-reddit-sentiment}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.5]{report_images/openaus_reddit_sentiment.png}
+    \caption{Sentiment of debates between 22nd August 2021 and 3rd September 2021.}
+    \label{fig:open-aus-sentiment}
+\end{figure}
+
 \subsubsection*{Sentiment By Keyword Across Platforms}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.7]{report_images/pauline_sent_avg.png}
-    \caption{Sentiment of posts discussing ``Pauline Hanson'' and debates where ``Pauline Hanson'' was a speaker.}
-    \label{fig:pauline-sent-avg}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.7]{report_images/albo_sent_avg.png}
-    \caption{Sentiment of posts discussing ``Anthony Albanese'' and debates where ``Anthony Albanese'' was a speaker.}
-    \label{fig:albo-sent-avg}
-\end{figure}
 
 To show overall sentiment around topics or keywords, we average the sentiment of all posts containing a keyword.
 For OpenAustralia, if the topic was a person or party, the average sentiment of debates held by that entity were calculated.
@@ -546,9 +531,23 @@ If the topic not a person or party, debates mentioning that topic were averaged.
 Figure~\ref{fig:pauline-sent-avg} shows the sentiment of posts discussing ``Pauline Hanson'' compared to the sentiment of debates where ``Pauline Hanson'' was a speaker. 
 Figure~\ref{fig:albo-sent-avg} shows the sentiment of posts discussing ``Anthony Albanese'' compared to the sentiment of debates where ``Anthony Albanese'' was a speaker. 
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.7]{report_images/pauline_sent_avg.png}
+    \caption{Sentiment of posts discussing ``Pauline Hanson'' and debates where ``Pauline Hanson'' was a speaker.}
+    \label{fig:pauline-sent-avg}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.7]{report_images/albo_sent_avg.png}
+    \caption{Sentiment of posts discussing ``Anthony Albanese'' and debates where ``Anthony Albanese'' was a speaker.}
+    \label{fig:albo-sent-avg}
+\end{figure}
+
 \subsubsection*{Post Count By Keyword Across Platforms}
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \includegraphics[scale=0.4]{report_images/housing_count.png}
     \caption{Frequency of posts containing the word 'housing' per day.}

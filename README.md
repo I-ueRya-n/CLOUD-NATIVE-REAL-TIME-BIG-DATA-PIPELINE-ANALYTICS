@@ -85,7 +85,6 @@ To run the tests, you can use `pytest`:
 pytest tests/
 ```
 
-
 ## Docs (Report)
 
 The report is located in the `docs` folder and it contains the latex report that can be compiled with `latexmk` using the following command:
@@ -95,17 +94,10 @@ latexmk -pdf -outdir=docs/out/ docs/report.tex
 
 ## Testing 
 
-
-Port forward to fission router and elasticsearch.
+Port forward to fission router and elasticsearch, and run the test script `run_tests.sh`.
 ```bash
 kubectl port-forward service/router -n fission 9090:80
 kubectl port-forward service/elasticsearch-master -n elastic 9200:9200
-```
-
-Run tests
-```bash
-cd tests/cache
-go test
 ```
 
 ## Fission Setup
