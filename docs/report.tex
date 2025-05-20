@@ -439,8 +439,8 @@ This provided all the same benefits as the OpenAustralia API, including seperati
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.4]{report_images/wordcloud-org.png}
-    \caption{Word cloud of the most common ``Organisation'' entities in the posts and debates.}
+    \includegraphics[scale=0.4]{report_images/wordcloud-person.png}
+    \caption{Word cloud of the most common ``Person'' entities mentioned in the posts and debates.}
     \label{fig:word-org}
 \end{figure}
 
@@ -449,12 +449,12 @@ To visually compare the topics of the posts and debates, we word clouds to show 
 Analysis was performed using the \texttt{spacy} library, and the word cloud was generated using the \texttt{wordcloud} library.
 
 
-\subsubsection*{Comparing the topics over time: }
+\subsubsection*{Comparing the topics over time: count of keyword frequency over time}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
-    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+    \includegraphics[scale=0.35]{report_images/housing-keyword-count.png}
+    \caption{Frequency of the keyword ``housing'' over time across platforms.}
 \end{figure}
 The number of posts and debates containing a specific set of keywords was calculated over time.
 This allowed us to see if the topics of the posts and debates were similar, and if they changed over time.
@@ -465,10 +465,11 @@ We hoped to see if the topics of online discussions changed after a debate was h
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.4]{report_images/wordcloud-org.png}
-    \caption{Overall sentiment over time from TIME to TIME.}
-    \label{fig:sentiment-avg}
+    \includegraphics[scale=0.4]{report_images/sentiment-over-time-bs-reddit.png}
+    \caption{Overall averaged sentiment of Bluesky and Reddit posts from 1st to the 19th of May 2025.}
+    \label{fig:word-org}
 \end{figure}
+
 The overall sentiment of the posts and debates was calculated using the \texttt{VADER} library.
 The sentiment was calculated for each post and debate, and then averaged over time.
 This allowed us to compare the overall averaged sentiment of the posts and debates over time.
@@ -477,14 +478,19 @@ For example, from the 1st to the 19th of May 2025, bluesky posts averaged a nega
 Both BlueSky and Reddit posts were generally mostly neutral, but slightly more positive than negative.
 
 
-\subsubsection*{Comparing the sentiment by keyword: idk what to call this one}
+\subsubsection*{Comparing sentiment by topic: stacked bar chart of averaged sentiment}
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.35]{report_images/sentiment-pauline.png}
-    \caption{Comparison of sentiment for the keyword ``Pauline Hanson''.}
+    \caption{Comparison of sentiment of posts discussing ``Pauline Hanson'' and debates where ``Pauline Hanson'' was a speaker.}
 \end{figure}
 A small number of topics were selected based on their prevalence in the posts and debates, and their relevance to the current political climate.
 Due to the smaller number of posts collected on reddit, these differences were more pronounced.
 
+For the online platforms, the sentiment was averaged over posts discussing the topic.
+For OpenAustralia, if the topic was a person or party, the average sentiment of debates held by that entity were calculated.
+If the topic not a person or party, debates mentioning that topic were averaged.
+
+For example, the sentiment of posts discussing ``Pauline Hanson'' was compared to the sentiment of debates where ``Pauline Hanson'' was a speaker. 
 
 \end{document}
