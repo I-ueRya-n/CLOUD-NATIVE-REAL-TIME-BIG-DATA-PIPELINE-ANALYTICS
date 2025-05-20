@@ -60,7 +60,7 @@ func testProcessPost(t *testing.T, buf []byte, post *Post) {
 		return
 	}
 
-	if post == nil && res.StatusCode == http.StatusNotFound {
+	if post == nil && res.StatusCode == http.StatusNoContent {
 		return
 	}
 
