@@ -5,6 +5,10 @@ from iterator import AnalysisIterator, config
 
 
 def reddit_query(keywords: List[str]) -> Dict:
+    """Constructs a query for reddit posts based on a list of keywords.
+    The query matches posts that contain any of the keywords in the content
+    or in the title, but only if the title is not the parent post's title.
+    """
 
     # match title only if it does not include the word "PARENT"
     # (meaning it is a comment)

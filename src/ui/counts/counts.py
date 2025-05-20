@@ -62,6 +62,9 @@ def main() -> Tuple[Dict[str, Any], int]:
         first_debate_minus_1_month = first_debate_minus_1_month.strftime("%Y-%m-%d")
 
         status["bluesky"] = bluesky.bluesky_counts_from(client, dateFrom=first_debate_minus_1_month, keywords=[keyword])
+
+
+        status["reddit"] = reddit.reddit_counts_from(client, dateFrom=first_debate_minus_1_month, keywords=[keyword])
     except Exception as e:
         print(traceback.format_exc())
         status = {"error": str(e)}
