@@ -3,16 +3,14 @@ from unittest.mock import patch, MagicMock
 from flask import Flask
 import sys
 
-# couldnt import this directly idk how to fix it other than this sorry
-sys.path.append('../comp90024_team_57/src/open_australia/oa_debates')
+sys.path.append('./src/open_australia/oa_debates')
 from oa_debate_adder import main
 
+
 class TestDebateAdderFunction(unittest.TestCase):
-    
     @patch('oa_debate_adder.config')
     @patch('oa_debate_adder.Elasticsearch')
     def test_add_debate(self, mock_es_cls, mock_config):
-
 
         # for getting keys and routes from the configmap
         def config_side_effect(key):
@@ -50,7 +48,6 @@ class TestDebateAdderFunction(unittest.TestCase):
                     }]):
 
                     mock_current_app.logger = MagicMock()
-
 
                     mock_es = MagicMock()
                     # mock the es client so it says its added
@@ -91,3 +88,7 @@ class TestDebateAdderFunction(unittest.TestCase):
                             }
                         }
                     )
+
+
+if __name__ == "__main__":
+    unittest.main()
