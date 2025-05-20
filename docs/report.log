@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 21:24
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.3.25)  20 MAY 2025 21:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -809,20 +809,20 @@ File: lstlang1.sty 2024/09/23 1.10c listings language file
 ) (./report.aux)
 \openout1 = `report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 76.
-LaTeX Font Info:    ... okay on input line 76.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 66.
+LaTeX Font Info:    ... okay on input line 66.
 \c@lstlisting=\count351
 
 (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
@@ -851,7 +851,7 @@ e
 Package pgfplots Warning: running in backwards compatibility mode (unsuitable t
 ick labels; missing features). Consider writing \pgfplotsset{compat=1.18} into 
 your preamble.
- on input line 76.
+ on input line 66.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -899,26 +899,26 @@ Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
-LaTeX Font Info:    Trying to load font information for U+msa on input line 78.
-
-
-(/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Trying to load font information for U+msb on input line 78.
-
-
-(/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
 
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 100
+.
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 100
+.
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
 <report_images/architecture.png, id=36, 1506.62875pt x 1413.28pt>
 File: report_images/architecture.png Graphic file (type png)
 <use report_images/architecture.png>
-Package pdftex.def Info: report_images/architecture.png  used on input line 134
+Package pdftex.def Info: report_images/architecture.png  used on input line 148
 .
 (pdftex.def)             Requested size: 376.65627pt x 353.31914pt.
 
@@ -926,61 +926,61 @@ Package pdftex.def Info: report_images/architecture.png  used on input line 134
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 141--148
+Underfull \hbox (badness 10000) in paragraph at lines 155--162
 
  []
 
 
 
-[2]
-Underfull \hbox (badness 10000) in paragraph at lines 149--156
+[1]
+Underfull \hbox (badness 10000) in paragraph at lines 163--170
 
  []
 
 
 
-[3 <./report_images/architecture.png>]
+[2 <./report_images/architecture.png>]
 LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 1
-74.
+88.
 
 (/usr/share/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <8> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 174.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 188.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 221.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 235.
 
 
-[4{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+[3{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+
+[4]
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 328.
+
 
 [5]
-LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 314.
-
 
 [6]
-
-[7]
-Underfull \hbox (badness 10000) in paragraph at lines 378--382
+Underfull \hbox (badness 10000) in paragraph at lines 392--396
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 383--386
+Underfull \hbox (badness 10000) in paragraph at lines 397--400
 
  []
 
-<report_images/bluesky-posts.png, id=70, 1398.22375pt x 500.87125pt>
+<report_images/bluesky-posts.png, id=69, 1398.22375pt x 500.87125pt>
 File: report_images/bluesky-posts.png Graphic file (type png)
 <use report_images/bluesky-posts.png>
-Package pdftex.def Info: report_images/bluesky-posts.png  used on input line 38
-9.
+Package pdftex.def Info: report_images/bluesky-posts.png  used on input line 40
+3.
 (pdftex.def)             Requested size: 419.47037pt x 150.26253pt.
-<report_images/bluesky-cpu.png, id=71, 1394.20876pt x 460.72125pt>
+<report_images/bluesky-cpu.png, id=70, 1394.20876pt x 460.72125pt>
 File: report_images/bluesky-cpu.png Graphic file (type png)
 <use report_images/bluesky-cpu.png>
-Package pdftex.def Info: report_images/bluesky-cpu.png  used on input line 396.
+Package pdftex.def Info: report_images/bluesky-cpu.png  used on input line 410.
 
 (pdftex.def)             Requested size: 418.26585pt x 138.21744pt.
 
@@ -988,85 +988,85 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 
-[8 <./report_images/bluesky-posts.png (PNG copy)>]
+[7 <./report_images/bluesky-posts.png (PNG copy)>]
 
-[9 <./report_images/bluesky-cpu.png (PNG copy)>]
-<report_images/org_wordcloud.png, id=78, 1084.05pt x 650.43pt>
+[8 <./report_images/bluesky-cpu.png (PNG copy)>]
+<report_images/org_wordcloud.png, id=77, 1084.05pt x 650.43pt>
 File: report_images/org_wordcloud.png Graphic file (type png)
 <use report_images/org_wordcloud.png>
-Package pdftex.def Info: report_images/org_wordcloud.png  used on input line 47
-8.
+Package pdftex.def Info: report_images/org_wordcloud.png  used on input line 49
+2.
 (pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
-<report_images/person_wordcloud.png, id=79, 1084.05pt x 650.43pt>
+<report_images/person_wordcloud.png, id=78, 1084.05pt x 650.43pt>
 File: report_images/person_wordcloud.png Graphic file (type png)
 <use report_images/person_wordcloud.png>
 Package pdftex.def Info: report_images/person_wordcloud.png  used on input line
- 485.
+ 499.
 (pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
-<report_images/org_freq.png, id=80, 1084.05pt x 650.43pt>
+<report_images/org_freq.png, id=79, 1084.05pt x 650.43pt>
 File: report_images/org_freq.png Graphic file (type png)
 <use report_images/org_freq.png>
-Package pdftex.def Info: report_images/org_freq.png  used on input line 492.
+Package pdftex.def Info: report_images/org_freq.png  used on input line 506.
 (pdftex.def)             Requested size: 433.61232pt x 260.16739pt.
-<report_images/bluesky_reddit_sentiment.png, id=81, 867.24pt x 433.62pt>
+<report_images/bluesky_reddit_sentiment.png, id=80, 867.24pt x 433.62pt>
 File: report_images/bluesky_reddit_sentiment.png Graphic file (type png)
 <use report_images/bluesky_reddit_sentiment.png>
 Package pdftex.def Info: report_images/bluesky_reddit_sentiment.png  used on in
-put line 513.
+put line 527.
 (pdftex.def)             Requested size: 433.61894pt x 216.80946pt.
-<report_images/openaus_reddit_sentiment.png, id=82, 867.24pt x 433.62pt>
+<report_images/openaus_reddit_sentiment.png, id=81, 867.24pt x 433.62pt>
 File: report_images/openaus_reddit_sentiment.png Graphic file (type png)
 <use report_images/openaus_reddit_sentiment.png>
 Package pdftex.def Info: report_images/openaus_reddit_sentiment.png  used on in
-put line 520.
+put line 534.
 (pdftex.def)             Requested size: 433.61894pt x 216.80946pt.
 
 
-[10]
-<report_images/pauline_sent_avg.png, id=86, 578.16pt x 289.08pt>
+[9]
+<report_images/pauline_sent_avg.png, id=85, 578.16pt x 289.08pt>
 File: report_images/pauline_sent_avg.png Graphic file (type png)
 <use report_images/pauline_sent_avg.png>
 Package pdftex.def Info: report_images/pauline_sent_avg.png  used on input line
- 536.
+ 550.
 (pdftex.def)             Requested size: 404.70924pt x 202.35461pt.
-<report_images/albo_sent_avg.png, id=87, 578.16pt x 289.08pt>
+<report_images/albo_sent_avg.png, id=86, 578.16pt x 289.08pt>
 File: report_images/albo_sent_avg.png Graphic file (type png)
 <use report_images/albo_sent_avg.png>
-Package pdftex.def Info: report_images/albo_sent_avg.png  used on input line 54
-3.
+Package pdftex.def Info: report_images/albo_sent_avg.png  used on input line 55
+7.
 (pdftex.def)             Requested size: 404.70924pt x 202.35461pt.
-<report_images/housing_count.png, id=88, 1011.78pt x 433.62pt>
+<report_images/housing_count.png, id=87, 1011.78pt x 433.62pt>
 File: report_images/housing_count.png Graphic file (type png)
 <use report_images/housing_count.png>
-Package pdftex.def Info: report_images/housing_count.png  used on input line 55
-2.
+Package pdftex.def Info: report_images/housing_count.png  used on input line 56
+6.
 (pdftex.def)             Requested size: 404.70483pt x 173.44492pt.
 
 
-[11 <./report_images/org_wordcloud.png>]
+[10 <./report_images/org_wordcloud.png>]
 
-[12 <./report_images/person_wordcloud.png> <./report_images/org_freq.png>]
+[11 <./report_images/person_wordcloud.png> <./report_images/org_freq.png>]
 
-[13 <./report_images/bluesky_reddit_sentiment.png> <./report_images/openaus_red
+[12 <./report_images/bluesky_reddit_sentiment.png> <./report_images/openaus_red
 dit_sentiment.png>]
 
-[14 <./report_images/pauline_sent_avg.png> <./report_images/albo_sent_avg.png>]
+[13 <./report_images/pauline_sent_avg.png> <./report_images/albo_sent_avg.png>]
 
 
-[15 <./report_images/housing_count.png>] (./report.aux)
+[14 <./report_images/housing_count.png>] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 30965 strings out of 475171
- 737071 string characters out of 5767095
+ 30939 strings out of 475171
+ 736788 string characters out of 5767095
  1430937 words of memory out of 5000000
- 53408 multiletter control sequences out of 15000+600000
- 568653 words of font info for 75 fonts, out of 8000000 for 9000
+ 53390 multiletter control sequences out of 15000+600000
+ 564086 words of font info for 57 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 102i,12n,107p,756b,1510s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 102i,11n,107p,756b,1512s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texmf-dist/fonts/type1/publ
@@ -1077,13 +1077,12 @@ ist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/
 public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><
 /usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/share/texmf-dist/fonts/
-type1/public/cm-super/sfrm0800.pfb></usr/share/texmf-dist/fonts/type1/public/cm
--super/sfrm1000.pfb>
-Output written on report.pdf (15 pages, 2620993 bytes).
+mf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/texmf-dist/fonts/t
+ype1/public/cm-super/sfrm1000.pfb>
+Output written on report.pdf (15 pages, 2613385 bytes).
 PDF statistics:
- 177 PDF objects out of 1000 (max. 8388607)
- 93 compressed objects within 1 object stream
+ 172 PDF objects out of 1000 (max. 8388607)
+ 90 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  164 words of extra memory for PDF output out of 10000 (max. 10000000)
 
