@@ -53,7 +53,7 @@ def open_aus_words(client: Elasticsearch, label: str, keywords: List[str] = [],
     data = {}
     query = oa_query(keywords, date_from, date_to)
 
-    openausIter = AnalysisIterator(client, "/analysis/ner/v2", query, 2000)
+    openausIter = AnalysisIterator(client, "/analysis/ner/v2", query, 500)
     openausIter.elastic_fields("oa-debates", "id", "transcript", "date")
     LIMIT = 15000
     done = 0

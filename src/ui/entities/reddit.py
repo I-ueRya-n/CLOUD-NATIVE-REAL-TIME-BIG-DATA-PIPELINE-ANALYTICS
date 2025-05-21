@@ -55,7 +55,7 @@ def reddit_words(client: Elasticsearch, label: str) -> Dict:
     # (Need to implment a date range and count for reddit posts oops)
     data = {}
     query = reddit_query(["greens"])
-    redditIter = AnalysisIterator(client, "/analysis/ner/v2", query, 2000)
+    redditIter = AnalysisIterator(client, "/analysis/ner/v2", query, 500)
     redditIter.elastic_fields("reddit", "post_id", "content", "timestamp")
 
     for s, _ in redditIter:
